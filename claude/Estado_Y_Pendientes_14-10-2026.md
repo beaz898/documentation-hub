@@ -268,15 +268,16 @@ a ojo. El procedimiento, el coste y la consulta se plantean ANTES de pedírselo 
         D sí es significativa.
       - **Los dos están por debajo de A, B y C, sin el «muy»**: el quinto a 9 de 13 frente a 21 de 21 da p = 0,015, y la
         diferencia se afirma, pero los intervalos se tocan (87 % y 84,5 %).
-    ⚠️⚠️ **PREMISA SIN VERIFICAR PARA LAS PASADAS MEDIDAS (arquitecto, 01/11): «EL JUEZ TIENE LOS DOS DOCUMENTOS ENTEROS
-    DELANTE».** El código lo da por hecho con la ventana de 150.000, y se midió para NOR-11 ↔ CLI-12 el 23/10, y para D el
-    22/10 (más abajo), en OTRAS tandas. Ni para las 21 de D (30-31/10) ni para las 13 del quinto (28/10) está leído en la
-    base. Si el candidato no va entero, se elige entre los fragmentos que devolvió Pinecone, y el §4 o una mitad de D
-    pudieron no llegar. **Lo lee `SQL_34_08_lo_que_recibio_el_juez.sql`, PENDIENTE DE EJECUTAR.** Hasta que vuelva, la
-    línea base de D y la lectura del quinto cuelgan de esta premisa.
-    ⏳ **02/11: el arquitecto informa de que la consulta dio 34 de 34, y la premisa se sostiene. La salida NO HA LLEGADO a
-    Code** (no está en el mensaje ni en el registro de la conversación). La marca se quita cuando se archive la salida
-    literal, no antes.
+    ✅ **LA PREMISA ESTÁ VERIFICADA (02/11): «EL JUEZ TIENE LOS DOS DOCUMENTOS ENTEROS DELANTE», 34 DE 34.**
+    `SQL_34_08_lo_que_recibio_el_juez.sql`, ejecutada por el director, salida literal en la medida, comprobada con
+    script por Code: en las 21 pasadas de D y en las 13 del quinto, **los dos documentos enteros** (NOR-10 66.801 de
+    66.801, NOR-11 14.704 de 14.704, CLI-12 55.135 de 55.135), régimen `pareja_entera`, dejó fuera false / false, **55 de
+    55 trozos de CLI-12, con el §4 (trozos 7 a 9) y el §6.2 (trozo 13) dentro todas las veces**. Control positivo en verde,
+    con las tres cifras medidas por Code el 02/11, y las 34 horas coinciden con las de `SQL_34_06`. (Del 01/11 al 02/11
+    estuvo marcada como sin verificar: el código lo daba por hecho y sólo se había medido en otras tandas.)
+    ⚠️⚠️ **LA SEMANA 0, CERRADA CON ESO (arquitecto, 02/11): EL FALLO NO ESTÁ EN BUSCAR NI EN ENTREGAR, ESTÁ EN
+    PREGUNTAR.** El juez tuvo delante, entero, todo lo que hacía falta en las 34 pasadas, y aun así D sale 3 de 21 y el
+    quinto entre 5 y 9 de 13.
     ⚠️⚠️ **EL ÚNICO CASO DÉBIL MEDIDO CON NÚMERO FIRME ES D.** La CLASE del quinto, «el mismo dato bajo otro nombre», se
     establece leyendo sus frases y no depende de la tasa. La tasa ya está acotada, entre 5 y 9 de 13, y no se puede
     comparar con la de D.
@@ -320,6 +321,9 @@ a ojo. El procedimiento, el coste y la consulta se plantean ANTES de pedírselo 
       convierte en auditoría cualquier supervisión periódica.
     - ⚠️ *Lo que no consta* (Code): en las cinco pasadas en que salió el quinto, la cita de CLI-12 es de §6.2, nunca del
       §4. No se sabe si el juez lo halló POR el glosario.
+    - ✅ **EL DATO QUE CIERRA LA RETIRADA (arquitecto, 02/11, sobre `SQL_34_08`)**: el §4 estuvo delante del juez las 13
+      veces, entero y en todas, y en las 5 en que publicó el quinto la cita de CLI-12 fue siempre de §6.2. **No es que no
+      pudiera verlo: lo tenía y no lo usó.**
     - **LA REDACCIÓN: NO SOBREVIVE NINGUNA DE LAS DOS** (arquitecto, 01/11). La original de Code decía «por debajo de la
       mitad» y «lado débil»; la nueva, «no tiene tasa». Con el quinto entre 5 y 9 de 13, la primera no vale (9 de 13 es
       el 69 %) y la segunda ya no es verdad. **La que queda, con el intervalo y sin adjetivos**: «En los cinco casos
@@ -458,6 +462,7 @@ a ojo. El procedimiento, el coste y la consulta se plantean ANTES de pedírselo 
   5. **Activación con los criterios en veintes de Fable.**
   ⚠️⚠️ **EL ORDEN FINAL (arquitecto, 01/11). Sustituye al orden de arriba en lo que no coincida:**
   1. **Verificar qué recibió el juez**, gratis: `SQL_34_08_lo_que_recibio_el_juez.sql`, las 21 de D y las 13 del quinto.
+     ✅ **HECHO (02/11): los dos documentos enteros, 34 de 34.**
   2. **El verificador, en un commit solo** (el punto 2 de arriba). ✅ **CONSTRUIDO: `d0d513d1`, APROBADO POR EL
      ARQUITECTO (02/11) con una condición que bloqueaba el push**: la prueba del contador con el que se va a atribuir el
      efecto, `verificador.confirmados_solo_por_cumplimiento`. ✅ Escrita en el mismo commit (`contador-del-cumplimiento.test.ts`,
@@ -492,11 +497,13 @@ a ojo. El procedimiento, el coste y la consulta se plantean ANTES de pedírselo 
        marcas**, y una llamada por candidato con hallazgos. Con tres llamadas por análisis serían unos +0,003 $ sobre los
        0,015 $ de un análisis de NOR-10. Para las 40 pasadas de la tanda (20 de NOR-10 y 20 de NOR-11), unos 0,12 $ más.
        ⚠️ El número de llamadas del verificador por análisis NO está medido aquí: lo da `llamadasAlModelo` (etapa
-       `verificador`) de cada pasada, y la propia tanda lo medirá frente a la línea base.
+       `verificador`) de cada pasada, y la propia tanda lo medirá frente a la línea base. **Que nadie lea los 0,12 $
+       como medidos: las tres llamadas por análisis son una SUPOSICIÓN** (arquitecto, 02/11, al aprobar el coste).
      - **PENDIENTE APARTE (arquitecto, 02/11), no se arregla ahora**: los otros seis contadores `verificador.*`
        (`hallazgos_entrantes`, `confirmados`, `confirmados_por_estructura`, `confirmados_por_juicio`, `descartados` y
        `reclasificados`) no tienen prueba de su suma ni de su escritura en `runCorePipeline`; sólo `counters.test.ts`
-       los nombra, sin ejecutar la suma.
+       los nombra, sin ejecutar la suma. **Cuando toque: UNA prueba que cubra los seis cableados a la vez, con el patrón de
+       `contador-del-cumplimiento.test.ts`, no seis pruebas** (arquitecto, 02/11).
   3. **La pregunta cerrada sobre la pareja del quinto, NOR-11·13 ↔ CLI-12·13**, como se hizo con D, 20 pasadas. Si
      sale cerca del 90 %, la pareja le basta; si se cae, la pregunta 1 a Fable tiene su ejemplo (arriba). **Lo que hay
      que tocar** en `app/api/admin/medida-f130/` (Code, 01/11; no construido):
@@ -1571,8 +1578,9 @@ caracteres**, los mismos de antes de la purga. Y la pareja **NOR-10 + CLI-12 sum
 sin comprobar contra esta pasada.)
 
 #### ⚠️ CASO ABIERTO · D, CON SUS DOS MITADES DELANTE Y SIN EMITIRSE · 22/10 · ABIERTO CON NOMBRE
-⚠️ **01/11: MEDIDO PARA LA TANDA DEL 22/10, NO PARA LAS 21 PASADAS DE LA LÍNEA BASE (30-31/10).** Para ésas, sin verificar
-hasta `SQL_34_08` (pendiente principal de F-130).
+✅ **02/11: Y TAMBIÉN EN LAS 21 PASADAS DE LA LÍNEA BASE (30-31/10)**: `SQL_34_08`, los dos documentos enteros 21 de 21, con
+las dos mitades de D dentro (pendiente principal de F-130). Del 01/11 al 02/11 estuvo marcado como medido sólo para la
+tanda del 22/10.
 **Lo medido (arquitecto, de las salidas de la tanda de 150.000)**: las dos mitades de D estuvieron delante del
 juez las cinco veces —en NOR-10, la frase de 3.881 a 4.267 (el dato, «puede recaer en el propio Director Clínico»,
 de 3.943 a 3.984), y el trozo 6 de CLI-12, entregado— y no se publicó nada. ⚠️ Las posiciones, corregidas el 23/10:

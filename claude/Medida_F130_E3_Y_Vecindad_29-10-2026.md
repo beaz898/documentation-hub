@@ -1429,4 +1429,72 @@ cumplimiento es auditar.
 **Y DE AHÍ LA RETIRADA DEL ARQUITECTO (01/11)**: retira «el paso está escrito en el glosario y lo que el sistema no hace
 es usar el glosario». El modelo encuentra el quinto sin usar el glosario: **el glosario no es el paso que falta, es la
 corroboración que un revisor humano usaría.** Y la premisa de que el juez tuvo los dos documentos enteros delante, en
-estas 13 pasadas y en las 21 de D, queda SIN VERIFICAR hasta `SQL_34_08`.
+estas 13 pasadas y en las 21 de D, quedó SIN VERIFICAR hasta `SQL_34_08`. ✅ **Verificada el 02/11: 34 de 34** (sección
+«LO QUE RECIBIÓ EL JUEZ», más abajo).
+
+## LO QUE RECIBIÓ EL JUEZ: LA SALIDA DE SQL_34_08, LITERAL (ejecutada por el director, 02/11/2026)
+
+Las dos mediciones van rellenas en la consulta: D (NOR-10, del 30/10 a las 23:40 al 31/10 a las 23:35, 21 pasadas) y el
+quinto (NOR-11, 28/10 de 08:30 a 09:00, 13 pasadas). El arquitecto la pegó dentro de su mensaje: por pegada aparte no
+había llegado. Code la sacó del registro de la conversación con un script, no la copió a mano:
+
+```
+bloque,a,b,c,d
+organización leída,organización leída: 68bf28c3-8352-4052-8eb4-3a7e31b74b53 · «Mi workspace» · 45 documentos,null,null,null
+0 · control,D · pasadas de NOR-10 en su ventana: 21 · esperado: 21,OK,null,null
+0 · control,el quinto · pasadas de NOR-11 en su ventana: 13 · esperado: 13,OK,null,null
+0 · control,pasadas que no son rápidas: 0,OK,null,null
+0 · control,documentos CLI-12 en la organización: 1 (tiene que ser uno) · generación 1: 55 trozos · activa: 1,OK,null,null
+0 · control,pasadas sin UNA lectura de la pareja con CLI-12: 0,OK,null,null
+0 · control,CONTROL POSITIVO · caracteres de CLI-12 en la lectura: 55135 (tienen que ser 55135) · de NOR-10: 66801 (tienen que ser 66801) · de NOR-11: 14704 (tienen que ser 14704),OK,null,null
+1 · por pasada,D · pasada 1 · 30/10 23:58:11,LOS DOS ENTEROS,"NOR-10: 66801 de 66801 caracteres · CLI-12: 55135 de 55135 caracteres, 55 de 55 trozos",régimen pareja_entera · selección — · dejó fuera: false / false
+1 · por pasada,D · pasada 2 · 30/10 23:58:58,LOS DOS ENTEROS,"NOR-10: 66801 de 66801 caracteres · CLI-12: 55135 de 55135 caracteres, 55 de 55 trozos",régimen pareja_entera · selección — · dejó fuera: false / false
+1 · por pasada,D · pasada 3 · 30/10 23:59:46,LOS DOS ENTEROS,"NOR-10: 66801 de 66801 caracteres · CLI-12: 55135 de 55135 caracteres, 55 de 55 trozos",régimen pareja_entera · selección — · dejó fuera: false / false
+1 · por pasada,D · pasada 4 · 31/10 00:00:36,LOS DOS ENTEROS,"NOR-10: 66801 de 66801 caracteres · CLI-12: 55135 de 55135 caracteres, 55 de 55 trozos",régimen pareja_entera · selección — · dejó fuera: false / false
+1 · por pasada,D · pasada 5 · 31/10 00:01:22,LOS DOS ENTEROS,"NOR-10: 66801 de 66801 caracteres · CLI-12: 55135 de 55135 caracteres, 55 de 55 trozos",régimen pareja_entera · selección — · dejó fuera: false / false
+1 · por pasada,D · pasada 6 · 31/10 00:02:26,LOS DOS ENTEROS,"NOR-10: 66801 de 66801 caracteres · CLI-12: 55135 de 55135 caracteres, 55 de 55 trozos",régimen pareja_entera · selección — · dejó fuera: false / false
+1 · por pasada,D · pasada 7 · 31/10 00:03:15,LOS DOS ENTEROS,"NOR-10: 66801 de 66801 caracteres · CLI-12: 55135 de 55135 caracteres, 55 de 55 trozos",régimen pareja_entera · selección — · dejó fuera: false / false
+1 · por pasada,D · pasada 8 · 31/10 00:04:07,LOS DOS ENTEROS,"NOR-10: 66801 de 66801 caracteres · CLI-12: 55135 de 55135 caracteres, 55 de 55 trozos",régimen pareja_entera · selección — · dejó fuera: false / false
+1 · por pasada,D · pasada 9 · 31/10 00:04:56,LOS DOS ENTEROS,"NOR-10: 66801 de 66801 caracteres · CLI-12: 55135 de 55135 caracteres, 55 de 55 trozos",régimen pareja_entera · selección — · dejó fuera: false / false
+1 · por pasada,D · pasada 10 · 31/10 00:05:47,LOS DOS ENTEROS,"NOR-10: 66801 de 66801 caracteres · CLI-12: 55135 de 55135 caracteres, 55 de 55 trozos",régimen pareja_entera · selección — · dejó fuera: false / false
+1 · por pasada,D · pasada 11 · 31/10 00:06:49,LOS DOS ENTEROS,"NOR-10: 66801 de 66801 caracteres · CLI-12: 55135 de 55135 caracteres, 55 de 55 trozos",régimen pareja_entera · selección — · dejó fuera: false / false
+1 · por pasada,D · pasada 12 · 31/10 00:07:38,LOS DOS ENTEROS,"NOR-10: 66801 de 66801 caracteres · CLI-12: 55135 de 55135 caracteres, 55 de 55 trozos",régimen pareja_entera · selección — · dejó fuera: false / false
+1 · por pasada,D · pasada 13 · 31/10 00:08:16,LOS DOS ENTEROS,"NOR-10: 66801 de 66801 caracteres · CLI-12: 55135 de 55135 caracteres, 55 de 55 trozos",régimen pareja_entera · selección — · dejó fuera: false / false
+1 · por pasada,D · pasada 14 · 31/10 00:09:02,LOS DOS ENTEROS,"NOR-10: 66801 de 66801 caracteres · CLI-12: 55135 de 55135 caracteres, 55 de 55 trozos",régimen pareja_entera · selección — · dejó fuera: false / false
+1 · por pasada,D · pasada 15 · 31/10 00:09:47,LOS DOS ENTEROS,"NOR-10: 66801 de 66801 caracteres · CLI-12: 55135 de 55135 caracteres, 55 de 55 trozos",régimen pareja_entera · selección — · dejó fuera: false / false
+1 · por pasada,D · pasada 16 · 31/10 00:10:42,LOS DOS ENTEROS,"NOR-10: 66801 de 66801 caracteres · CLI-12: 55135 de 55135 caracteres, 55 de 55 trozos",régimen pareja_entera · selección — · dejó fuera: false / false
+1 · por pasada,D · pasada 17 · 31/10 00:11:34,LOS DOS ENTEROS,"NOR-10: 66801 de 66801 caracteres · CLI-12: 55135 de 55135 caracteres, 55 de 55 trozos",régimen pareja_entera · selección — · dejó fuera: false / false
+1 · por pasada,D · pasada 18 · 31/10 00:12:27,LOS DOS ENTEROS,"NOR-10: 66801 de 66801 caracteres · CLI-12: 55135 de 55135 caracteres, 55 de 55 trozos",régimen pareja_entera · selección — · dejó fuera: false / false
+1 · por pasada,D · pasada 19 · 31/10 00:13:23,LOS DOS ENTEROS,"NOR-10: 66801 de 66801 caracteres · CLI-12: 55135 de 55135 caracteres, 55 de 55 trozos",régimen pareja_entera · selección — · dejó fuera: false / false
+1 · por pasada,D · pasada 20 · 31/10 00:14:23,LOS DOS ENTEROS,"NOR-10: 66801 de 66801 caracteres · CLI-12: 55135 de 55135 caracteres, 55 de 55 trozos",régimen pareja_entera · selección — · dejó fuera: false / false
+1 · por pasada,D · pasada 21 · 31/10 00:15:28,LOS DOS ENTEROS,"NOR-10: 66801 de 66801 caracteres · CLI-12: 55135 de 55135 caracteres, 55 de 55 trozos",régimen pareja_entera · selección — · dejó fuera: false / false
+1 · por pasada,el quinto · pasada 1 · 28/10 08:33:20,LOS DOS ENTEROS,"NOR-11: 14704 de 14704 caracteres · CLI-12: 55135 de 55135 caracteres, 55 de 55 trozos",régimen pareja_entera · selección — · dejó fuera: false / false
+1 · por pasada,el quinto · pasada 2 · 28/10 08:34:17,LOS DOS ENTEROS,"NOR-11: 14704 de 14704 caracteres · CLI-12: 55135 de 55135 caracteres, 55 de 55 trozos",régimen pareja_entera · selección — · dejó fuera: false / false
+1 · por pasada,el quinto · pasada 3 · 28/10 08:35:39,LOS DOS ENTEROS,"NOR-11: 14704 de 14704 caracteres · CLI-12: 55135 de 55135 caracteres, 55 de 55 trozos",régimen pareja_entera · selección — · dejó fuera: false / false
+1 · por pasada,el quinto · pasada 4 · 28/10 08:36:30,LOS DOS ENTEROS,"NOR-11: 14704 de 14704 caracteres · CLI-12: 55135 de 55135 caracteres, 55 de 55 trozos",régimen pareja_entera · selección — · dejó fuera: false / false
+1 · por pasada,el quinto · pasada 5 · 28/10 08:43:47,LOS DOS ENTEROS,"NOR-11: 14704 de 14704 caracteres · CLI-12: 55135 de 55135 caracteres, 55 de 55 trozos",régimen pareja_entera · selección — · dejó fuera: false / false
+1 · por pasada,el quinto · pasada 6 · 28/10 08:44:49,LOS DOS ENTEROS,"NOR-11: 14704 de 14704 caracteres · CLI-12: 55135 de 55135 caracteres, 55 de 55 trozos",régimen pareja_entera · selección — · dejó fuera: false / false
+1 · por pasada,el quinto · pasada 7 · 28/10 08:45:43,LOS DOS ENTEROS,"NOR-11: 14704 de 14704 caracteres · CLI-12: 55135 de 55135 caracteres, 55 de 55 trozos",régimen pareja_entera · selección — · dejó fuera: false / false
+1 · por pasada,el quinto · pasada 8 · 28/10 08:46:37,LOS DOS ENTEROS,"NOR-11: 14704 de 14704 caracteres · CLI-12: 55135 de 55135 caracteres, 55 de 55 trozos",régimen pareja_entera · selección — · dejó fuera: false / false
+1 · por pasada,el quinto · pasada 9 · 28/10 08:47:24,LOS DOS ENTEROS,"NOR-11: 14704 de 14704 caracteres · CLI-12: 55135 de 55135 caracteres, 55 de 55 trozos",régimen pareja_entera · selección — · dejó fuera: false / false
+1 · por pasada,el quinto · pasada 10 · 28/10 08:48:53,LOS DOS ENTEROS,"NOR-11: 14704 de 14704 caracteres · CLI-12: 55135 de 55135 caracteres, 55 de 55 trozos",régimen pareja_entera · selección — · dejó fuera: false / false
+1 · por pasada,el quinto · pasada 11 · 28/10 08:49:57,LOS DOS ENTEROS,"NOR-11: 14704 de 14704 caracteres · CLI-12: 55135 de 55135 caracteres, 55 de 55 trozos",régimen pareja_entera · selección — · dejó fuera: false / false
+1 · por pasada,el quinto · pasada 12 · 28/10 08:52:24,LOS DOS ENTEROS,"NOR-11: 14704 de 14704 caracteres · CLI-12: 55135 de 55135 caracteres, 55 de 55 trozos",régimen pareja_entera · selección — · dejó fuera: false / false
+1 · por pasada,el quinto · pasada 13 · 28/10 08:55:12,LOS DOS ENTEROS,"NOR-11: 14704 de 14704 caracteres · CLI-12: 55135 de 55135 caracteres, 55 de 55 trozos",régimen pareja_entera · selección — · dejó fuera: false / false
+2 · el total,D (NOR-10 ↔ CLI-12): los dos enteros en 21 de 21 pasadas,"el juez tuvo delante todo NOR-10 y todo CLI-12, con el §4 (trozos 7 a 9) y §6.2 (trozo 13)",null,null
+2 · el total,el quinto (NOR-11 ↔ CLI-12): los dos enteros en 13 de 13 pasadas,"el juez tuvo delante todo NOR-11 y todo CLI-12, con el §4 (trozos 7 a 9) y §6.2 (trozo 13)",null,null
+```
+
+**Comprobado con script sobre la salida**:
+- Seis controles, los seis OK. El control positivo da 55.135, 66.801 y 14.704, las tres cifras medidas por Code el 02/11.
+- Las 21 de D y las 13 del quinto: **LOS DOS ENTEROS** en todas. NOR-10 66.801 de 66.801, NOR-11 14.704 de 14.704,
+  CLI-12 55.135 de 55.135 con 55 de 55 trozos, régimen `pareja_entera`, dejó fuera false / false.
+- Las 21 horas de D y las 13 del quinto son las de `SQL_34_06`, pasada a pasada.
+- La selección sale «—»: el campo `seleccion` no está guardado en esas lecturas. No cambia nada: con el candidato
+  entero, todos los trozos fueron.
+
+**CONSECUENCIAS (arquitecto, 02/11)**:
+- **La premisa «los dos documentos enteros delante» queda VERIFICADA, 34 de 34.**
+- **LA SEMANA 0 SE CIERRA CON ESO: EL FALLO NO ESTÁ EN BUSCAR NI EN ENTREGAR, ESTÁ EN PREGUNTAR.**
+- **El dato que cierra la retirada del glosario**: el §4 estuvo delante del juez las 13 veces, y en las 5 en que publicó
+  el quinto la cita de CLI-12 fue siempre de §6.2. No es que no pudiera verlo: lo tenía y no lo usó.

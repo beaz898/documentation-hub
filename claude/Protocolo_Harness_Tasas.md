@@ -1419,6 +1419,23 @@ los dos los cazó Code:
     (`verify-findings.ts:203` y `rama-de-las-reglas.ts:17-18`) y las citó con el nombre de Fable al escribir el commit.
     **Es un defecto del contrato del arquitecto: lo detectó Fable y Code comprobó las citas.**
 
+- ⚠️ **EL PATRÓN, con el enunciado del arquitecto (02/11): «LE DOY A CODE EL CRÉDITO DE LO QUE ENCUENTRA FABLE, PORQUE
+  CODE ES CON QUIEN HABLO».** No es casual: el arquitecto habla con Code, y lo que llega por esa conversación se le
+  atribuye a quien la sostiene.
+  Las ocurrencias, comprobadas en el archivo por Code:
+  1. **31/10, «la convergencia de dos fugas»**: «dos fugas que encontró Code, sin que ninguno supiera del otro». La
+     fuga del verificador la había encontrado Fable el 29/10 (arriba, en esta misma sección). El arquitecto la fecha el
+     29/10; en el archivo es del 31/10, y del 29/10 es el hallazgo de Fable.
+  2. **02/11, la contradicción del prompt viejo del verificador**: la encontró Fable el 29/10; Code comprobó las dos
+     frases literales.
+  ⚠️ *Code, al escribirla*: el arquitecto contó el 14.704 como tercera ocurrencia, pero tiene otra forma. Allí no se le
+  dio a Code el crédito de algo de Fable: se le atribuyó una afirmación que Code no hizo. Es la familia del misquote del
+  29/10, que es donde el propio arquitecto lo puso el mismo día (arriba). Con las dos de este patrón, más el 30/10 y el
+  14.704 del de atribuir lo que no se dijo, esta sección tiene ya las dos formas. Qué cuenta en cada una lo decide el
+  arquitecto.
+  **LA REGLA (arquitecto, 02/11)**: «antes de atribuir un hallazgo, el arquitecto dice de qué fuente lo saca; si no
+  puede nombrarla, no lo atribuye».
+
 **LA FORMA OPERATIVA**: antes de escribir «lo encontraste tú», «lo dijo él» o «lo paraste», se mira en el archivo quién lo
 escribió primero, y qué pasó.
 **Y SU PRIMA, del mismo día**: un resumen que recorta una regla deja de ser la regla. La regla nueva de Fable llevaba una

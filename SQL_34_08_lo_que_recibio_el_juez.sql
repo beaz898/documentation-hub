@@ -1,7 +1,8 @@
 -- ============================================================================
 -- SQL_34_08 · LO QUE RECIBIÓ EL JUEZ DE VERDAD EN LAS DOS MEDICIONES DE LA SEMANA 0 — SÓLO LECTURA (01/11/2026)
--- ⏳ PENDIENTE DE EJECUTAR. Sólo SELECT: no escribe, no borra, no cambia nada. La ejecuta el director; Code no
--- ejecuta consultas.
+-- ✅ EJECUTADO por el director el 02/11/2026: los dos documentos enteros en las 21 pasadas de D y en las 13 del quinto
+-- (34 de 34), control positivo en verde. La salida, literal, en la medida de F-130. Sólo SELECT: no escribe, no borra,
+-- no cambia nada.
 --
 -- PARA QUÉ (arquitecto, 01/11): la premisa «el juez tiene los dos documentos enteros delante» sostiene dos cosas: la
 -- lectura del quinto («el glosario ya estaba delante») y la línea base de D (la consulta F-129 dice que las dos mitades
