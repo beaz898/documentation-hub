@@ -588,6 +588,20 @@ a ojo. El procedimiento, el coste y la consulta se plantean ANTES de pedírselo 
   —que D muriera en el verificador por la pregunta equivocada—. Para un commit cuyo propósito era averiguar eso antes de
   construir encima, es el resultado que se buscaba. **La palanca sigue donde decíamos: en el juez, o sea en la pasada 2.**
   Mañana, después de la 01:00, 21 de NOR-11, con la ventana real en la fila 4 de `SQL_34_09`.
+  ⚠️⚠️ **EL BALANCE DEL PASO 2, MITAD NOR-10 (arquitecto, 02/11; los seis puntos, comprobados por Code contra las salidas
+  archivadas de `SQL_34_06` y `SQL_34_09`):**
+  1. **Nada roto**: A, B y C en 21 de 21, como en la base.
+  2. **D en 1 de 21** (la pasada 19), dentro del suelo de ruido [0, 6] y sin cambio detectable.
+  3. **El verificador de dos preguntas, igual de fiable que el de una**: `descartado.sin_veredicto`, 0 de 106 frente a 0 de 105.
+  4. **Cero muertes sin texto y descartes registrados en las 21**: tanda limpia. *Matiz de Code: es la primera tanda de 21
+     limpia, pero no la primera limpia; las 7 pasadas del 28/10 también lo salieron
+     (`claude/Medida_F130_E3_Y_Vecindad_29-10-2026.md:775-783`).*
+  5. **El camino arreglado, disparado una vez en 28 pasadas de NOR-10** (la D etiquetada del 28/10, pasada 5 de 7).
+  6. **La duda de F-129 §3.1.1, contestada por el producto**: el verificador confirmó D por la pregunta del dato.
+  **EL CABO QUE FALTA PARA CERRARLO: EL COSTE.** `SQL_34_10_el_coste_del_verificador_nuevo.sql` (PENDIENTE DE EJECUTAR) da
+  el coste medio por análisis, el del verificador aparte y la duración, de la tanda nueva frente a la base. Las tres
+  ventanas van rellenas, y la de NOR-11 nueva en nulo hasta mañana. Con eso, P-F130-17 tiene contra qué puntuarse cuando
+  llegue la pasada 2.
   ⚠️⚠️ **EL ORDEN FINAL (arquitecto, 01/11). Sustituye al orden de arriba en lo que no coincida:**
   1. **Verificar qué recibió el juez**, gratis: `SQL_34_08_lo_que_recibio_el_juez.sql`, las 21 de D y las 13 del quinto.
      ✅ **HECHO (02/11): los dos documentos enteros, 34 de 34.**

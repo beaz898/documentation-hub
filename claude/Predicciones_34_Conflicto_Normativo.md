@@ -630,3 +630,13 @@ después, una duda que no supimos decidir leyendo la ha contestado el propio pro
 D** (arquitecto).
 La tensión que abre sigue escrita arriba: o el verificador tiene una noción de «mismo dato» más ancha que la nuestra, o
 nuestra clasificación de D («una permisión contra un principio», F-129:191-192) tiene que revisarse.
+
+### P-F130-17: CONTRA QUÉ SE PUNTÚA (Code, 02/11/2026)
+
+P-F130-17, literal: «coste de NOR-10 entre 0,03 y 0,04 $; latencia +5 a +10 s.» Se puntúa contra el coste medido DESPUÉS
+del cambio del verificador (decidido esta mañana), y ese coste lo da `SQL_34_10_el_coste_del_verificador_nuevo.sql`, con la
+tanda nueva de NOR-10 frente a su base.
+⚠️ **«Latencia» tiene que decir de qué duración habla antes de puntuarse.** `SQL_34_10` mide la duración del análisis como el
+registro la documenta: del primer comienzo al último final, CON la espera. La columna «s» de `SQL_34_06` es
+`max(comienzo + latencia)`, SIN la espera. Las dos no se mezclan: el «+5 a +10 s» se mide con una y la misma en las dos
+puntas.

@@ -1,0 +1,35 @@
+import type { Definicion } from '../../herramientas/mutar';
+
+// Los mutantes de SQL_34_10. node claude/herramientas/mutar-cli.mts claude/arneses/f34/mutantes-sql-34-10.ts
+export const definicion: Definicion = {
+  fichero: 'SQL_34_10_el_coste_del_verificador_nuevo.sql',
+  arnes: 'claude/arneses/f34/sql-34-10-el-coste-del-verificador-nuevo.test.ts',
+  proyecto: 'arneses',
+  tests: 7,
+  mutantes: [
+    { nombre: 'la resolución no exige UNA pertenencia', ancla: '         CASE WHEN count(m.org_id) = 1 THEN min(m.org_id::text) END AS org', cambio: '         min(m.org_id::text) AS org' },
+    { nombre: 'pasadas de cualquier organización', ancla: "  JOIN public.analysis_results ar ON ar.org_id = (SELECT org FROM resolucion) AND ar.document_name LIKE m.documento || '%'", cambio: "  JOIN public.analysis_results ar ON true AND ar.document_name LIKE m.documento || '%'" },
+    { nombre: 'pasadas de cualquier documento', ancla: " AND ar.document_name LIKE m.documento || '%'\n                                 AND ar.created_at >= m.desde", cambio: '\n                                 AND ar.created_at >= m.desde' },
+    { nombre: 'sin la ventana', ancla: '                                 AND ar.created_at >= m.desde AND ar.created_at < m.hasta', cambio: '' },
+    { nombre: 'un precio de entrada mal copiado', ancla: "('claude-haiku-5-5',          0.10, 0.50, 0.125, 0.01)", cambio: "('claude-haiku-5-5',          0.25, 0.50, 0.125, 0.01)" },
+    { nombre: 'el coste sin la salida', ancla: '(q.te * pr.entrada + q.ts * pr.salida + q.tw', cambio: '(q.te * pr.entrada + q.tw' },
+    { nombre: 'el verificador por otro nombre', ancla: "coalesce(sum(c.coste) FILTER (WHERE c.etapa = 'verificador'), 0) AS coste_verificador", cambio: "coalesce(sum(c.coste) FILTER (WHERE c.etapa = 'juez'), 0) AS coste_verificador" },
+    { nombre: 'las peticiones del verificador sin filtrar', ancla: "count(c.etapa) FILTER (WHERE c.etapa = 'verificador') AS peticiones_verificador", cambio: 'count(c.etapa) AS peticiones_verificador' },
+    { nombre: 'las fallidas sin filtrar', ancla: "count(c.etapa) FILTER (WHERE c.resultado IS DISTINCT FROM 'ok') AS fallidas", cambio: 'count(c.etapa) AS fallidas' },
+    { nombre: 'la duración sin la espera', ancla: 'coalesce(max(c.com + c.esp + c.lat) - min(c.com), 0) AS duracion', cambio: 'coalesce(max(c.com + c.lat) - min(c.com), 0) AS duracion' },
+    { nombre: 'el mínimo y el máximo cambiados', ancla: 'min(pp.coste) AS coste_min, max(pp.coste) AS coste_max', cambio: 'max(pp.coste) AS coste_min, min(pp.coste) AS coste_max' },
+    { nombre: 'la latencia del verificador de todas las etapas', ancla: "WHERE c.orden = m.orden AND c.etapa = 'verificador') AS latencia_verificador", cambio: 'WHERE c.orden = m.orden) AS latencia_verificador' },
+    { nombre: 'el control de las esperadas no mira', ancla: '         CASE WHEN x.sin_ventana THEN NULL ELSE x.n = x.esperado END', cambio: '         CASE WHEN x.sin_ventana THEN NULL ELSE true END' },
+    { nombre: 'el control del modo rápido no mira', ancla: "ELSE (SELECT count(*) FROM pasadas WHERE analysis_type IS DISTINCT FROM 'quick') = 0 END", cambio: 'ELSE true END' },
+    { nombre: 'el control del registro no mira', ancla: "ELSE (SELECT count(*) FROM pasadas WHERE jsonb_typeof(reg) IS DISTINCT FROM 'object') = 0 END", cambio: 'ELSE true END' },
+    { nombre: 'el control de precios no mira', ancla: '         (SELECT count(*) FROM con_coste WHERE NOT con_precio) = 0\n', cambio: '         true\n' },
+    { nombre: 'el control del detalle no mira las peticiones sin etapa', ancla: "\n                OR EXISTS (SELECT 1 FROM peticiones q WHERE q.id = pasadas.id AND q.etapa = 'sin_etapa')) = 0\n  UNION ALL", cambio: ') = 0\n  UNION ALL' },
+    { nombre: 'el control positivo no mira', ancla: 'ELSE (SELECT sum(con_verificador) FROM por_medicion WHERE NOT sin_ventana) = (SELECT sum(n) FROM por_medicion WHERE NOT sin_ventana) END', cambio: 'ELSE true END' },
+    { nombre: 'la ventana sin rellenar se mide igual', ancla: "  FROM por_medicion x WHERE NOT x.sin_ventana AND x.n > 0\n  UNION ALL", cambio: "  FROM por_medicion x WHERE x.n >= 0\n  UNION ALL" },
+    { nombre: 'por etapa, dividido entre las peticiones y no entre las pasadas', ancla: 'SELECT x.orden, c.etapa, sum(c.coste) / x.n AS coste_medio', cambio: 'SELECT x.orden, c.etapa, avg(c.coste) AS coste_medio' },
+    { nombre: 'por etapa, sin ordenar por coste', ancla: '         m.orden, -e.coste_medio::numeric', cambio: '         m.orden, 0' },
+    { nombre: 'la comparación contra la otra pareja', ancla: "JOIN por_medicion n ON n.documento = b.documento AND n.tanda = 'tanda nueva'", cambio: "JOIN por_medicion n ON n.documento <> b.documento AND n.tanda = 'tanda nueva'" },
+    { nombre: 'la comparación con el signo cambiado', ancla: "to_char(100 * (n.coste_medio - b.coste_medio) / nullif(b.coste_medio, 0), 'FMSG990.0')", cambio: "to_char(100 * (b.coste_medio - n.coste_medio) / nullif(b.coste_medio, 0), 'FMSG990.0')" },
+    { nombre: 'la organización leída deja de ir primera', ancla: "ORDER BY (bloque <> 'organización leída'), bloque, o1, o2, a;", cambio: 'ORDER BY bloque, o1, o2, a;' },
+  ],
+};

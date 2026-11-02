@@ -1389,6 +1389,20 @@ la cuenta exacta, antes de mirar ningún resultado.
 
 ---
 
+## ⚠️ LO QUE EL ARQUITECTO EXPLICA AL DIRECTOR NO ENTRA EN EL REGISTRO
+
+*Arquitecto, 02/11/2026, con su nombre.* **Cualquier CIFRA que el arquitecto afirme va dentro del encargo, no sólo en la
+explicación. Si no está en el encargo, no existe y no se puede comprobar.**
+**Por qué**: a Code le llega sólo lo que el director pega. La explicación del arquitecto al director se queda fuera, así que
+Code no puede comprobar la mitad de lo que el arquitecto da por dicho.
+**El caso, del mismo día**: el arquitecto defendió «escribí "un 1 o menos sale el 18 %"» y Code buscó la frase en todos los
+mensajes pegados: no estaba. Las dos cosas eran ciertas: lo escribió, pero en su explicación al director, fuera del bloque
+pegado. **Y el gemelo, unas horas antes**: un extracto recortado de `SQL_34_06` llegó como si fuera la salida, y de él
+salieron «la pasada 19» y «todo sin especie», que Code tuvo que escribir como no comprobados hasta que llegó la salida
+entera. **Un extracto no es la salida, y una explicación no es el encargo.**
+
+---
+
 ## ⚠️ EL ARQUITECTO NO PIDE A CODE QUE EJECUTE UNA CONSULTA: PIDE QUE LA DEJE LISTA, Y EL CONTROL POSITIVO ES UN PASO DEL DIRECTOR
 
 *Arquitecto, 30/10/2026, con su nombre.* Code no ejecuta SQL contra la base: las consultas las ejecuta el director. **El
