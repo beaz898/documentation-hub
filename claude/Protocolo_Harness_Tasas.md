@@ -1428,11 +1428,9 @@ los dos los cazó Code:
      29/10; en el archivo es del 31/10, y del 29/10 es el hallazgo de Fable.
   2. **02/11, la contradicción del prompt viejo del verificador**: la encontró Fable el 29/10; Code comprobó las dos
      frases literales.
-  ⚠️ *Code, al escribirla*: el arquitecto contó el 14.704 como tercera ocurrencia, pero tiene otra forma. Allí no se le
-  dio a Code el crédito de algo de Fable: se le atribuyó una afirmación que Code no hizo. Es la familia del misquote del
-  29/10, que es donde el propio arquitecto lo puso el mismo día (arriba). Con las dos de este patrón, más el 30/10 y el
-  14.704 del de atribuir lo que no se dijo, esta sección tiene ya las dos formas. Qué cuenta en cada una lo decide el
-  arquitecto.
+  **Son DOS ocurrencias, no tres (confirmado por el arquitecto, 02/11)**: el 14.704 no era darle a Code el crédito
+  de algo de Fable, sino atribuirle una frase que no dijo, que es la familia del misquote del 29/10 (arriba). Y la
+  convergencia de dos fugas es del 31/10. Juntar los tres en una clase fue otro error, con su propio patrón (abajo).
   **LA REGLA (arquitecto, 02/11)**: «antes de atribuir un hallazgo, el arquitecto dice de qué fuente lo saca; si no
   puede nombrarla, no lo atribuye».
 
@@ -1462,6 +1460,41 @@ abajo).* Enunciado literal:
    trozos. El arquitecto lo convirtió en «partida entre el trozo 8 y el 9», y así entró en su borrador de la adenda.
    La frase está entera en los dos, repetida por el solape. ⚠️ *La mitad de Code*: «en el borde» era una frase floja,
    y por eso cabía la lectura afilada.
+
+---
+
+## ⚠️ EL ARQUITECTO AGRUPA EN CLASE LO QUE COMPARTE LA APARIENCIA Y NO EL MECANISMO
+
+*Arquitecto, 02/11/2026, con su nombre. Enunciado literal:*
+
+> «El arquitecto agrupa en clase lo que comparte la apariencia y no el mecanismo, y lo hace también con sus propios
+> fallos. Una clase de dos casos se escribe como dos casos.»
+
+**LAS DOS OCURRENCIAS, y las dos las cazó Code:**
+1. **01/11, con los casos del producto**: la partición «dato / cumplimiento» juntaba D y el quinto conflicto en una
+   clase («los dos exigen un paso que no está escrito»). Medido, no comparten ninguna propiedad: el quinto es de dato,
+   y el glosario que iba a ser el paso escrito el modelo lo tenía delante y no lo usó. Quedaron como dos casos, dos
+   fronteras (`claude/Estado_Y_Pendientes_14-10-2026.md`, pendiente principal de F-130).
+2. **02/11, con sus propios fallos**: juntó tres errores suyos en el patrón «le doy a Code el crédito de lo que
+   encuentra Fable», y sólo dos eran de esa clase. El tercero, el 14.704, era atribuir a Code una frase que no dijo: la
+   familia del misquote (sección de arriba).
+
+---
+
+## LO QUE SALE BIEN TAMBIÉN SE ESCRIBE
+
+*Arquitecto, 02/11/2026: «que quede en el registro de la casa como el buen patrón, no sólo los malos».*
+
+- **02/11 · La cita entera aunque debilite el argumento propio** (Code). Al verificar el glosario de CLI-12, Code citó
+  NOR-11 §11 entero, con el final que menos convenía: «…y con el manual de calidad CLI-12, que establece el enfoque de
+  auditoría aplicable a este proceso, **igual que ocurre con el resto de procesos críticos de seguridad de la
+  clínica**». Ese final pone la remisión a CLI-12 en una lista de relaciones con otros documentos, y debilita la
+  lectura que la usaba como argumento. Es lo contrario del error del 24-25/10: entonces la cita se recortó con una
+  elipsis que se comía la evidencia contra la lectura de quien citaba (§5.1 de la medida del F-312, pegado literal en
+  el estado). *El arquitecto lo recordó como «igual que ocurre con los protocolos de seguridad de la clínica»; el
+  literal es el de arriba.*
+  **La forma operativa**: una cita se da entera, y si su final debilita el argumento propio, ese final es lo primero
+  que se lleva a la otra lectura. La adenda de F-130 del 02/11 lo lleva así.
 
 ---
 

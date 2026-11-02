@@ -362,6 +362,11 @@ a ojo. El procedimiento, el coste y la consulta se plantean ANTES de pedírselo 
   - ⚠️ **REINCIDENCIA DEL ARQUITECTO, con su nombre (01/11): la clase del quinto, mal por SEGUNDA vez.** La primera, del
     24-25/10: lo presentó como un `norma_contra_norma`, y la lectura corregida está más abajo en este fichero, fechada
     «arquitecto, 25/10». La segunda, hoy: la partición «dato / cumplimiento» volvía a sacar el quinto del dato.
+    ⚠️ *Code, 02/11*: entre las dos hay una aparición más, sin registrar hasta hoy. La consulta F-130 del 28/10, posterior a
+    la corrección del 25/10, presentó el quinto a Fable como «la forma FÁCIL de la misma familia» que D («Mismo sujeto,
+    mismo verbo, mismo objeto, modalidad opuesta»; `claude/consultas-fable/F-130_2026-10-28_que-decide-lo-que-un-juez-escribe.md:86`),
+    y el dictamen se apoyó en eso («tiene superficie y marcador; debería salir más», `:190`). La adenda del 02/11 lo
+    corrige ante Fable.
     **El archivo primario, en este repositorio, es este fichero, con su fecha «arquitecto, 25/10».** El que cita el
     arquitecto, `claude/Medida_F312_La_Regla_Del_Sujeto_24-10-2026.md`, es un documento del proyecto de Claude, no un
     fichero del repositorio, y Code no lo tiene ni lo tendrá. **Su §5.1, como lo pegó el arquitecto el 01/11, literal**:
