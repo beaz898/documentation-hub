@@ -1487,9 +1487,12 @@ la extrapolación (llevar una cifra a otra condición). Enunciado literal:*
    «nunca» no lo había medido nadie.
 4. **01/11 · «no pasó nunca en las 13»**, sobre la duplicación dentro de una pasada: había muertos sin texto que no se
    podían atribuir. **Ésta la cazó el propio arquitecto**, y quedó «compatible con lo observado en la pasada 12».
-⚠️ *Candidata que Code no añade, para no agrupar por la apariencia*: «el sistema encuentra el 100 % de las
-contradicciones de dato» (31/10) también es un absoluto sobre un conjunto sin enumerar, pero ya está registrada como
-extrapolación (de tres casos a una clase). Si cuenta también aquí, lo decide el arquitecto.
+5. **02/11 · «que el producto encuentra de forma fiable»**, sobre las tres sembradas del caso de control. Con su
+   conjunto: 2 de 3 el 27/08, y las tres en 3 de 10 pasadas del 06 al 08/10 (B.357); 3 de 3 en las cinco del 24/10 según
+   una salida que leyó el arquitecto y Code no ha visto. La cazó Code; el arquitecto la retira.
+⚠️ **Referencia cruzada, sin contar dos veces (arquitecto, 02/11)**: «el sistema encuentra el 100 % de las contradicciones
+de dato» (31/10) también es un absoluto sobre un conjunto sin enumerar, pero se cuenta en la extrapolación, ocurrencia
+5, donde ya estaba.
 
 **Y EL MISMO DÍA, LA REGLA APLICADA A CODE**: la búsqueda que tumbó la ocurrencia 3 era por VOCABULARIO («prevalece»,
 «vinculante»…), y dio tres cláusulas entre documentos. La cuarta, CLI-13 «No sustituye a NOR-11…», no tiene ninguna de
@@ -1561,7 +1564,8 @@ HACIENDO CUMPLIR CODE.»** Cinco veces en tres días, y las cinco las cazó Code
 3. el 14 % del producto frente al 90 % de la herramienta, cruzando condiciones (31/10);
 4. «el 2 de 7 era optimista», con p = 0,574 (31/10);
 5. «el sistema encuentra el 100 % de las contradicciones de dato y el 14 % de las inferenciales»: de tres casos y uno a dos
-   clases (31/10). Lo sustituye la redacción de Code, que el arquitecto tomó literal.
+   clases (31/10). Lo sustituye la redacción de Code, que el arquitecto tomó literal. *(Es también un cuantificador
+   absoluto sobre un conjunto sin enumerar: referencia cruzada con esa sección, donde no se cuenta otra vez.)*
 **Cómo funciona esto de verdad, y así queda escrito**: la regla la escribe el arquitecto, y la sostiene el contrato de que
 Code implementa lo que el arquitecto dice Y AVISA.
 

@@ -1572,3 +1572,13 @@ Los dos conjuntos archivados con texto de esta pareja:
 fiable» sin su conjunto): 2 de 3 el 27/08 (`SIEMBRA_caso_control.md` §D); en las diez pasadas del 06 al 08/10, las
 tres sólo en 3 de 10 (B.357); en las cinco del 24/10, 3 de 3 en las cinco (cifra del arquitecto, de las salidas de
 `SQL_313_01`, en el estado).
+
+**LA LECTURA (arquitecto, 02/11), sobre la medición de Code**: el producto NO es ciego a la prelación. No le falta
+extraerla: le **falta el cable** entre «esto es un solapamiento» y «esto resuelve aquella contradicción». Y «se
+complementan» ya es media coartada jerárquica. El conjunto sobre el que se dice: las cinco pasadas del examen del
+27/09 (un solo hallazgo publicado con CLI-13, no sembrado) y las diez del 06 al 08/10 (13 contradicciones, ningún tema
+que la mencione, sólo temas archivados). Lo posterior, sin mirar. Y sólo para las cláusulas de NOR-11 y CLI-13: si el
+producto lee las de CLI-12 (§4 y §12.9) como solapamiento, no está medido.
+**La restricción estructural**: un hallazgo publicado no tiene campo libre donde explicar una prelación; sólo el tema y
+las dos citas literales (`lib/analysis/tipos-del-analisis-publicado.ts`, `discrepancies`). Ponerle al lado la cláusula
+que lo resuelve es, como mínimo, un campo nuevo.

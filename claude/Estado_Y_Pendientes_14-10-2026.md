@@ -368,6 +368,9 @@ a ojo. El procedimiento, el coste y la consulta se plantean ANTES de pedírselo 
     resuelve. En las diez pasadas del 06 al 08/10 (B.357), ninguno de los temas de las 13 contradicciones la menciona
     (las citas no están archivadas). Lo posterior no se ha mirado. La casa la tenía escrita desde el 27/08 como RIESGO, «la
     coartada jerárquica» (`SIEMBRA_caso_control.md` §C.1); leerla como recurso para RESOLVER es del arquitecto (02/11).
+    **LA LECTURA (arquitecto, 02/11)**: no falta extraerla, **falta el cable** entre el solapamiento y la contradicción; y
+    «se complementan» ya es media coartada jerárquica. Medido sólo para NOR-11 y CLI-13, y sin campo libre en el hallazgo
+    publicado donde poner la cláusula (detalle en la medida).
   - **PENDIENTE CON DISPARADOR (arquitecto, 01/11)**: el glosario de CLI-12 está verificado con el código de la indexación
     sobre `corpus-pruebas/`, no contra el texto guardado en la base. Se verifica en la base **el día que algo se apoye en
     el glosario**.
