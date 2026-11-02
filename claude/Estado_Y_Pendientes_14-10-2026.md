@@ -274,6 +274,9 @@ a ojo. El procedimiento, el coste y la consulta se plantean ANTES de pedírselo 
     base. Si el candidato no va entero, se elige entre los fragmentos que devolvió Pinecone, y el §4 o una mitad de D
     pudieron no llegar. **Lo lee `SQL_34_08_lo_que_recibio_el_juez.sql`, PENDIENTE DE EJECUTAR.** Hasta que vuelva, la
     línea base de D y la lectura del quinto cuelgan de esta premisa.
+    ⏳ **02/11: el arquitecto informa de que la consulta dio 34 de 34, y la premisa se sostiene. La salida NO HA LLEGADO a
+    Code** (no está en el mensaje ni en el registro de la conversación). La marca se quita cuando se archive la salida
+    literal, no antes.
     ⚠️⚠️ **EL ÚNICO CASO DÉBIL MEDIDO CON NÚMERO FIRME ES D.** La CLASE del quinto, «el mismo dato bajo otro nombre», se
     establece leyendo sus frases y no depende de la tasa. La tasa ya está acotada, entre 5 y 9 de 13, y no se puede
     comparar con la de D.
@@ -455,7 +458,45 @@ a ojo. El procedimiento, el coste y la consulta se plantean ANTES de pedírselo 
   5. **Activación con los criterios en veintes de Fable.**
   ⚠️⚠️ **EL ORDEN FINAL (arquitecto, 01/11). Sustituye al orden de arriba en lo que no coincida:**
   1. **Verificar qué recibió el juez**, gratis: `SQL_34_08_lo_que_recibio_el_juez.sql`, las 21 de D y las 13 del quinto.
-  2. **El verificador, en un commit solo** (el punto 2 de arriba).
+  2. **El verificador, en un commit solo** (el punto 2 de arriba). ✅ **CONSTRUIDO: `d0d513d1`, APROBADO POR EL
+     ARQUITECTO (02/11) con una condición que bloqueaba el push**: la prueba del contador con el que se va a atribuir el
+     efecto, `verificador.confirmados_solo_por_cumplimiento`. ✅ Escrita en el mismo commit (`contador-del-cumplimiento.test.ts`,
+     3 pruebas, 6 de 6 mutantes en rojo): el cableado de la suma y la escritura en `runCorePipeline`, y el catálogo. Es
+     una prueba sobre el TEXTO del código, como `registro-en-el-pipeline.test.ts`, porque el pipeline entero no corre en
+     la suite.
+     - **Las dos decisiones de Code, APROBADAS**: «mismo_dato_sin_oposicion + no_cumplibles → confirmado» (es el caso de
+       D), y un confirmado sólo por la pregunta 2 sale como `contradiction`.
+     - ⚠️ **LA CONSECUENCIA DE PRODUCTO, nombrada en el commit (arquitecto)**: la subida de severidad se queda, porque es
+       la misma regla aplicada a un conjunto más grande (antes, todo confirmado por la pregunta del cumplimiento era un
+       marcado, y los marcados ya subían). Pero **LOS FALSOS POSITIVOS DE LA PREGUNTA 2 LLEGARÁN AL CLIENTE COMO
+       «contradiction», NO COMO «minor_inconsistency».**
+     - ⚠️ **LA ETIQUETA: NO SE PONE. APLAZAMIENTO DELIBERADO (arquitecto, 02/11)**: un confirmado sin marca no recibe
+       `conflictoNormativo`. Lo que proponía Fable, literal (F-130, adenda f, 31/10): «Con eso, un D que la pasada 1
+       emita sin etiqueta sobrevive al verificador, y la especie se recupera en el camino en vez de en el prompt.»
+       Los tres motivos para no hacerlo todavía:
+       1. La taxonomía no tiene etiqueta para «el mismo dato bajo otro nombre», y la ausencia significa «la
+          contradicción de siempre», que es lo correcto.
+       2. Sería el verificador afirmando una especie que el juez no afirmó, y la ÚNICA etiqueta que se ha observado en el
+          quinto estaba MAL puesta.
+       3. Cambia lo que ve el cliente, y no hay dato que lo respalde.
+       **Disparador**: se revisa cuando haya medición de si esa etiqueta acertaría.
+     - **LO QUE TIENE QUE REPORTAR LA NUEVA MEDICIÓN DE 20, además de si D sale (arquitecto, 02/11; no bloquean el commit)**:
+       (a) el TOTAL de `verificador.confirmados_solo_por_cumplimiento` de toda la tanda, para ver el ruido y no sólo la
+       señal; (b) `descartado.sin_veredicto` FRENTE AL DE LA LÍNEA BASE, como guarda de regresión: ahora el modelo
+       contesta dos campos por hallazgo, y un aumento de respuestas malformadas mataría hallazgos en silencio.
+     - **EL COSTE, estimado (Code, 02/11)**. Lo fijo de cada llamada del verificador pasa de 2.598 caracteres (sin la
+       rama) a 5.611 (la plantilla nueva, 3.070, más la pregunta 2, 2.541): +3.013, unos 750 tokens de entrada con la
+       regla ÷4. A 1 $ el millón (Haiku 4.5, `lib/observability/llm-pricing.ts:27`), +0,00075 $ por llamada. Un lote con
+       marcados antes eran DOS llamadas (7.787 de fijo) y ahora es una (5.611): ahorra 2.176. La salida suma el campo
+       `cumplimiento`, unos 8 tokens por hallazgo, a 5 $ el millón. **Neto: unos +0,001 $ por llamada del verificador sin
+       marcas**, y una llamada por candidato con hallazgos. Con tres llamadas por análisis serían unos +0,003 $ sobre los
+       0,015 $ de un análisis de NOR-10. Para las 40 pasadas de la tanda (20 de NOR-10 y 20 de NOR-11), unos 0,12 $ más.
+       ⚠️ El número de llamadas del verificador por análisis NO está medido aquí: lo da `llamadasAlModelo` (etapa
+       `verificador`) de cada pasada, y la propia tanda lo medirá frente a la línea base.
+     - **PENDIENTE APARTE (arquitecto, 02/11), no se arregla ahora**: los otros seis contadores `verificador.*`
+       (`hallazgos_entrantes`, `confirmados`, `confirmados_por_estructura`, `confirmados_por_juicio`, `descartados` y
+       `reclasificados`) no tienen prueba de su suma ni de su escritura en `runCorePipeline`; sólo `counters.test.ts`
+       los nombra, sin ejecutar la suma.
   3. **La pregunta cerrada sobre la pareja del quinto, NOR-11·13 ↔ CLI-12·13**, como se hizo con D, 20 pasadas. Si
      sale cerca del 90 %, la pareja le basta; si se cae, la pregunta 1 a Fable tiene su ejemplo (arriba). **Lo que hay
      que tocar** en `app/api/admin/medida-f130/` (Code, 01/11; no construido):

@@ -1404,6 +1404,21 @@ los dos los cazó Code:
   Code. Code no paró nada: escribió y avisó, que es el contrato. (El relato equivocado quedó en el mensaje, y no llegó a
   ningún documento.)
 
+- **02/11, tres más, del arquitecto, con su nombre:**
+  - **«Dijiste que el 14.704 no estaba comprobado».** Code había escrito que lo sacó del estado, donde consta como
+    «comprobado por Code» el 22/10, y que no lo había vuelto a medir. Es una afirmación atribuida a Code que Code no
+    hizo, y el arquitecto la pone en la misma familia que el «misquote» del 29/10: el resumen de Fable del prompt del
+    juez, transmitido como si fuera cita (`claude/Estado_Y_Pendientes_14-10-2026.md`, «LA CITA QUE CIRCULÓ ERA UN
+    RESUMEN DE FABLE»). **Es la segunda ocurrencia de ese patrón, no un error nuevo.** Aun con la confusión, Code hizo lo
+    que tocaba: no apoyar un control en una cifra que no había visto medir. Midió las tres, y coincidían.
+  - **«Unos 59.100 caracteres» de CLI-12, y son 55.135.** El arquitecto leyó mal un número de un mensaje de Code que le
+    llegó troceado.
+  - **«La contradicción del prompt viejo la encontró Code».** La encontró FABLE el 29/10 (F-130: «el prompt del lote de
+    marcados empieza diciendo "decide UNA SOLA cosa: si se oponen sobre el mismo dato" y más abajo dice que a los
+    marcados no les haga esa pregunta»). Code comprobó las dos frases literales contra los ficheros
+    (`verify-findings.ts:203` y `rama-de-las-reglas.ts:17-18`) y las citó con el nombre de Fable al escribir el commit.
+    **Es un defecto del contrato del arquitecto: lo detectó Fable y Code comprobó las citas.**
+
 **LA FORMA OPERATIVA**: antes de escribir «lo encontraste tú», «lo dijo él» o «lo paraste», se mira en el archivo quién lo
 escribió primero, y qué pasó.
 **Y SU PRIMA, del mismo día**: un resumen que recorta una regla deja de ser la regla. La regla nueva de Fable llevaba una
