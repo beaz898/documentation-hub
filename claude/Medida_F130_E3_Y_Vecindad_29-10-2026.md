@@ -1762,3 +1762,42 @@ organización leída,organización leída: 68bf28c3-8352-4052-8eb4-3a7e31b74b53 
 **Comprobado con script** (02/11, 19:48): 6 de 6 controles OK, con 0 pasadas sin «discarded»; 21 pasadas. **A, B y C, en 21 de
 21**, todas sin especie. **D, en 1 de 21: la pasada 19**, sin especie, con la cita de CLI-12 en §3.5. Ningún muerto sin texto
 en la pareja, y **ninguna etiqueta en toda la salida**.
+
+## EL COSTE DE LA TANDA DEL VERIFICADOR NUEVO: SQL_34_10, LA SALIDA ENTERA (ejecutada por el director, 02/11/2026)
+
+Las tres ventanas rellenas y la de NOR-11 nueva vacía. Llegó en un mensaje aparte, sin texto alrededor, y Code la sacó del
+registro de la conversación con un script:
+
+```
+bloque,a,b,c,d
+organización leída,organización leída: 68bf28c3-8352-4052-8eb4-3a7e31b74b53 · «Mi workspace» · 45 documentos,null,null,null
+0 · control,línea base · NOR-10 · pasadas en su ventana: 21 · esperado: 21,OK,null,null
+0 · control,tanda nueva · NOR-10 · pasadas en su ventana: 21 · esperado: 21,OK,null,null
+0 · control,línea base · NOR-11 · pasadas en su ventana: 13 · esperado: 13,OK,null,null
+0 · control,tanda nueva · NOR-11 · pasadas en su ventana: 0 · esperado: 21 (sin ventana todavía: no se mide),NO APLICA,null,null
+0 · control,pasadas que no son rápidas: 0,OK,null,null
+0 · control,pasadas sin registro por llamada (su coste no se puede medir): 0,OK,null,null
+0 · control,peticiones con un modelo que no está en la tabla de precios: 0,OK,null,null
+0 · control,pasadas con peticiones fuera del detalle o sin etapa (las cifras por etapa no serían el total): 0,OK,null,null
+0 · control,CONTROL POSITIVO · pasadas medidas con alguna petición del verificador: 55 de 55,OK,null,null
+1 · por medición,línea base · NOR-10 · 21 pasadas,coste medio por análisis 0.031515 $ (de 0.025901 a 0.040039) · total 0.661821 $,verificador: 0.011599 $ por análisis · 36.8 % del coste · 1.19 peticiones por análisis · latencia media por petición 1435 ms,"duración media del análisis 33.7 s, con la espera (la columna de SQL_34_06, sin espera ni origen: 36.6 s) · espera media por análisis 0.99 s · peticiones que no salieron bien: 0 de 109"
+1 · por medición,tanda nueva · NOR-10 · 21 pasadas,coste medio por análisis 0.033229 $ (de 0.028531 a 0.040537) · total 0.697800 $,verificador: 0.013314 $ por análisis · 40.1 % del coste · 1.19 peticiones por análisis · latencia media por petición 1821 ms,"duración media del análisis 34.4 s, con la espera (la columna de SQL_34_06, sin espera ni origen: 37.5 s) · espera media por análisis 1.34 s · peticiones que no salieron bien: 0 de 109"
+1 · por medición,línea base · NOR-11 · 13 pasadas,coste medio por análisis 0.030208 $ (de 0.025468 a 0.035011) · total 0.392710 $,verificador: 0.010118 $ por análisis · 33.5 % del coste · 1.69 peticiones por análisis · latencia media por petición 1066 ms,"duración media del análisis 39.5 s, con la espera (la columna de SQL_34_06, sin espera ni origen: 40.9 s) · espera media por análisis 1.18 s · peticiones que no salieron bien: 0 de 74"
+2 · por etapa,línea base · NOR-10,juez,0.013514 $ por análisis · 42.9 % del coste,2.00 peticiones por análisis
+2 · por etapa,línea base · NOR-10,verificador,0.011599 $ por análisis · 36.8 % del coste,1.19 peticiones por análisis
+2 · por etapa,línea base · NOR-10,rerank,0.004910 $ por análisis · 15.6 % del coste,1.00 peticiones por análisis
+2 · por etapa,línea base · NOR-10,sintesis,0.001492 $ por análisis · 4.7 % del coste,1.00 peticiones por análisis
+2 · por etapa,tanda nueva · NOR-10,juez,0.013461 $ por análisis · 40.5 % del coste,2.00 peticiones por análisis
+2 · por etapa,tanda nueva · NOR-10,verificador,0.013314 $ por análisis · 40.1 % del coste,1.19 peticiones por análisis
+2 · por etapa,tanda nueva · NOR-10,rerank,0.004965 $ por análisis · 14.9 % del coste,1.00 peticiones por análisis
+2 · por etapa,tanda nueva · NOR-10,sintesis,0.001489 $ por análisis · 4.5 % del coste,1.00 peticiones por análisis
+2 · por etapa,línea base · NOR-11,juez,0.011533 $ por análisis · 38.2 % del coste,2.00 peticiones por análisis
+2 · por etapa,línea base · NOR-11,verificador,0.010118 $ por análisis · 33.5 % del coste,1.69 peticiones por análisis
+2 · por etapa,línea base · NOR-11,rerank,0.006917 $ por análisis · 22.9 % del coste,1.00 peticiones por análisis
+2 · por etapa,línea base · NOR-11,sintesis,0.001640 $ por análisis · 5.4 % del coste,1.00 peticiones por análisis
+3 · nueva frente a base,NOR-10,coste medio por análisis: 0.031515 → 0.033229 $ (+5.4 %),verificador: 0.011599 → 0.013314 $ (+14.8 %),"duración media, con la espera: 33.7 → 34.4 s · espera media: 0.99 → 1.34 s"
+```
+
+**Comprobado con script** (02/11, 22:27): 8 controles OK, más el de NOR-11 nueva, que da NO APLICA; el control positivo, 55 de
+55. NOR-10: **0,031515 → 0,033229 $ (+0,001714 $, +5,4 %)**. El verificador, **0,011599 → 0,013314 $ (+0,001715 $): el 100 % del
+aumento**. El juez, 0,013514 → 0,013461 $, igual. Duración, 33,7 → 34,4 s; espera, 0,99 → 1,34 s; 0 peticiones fallidas de 109.

@@ -1411,6 +1411,30 @@ puede confundirse con otra dé un número distinto.
 
 ---
 
+## ⚠️ NINGUNA CIFRA SALE EN UN ENCARGO A FABLE SIN SU MEDICIÓN, SU FECHA Y SU FICHERO AL LADO
+
+*Arquitecto, 02/11/2026, con su nombre.* **Si no los tiene, se escribe «no medido» y se manda así.**
+**El caso, con sus palabras**: el 0,015 $ «NO SALIÓ DE NINGUNA MEDICIÓN: me la inventé y la metí en el encargo a Fable del
+29/10, y Fable construyó P-F130-17 encima». **Es la peor consecuencia que ha tenido ninguno de sus fallos de hoy: UNA CIFRA
+INVENTADA SALIÓ DE CASA Y SE CONVIRTIÓ EN LA BASE DE UNA PREDICCIÓN AJENA.** Y la medición de verdad estaba escrita desde el
+22/10: NOR-10, entre 0,0294 y 0,0352 $ por análisis (`claude/Estado_Y_Pendientes_14-10-2026.md:1652-1654`), el doble de lo
+inventado.
+
+---
+
+## ⚠️ LOS DATOS SEMBRADOS DE UN ARNÉS TIENEN QUE ROMPER TODA SIMETRÍA QUE LA CONSULTA PUEDA CONFUNDIR
+
+*Arquitecto, 02/11/2026, con su nombre: «ya merece su propia regla, no tres anécdotas».* **Al menos dos sumandos distintos en
+cada suma, al menos dos orígenes distintos en cada resta de tiempos, y cifras distintas en cada medición que se compare con
+otra.**
+**Los tres casos, del mismo día y en la misma consulta (`SQL_34_10`)**: las dos líneas base con el mismo coste (la tanda se
+podía comparar con la base de la otra pareja); una sola petición con espera por pasada (la suma era el máximo); y todas las
+peticiones empezando en el origen (restar el comienzo o no restarlo daba lo mismo, y de ahí salió la etiqueta falsa «sin la
+espera»). **Los dos primeros los cazaron los mutantes, ninguno las pruebas. El tercero no lo cazó nada hasta la medición
+real**, porque no había ningún mutante de «la resta del origen». El caso de ejemplo, con su arreglo, más abajo.
+
+---
+
 ## ⚠️ UNA CIFRA DE OTRA FUENTE, SIN MEDIR, COMO DENOMINADOR: EL 0,015 $ (02/11/2026)
 
 **El arquitecto, con su nombre**: esperaba que el verificador nuevo subiera el coste de un 15 a un 25 %, y subió un 5,4 %
@@ -1426,6 +1450,15 @@ número escrito por esta casa vuelve con autoridad prestada.
 sumando que le faltaba y no la resta que le faltaba (el origen). El arquitecto decidió sobre esa etiqueta, y la decisión cayó
 en cuanto se midió: «sin la espera» salía MÁS larga. El arnés no lo podía cazar porque todas sus peticiones empezaban en el
 origen: **tercer caso del día de datos de prueba demasiado simétricos**, el mismo de «la otra pareja» y «la espera sin sumar».
+**Y la mitad del arquitecto, con sus palabras**: «la etiqueta es tuya en su origen pero mía en la decisión: tú la llamaste "sin
+la espera" y yo decidí sobre esa etiqueta sin comprobar la fórmula». Las dos cosas, al registro.
+**Y LA TERCERA DE CODE, la peor, del mismo día (22:27)**: para mostrar que el 0,015 no casaba con nada, Code escribió «el 28/10
+la cifra medida era de unos 0,0235 $». **No era una medición: era una suma** del 0,0228 de F-128 (ventana a 40.000) y del
++0,00068 de F-129 (sólo la etapa del juez, de 80.000 a 150.000). El arquitecto la tomó como dato y encargó para la mañana
+siguiente buscar la causa de «un 34 % más de coste». **El agujero no existía**: la medición del 22/10, con la ventana a
+150.000, ya daba de 0,0294 a 0,0352 $. Code lo cazó al ir a buscar la causa, antes de que se gastara la mañana en ello. **Es la
+misma enfermedad que el 0,015, sólo que con aritmética encima, que la hace más creíble**
+(`claude/Predicciones_34_Conflicto_Normativo.md`, «EL AGUJERO DE LOS 0,008 $ NO EXISTE»).
 
 ---
 

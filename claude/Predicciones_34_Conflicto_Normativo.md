@@ -657,6 +657,7 @@ predicho.*~~
 
 ## EL COSTE DEL VERIFICADOR NUEVO, Y LA BASE DE P-F130-17 (arquitecto y Code, 02/11/2026, 21:27)
 
+*(22:27: la salida llegó y está comprobada; las cifras del arquitecto, todas bien. Ver «LA SALIDA DE SQL_34_10, COMPROBADA», abajo.)*
 ⚠️ **LA SALIDA DE `SQL_34_10` NO HA LLEGADO A CODE.** El arquitecto escribió «la salida va dentro de la pegada del director» y
 en el mensaje no había ninguna fila: sólo las cifras de su lectura. **Todas las cifras de esta sección que salen de esa
 salida son del arquitecto y no están comprobadas**: 0,0315 → 0,0332 $ (+5,4 %, +0,0017 $), el verificador al 40,1 % y el
@@ -685,6 +686,8 @@ predicción apoyada en una cifra nuestra mala.
 1. **Su primera aparición es nuestra, en el encargo a Fable**: «Coste actual: unos 0,015 $ por análisis»
    (`F-130_…md:72`, en el texto que entró con `46e81362`, el 29/10 a las 00:33). **No cita ninguna medición, ni fecha, ni
    ventana.** No he encontrado ninguna medición en el repositorio que dé 0,015 $ por análisis.
+*(22:27: los puntos 2 a 4 tienen un error de Code, y la corrección está abajo, en «EL AGUJERO DE LOS 0,008 $ NO EXISTE». El
+«0,0235 $» no es una medición: es una suma de Code. El 0,015 sigue sin medición detrás.)*
 2. **Y la medición que sí había lo contradice.** F-128 midió el coste por análisis con el juez en Haiku 5.5: **0,02280 $**
    (P-6, calificada el 20/10; `claude/Predicciones_F128_El_Modelo_Del_Juez.md:145`). F-129 midió que subir la ventana a
    150.000 costaba **+0,00068 $ por análisis** (`claude/consultas-fable/F-129_…md:120`, 23/10). **Así que el 28/10 la cifra
@@ -720,7 +723,7 @@ sale **de 0,048 a 0,058 $**. Pero **ese incremento no tiene ningún término med
 no está decidido, y la diferencia entre Haiku 4.5 y 5.5 es de diez veces. **Lo único medido es la base.** Antes de proyectar
 en serio hay que fijar el modelo de la pasada 2 y medir una llamada.
 
-### EL VERIFICADOR CUESTA CASI LO MISMO QUE EL JUEZ (arquitecto; cifras sin comprobar)
+### EL VERIFICADOR CUESTA CASI LO MISMO QUE EL JUEZ (arquitecto; cifras comprobadas a las 22:27)
 
 40,1 % frente a 40,5 % de la factura, con 1,19 peticiones por análisis frente a 2,00. Una etapa que tratamos como una segunda
 opinión barata es el 40 % del coste. **Eso cambia cómo hay que mirar cualquier propuesta que añada llamadas cerca de ella.**
@@ -743,4 +746,41 @@ desde que entra la petición (`app/api/analyze-v2/route.ts:55`, `startedAt`) has
 tránsito por la red, el arranque de la función antes de entrar, y el guardado y la respuesta después de la línea 667. Es la
 cifra más cercana a lo que espera el usuario que hay guardada. No hay consulta que la lea por tanda: **es un pendiente**, y no
 se escribe sin encargo.
-**Lo que sí queda medido** (arquitecto, sin comprobar): **la espera es de décimas, 0,99 → 1,34 s**. La trampa era pequeña.
+**Lo que sí queda medido** (arquitecto; comprobado a las 22:27): **la espera es de décimas, 0,99 → 1,34 s**. La trampa era pequeña.
+
+### LA SALIDA DE SQL_34_10, COMPROBADA (Code, 02/11/2026, 22:27)
+
+Salida literal en `claude/Medida_F130_E3_Y_Vecindad_29-10-2026.md`. **Las cifras del arquitecto, todas bien**: 0,0315 → 0,0332 $
+(+5,4 %); el verificador al 40,1 % y el juez al 40,5 % en la tanda nueva, con 1,19 y 2,00 peticiones; 34,4 s, y 37,5 en la
+columna de `SQL_34_06`; la espera, de 0,99 a 1,34 s; 0 fallidas de 109; el positivo, 55 de 55.
+**Dos cosas que la lectura no decía:**
+- **el aumento entero es del verificador**: +0,001715 $ de un total de +0,001714 $. El juez, el rerank y la síntesis no se
+  mueven;
+- **en la base, el verificador era el 36,8 %, no el 40 %**: el 40,1 % es el de después del cambio. Y en NOR-11, con 1,69
+  peticiones por análisis, es el 33,5 %.
+
+### ⚠️ EL AGUJERO DE LOS 0,008 $ NO EXISTE: EL «0,0235 $» LO FABRICÓ CODE (02/11/2026, 22:27)
+
+El arquitecto pidió para mañana, antes del quinto, que se explicara un 34 % más de coste entre el «0,0235 $ del 23/10» y el
+0,0315 $ de la base del 30-31/10. **No hay nada que explicar: el 0,0235 no es ninguna medición.** Lo construyó Code esta
+tarde, en el punto 2 de arriba, **sumando dos cifras de bases distintas**:
+- **el 0,02280 $ de F-128** se midió con la ventana a **40.000** (la calificación es del 20/10; la ventana pasó a 80.000 el
+  22/10 por la mañana y a 150.000 por la tarde, `claude/consultas-fable/F-129_…md:99-100`);
+- **el +0,00068 $ de F-129** no es lo que cuesta subir la ventana a 150.000 desde 40.000: es lo que subió **la etapa del juez**
+  (de 0,011775 a 0,012453 $) **de 80.000 a 150.000**.
+
+La suma se salta el escalón de 40.000 a 80.000 y lo mezcla todo. **Y la medición buena estaba escrita**: el 22/10 por la
+tarde, con la ventana ya a 150.000, `SQL_311_02` dio **NOR-10 entre 0,0294 y 0,0352 $ por análisis** en cinco pasadas
+(`claude/Estado_Y_Pendientes_14-10-2026.md:1652-1654`). **La base del 30-31/10, 0,0315 $ (de 0,0259 a 0,0400), cae dentro.**
+No hay salto de coste. El juez, además, va igual: 0,012453 $ el 22/10 y 0,0135 el 30-31/10, en el mismo orden.
+**Lo que cambia arriba**: el punto 3 se sostiene, y mejor, porque ya el 22/10 NOR-10 costaba el doble de 0,015. El punto 4
+queda retirado.
+**Es la regla del cero escrita para esto mismo**: «una cifra fabricada no nace de un error de cálculo, nace de reutilizar un
+número cuyo contexto ya no se sostiene». Y la escribió Code dos horas después de anotar que había repetido el 0,015 sin
+mirar. Al registro.
+
+### SÓLO SE PRE-REGISTRAN LAS PREDICCIONES QUE DECIDEN ALGO (arquitecto, 02/11/2026)
+
+El «15-25 %» no estaba registrado y queda como expectativa contada después. **Pero no se convierte en ceremonia para todo**:
+sólo se pre-registran las predicciones que DECIDEN algo. Ésa no decidía nada. P-VN-1 y los umbrales sí, y se registraron a
+tiempo.

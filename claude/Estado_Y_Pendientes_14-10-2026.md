@@ -196,6 +196,9 @@ pruebas lentas de la sección 5: la lentitud es de la primera pasada en frío.
     tratar las tres como una clase, cuando sólo una es un censo del repositorio, ya fue un error.
   - **El objetivo NO es «que vaya más rápido»: es QUE UN FALLO DE TIEMPO NO PRODUZCA UN ROJO QUE APRENDAMOS A IGNORAR.** Ése
     es el daño real, no los 67 segundos.
+  ⚠️ **CUARTA RECAÍDA (Code, 02/11, 22:39)**: la misma prueba, 73 s, en la suite de un commit sólo de documentos. Repetida la
+  suite entera, verde (2127 y 167). No se toca: tiene su disparador con fecha (el primer commit después de puntuar la tanda,
+  o el 05/11).
 
 **REGISTRO, 29/10/2026 (sólo registro; no se reescribe ningún commit)**: el mensaje del commit `142a6930` («F-130: el
 segundo mensaje de Fable tras los prompts…») dice «Gates: npm test (suite 2115, arneses 117)», y **en ese momento no lo
@@ -609,15 +612,29 @@ a ojo. El procedimiento, el coste y la consulta se plantean ANTES de pedírselo 
   4. **La primera tanda de 21 limpia**: cero muertes sin texto y descartes registrados en las 21.
   5. **El camino arreglado, disparado una vez en 28 pasadas de NOR-10.**
   6. **La duda de F-129 §3.1.1, contestada por el producto.**
-  7. **EL COSTE** *(cifras del arquitecto; la salida de `SQL_34_10` no ha llegado a Code y no están comprobadas)*: **el cambio
+  7. **EL COSTE** *(comprobado contra la salida de `SQL_34_10` a las 22:27; el aumento entero es del verificador)*: **el cambio
      cuesta 0,0017 $ (0,0315 → 0,0332 $, +5,4 %) y siete décimas de segundo**; 0 peticiones fallidas de 109; controles en OK y el
-     positivo en 55 de 55. **El verificador es el 40 % de la factura, casi lo mismo que el juez.**
+     positivo en 55 de 55. **El verificador es el 40 % de la factura, casi lo mismo que el juez** (36,8 % en la base).
   8. **LA CORRECCIÓN DE LA BASE**: **la cifra de coste que usábamos todos, 0,015 $, es menos de la mitad de la real** y no salió
      de ninguna medición. P-F130-17 queda **NO PUNTUABLE tal como está**, y va a Fable cuando se le escriba. El origen del
      0,015 y la proyección con sus supuestos, en `claude/Predicciones_34_Conflicto_Normativo.md`.
-  - **PENDIENTE (anotado, sin abrir)**: la latencia que espera el usuario está guardada en `usage_logs.latency_ms` y ninguna
-    consulta la lee por tanda. Sin ella, el «+5 a +10 s» no se puede puntuar.
-  - **PENDIENTE**: archivar y comprobar la salida de `SQL_34_10` cuando llegue entera.
+  - **PENDIENTE DEL MEDIDOR (arquitecto, 02/11; no se escribe todavía)**: la latencia que espera el usuario. Está guardada en
+    `usage_logs.latency_ms`, de la entrada de la petición a justo antes de guardar (`app/api/analyze-v2/route.ts:55` a `:667`),
+    y ninguna consulta la lee por tanda. **Motivo**: es lo más cercano a lo que espera el usuario, y sin ella P-F130-17 no se
+    puede puntuar en latencia.
+  - ~~**PENDIENTE**: archivar y comprobar la salida de `SQL_34_10` cuando llegue entera.~~ ✅ Hecho a las 22:27.
+  - ~~**Lo primero de mañana, antes del quinto: el agujero de los 0,008 $.**~~ **RETIRADO: no existe.** El «0,0235 $» era una
+    suma de Code, no una medición; la del 22/10 ya daba de 0,0294 a 0,0352 $ (`:1652-1654`, más abajo).
+  - ⚠️ **EL LÍMITE DE 30 ANÁLISIS RÁPIDOS AL DÍA (decisión del director y del arquitecto, 02/11): SE SUBE, PERO NO MAÑANA Y NO A
+    LO LOCO.** Mañana no se toca: 21 pasadas caben en 30.
+    - **¿Se puede subir SÓLO para el usuario del director? HOY NO, sin cambiar código** (Code, leído el 02/11):
+      `getLimit(endpoint, isExhaustive)` (`lib/rate-limiter.ts:130-139`) lee `RATE_LIMIT_ANALYZE` de las variables de entorno y
+      **no recibe el usuario**; el usuario sólo se usa para CONTAR sus llamadas del día (`:90`). Un tope por usuario sería un
+      cambio en una guarda de producción, y no se hace sin plan aprobado.
+    - **Si se sube la variable, se sube Y SE VUELVE A BAJAR**, con el valor viejo (30, o lo que diga Vercel ese día), el
+      nuevo y las dos fechas escritas aquí. **Lo que no puede pasar es que se quede a 50 y nadie recuerde por qué**: el día
+      que haya un cliente, ese número será el suyo también.
+    - **El momento**: cuando una medición necesite los dos documentos el mismo día, que son E5 y la pasada 2.
   ⚠️⚠️ **EL ORDEN FINAL (arquitecto, 01/11). Sustituye al orden de arriba en lo que no coincida:**
   1. **Verificar qué recibió el juez**, gratis: `SQL_34_08_lo_que_recibio_el_juez.sql`, las 21 de D y las 13 del quinto.
      ✅ **HECHO (02/11): los dos documentos enteros, 34 de 34.**
