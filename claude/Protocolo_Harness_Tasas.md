@@ -1475,6 +1475,26 @@ abajo).* Enunciado literal:
 
 ---
 
+## ⚠️ EL ARQUITECTO INVENTA UN HECHO DEL PASADO QUE DEJA LA HISTORIA MÁS LIMPIA
+
+*Arquitecto y Code, 02/11/2026. El arquitecto propuso agruparlo y pidió a Code que decidiera leyendo las dos ocurrencias.*
+Las dos son la misma familia y no la de atribuir un hallazgo: en ninguna se le da a alguien un hallazgo ajeno, sino
+que se escribe un hecho pasado que el archivo no tiene, y que hace la historia más limpia. Cambia sólo la forma del
+hecho:
+1. **01/11 · un SUCESO**: «la paraste antes de que se escribiera», sobre el enunciado del problema. Se escribió en el
+   estado y en la medida el 31/10, con la nota de Code al lado (sección de atribuciones, arriba). *El arquitecto lo
+   recordó como del 29/10; es del 01/11.*
+2. **02/11 · una INTENCIÓN**: «quien escribió el corpus sabía que la coartada estaba ahí y sembró igual», «el caso de
+   control ya es un experimento sobre la coartada, diseñado hace nueve semanas». La coartada la escribió la casa al
+   auditar el par, después de sembrar (sección de atribuciones, arriba). El arquitecto: «me lo inventé».
+**El enunciado**: «el arquitecto inventa un hecho del pasado —un suceso o una intención— que deja la historia más
+limpia, sin mirar el archivo». *(El que propuso el arquitecto, «convierte en intención lo que fue observación
+posterior», describe la segunda y no la primera, que no tiene intención: por eso Code lo ensancha.)*
+**LA REGLA**: un hecho del pasado no se escribe sin el sitio del archivo donde consta. Y su forma para las intenciones,
+del arquitecto: «una intención no se atribuye sin la frase donde su autor la declara».
+
+---
+
 ## ⚠️ EL ARQUITECTO ESCRIBE CUANTIFICADORES ABSOLUTOS SOBRE CONJUNTOS QUE NO HA ENUMERADO
 
 *Arquitecto, 02/11/2026, con su nombre. Es un patrón propio, distinto del error de clase (agrupar por apariencia) y de
