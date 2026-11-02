@@ -581,6 +581,13 @@ a ojo. El procedimiento, el coste y la consulta se plantean ANTES de pedírselo 
     gastar el segundo día; (4) al día siguiente, después de la 01:00, 20 de NOR-11; (5) `SQL_34_09` sin ventanas otra vez;
     (6) si sale limpio, `SQL_34_06` por documento (y `SQL_34_07` si su control 6 falla) y `SQL_34_09` con las dos
     ventanas. Antes del paso 2, el arquitecto elige cómo se puntúa P-VN-1.
+  ✅ **DÍA 1 HECHO (02/11)**: 21 de NOR-10, todas con el verificador nuevo (de 17:54:03 a 18:29:41); `SQL_34_09` con su
+  ventana, controles OK. **P-VN-1a se cumple** (el contador a 0; `sin_veredicto` 0 de 106 frente a 0 de 105). Puntuación y
+  hallazgo en `claude/Predicciones_34_Conflicto_Normativo.md`. Falta `SQL_34_06`, cuya salida no ha llegado a Code.
+  ⚠️ **EL BALANCE DEL PASO 2 (arquitecto, 02/11)**: un euro, un día, **NADA ROTO**, y una línea de pensamiento descartada
+  —que D muriera en el verificador por la pregunta equivocada—. Para un commit cuyo propósito era averiguar eso antes de
+  construir encima, es el resultado que se buscaba. **La palanca sigue donde decíamos: en el juez, o sea en la pasada 2.**
+  Mañana, después de la 01:00, 21 de NOR-11, con la ventana real en la fila 4 de `SQL_34_09`.
   ⚠️⚠️ **EL ORDEN FINAL (arquitecto, 01/11). Sustituye al orden de arriba en lo que no coincida:**
   1. **Verificar qué recibió el juez**, gratis: `SQL_34_08_lo_que_recibio_el_juez.sql`, las 21 de D y las 13 del quinto.
      ✅ **HECHO (02/11): los dos documentos enteros, 34 de 34.**

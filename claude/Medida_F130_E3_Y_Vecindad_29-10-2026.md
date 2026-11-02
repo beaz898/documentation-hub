@@ -1621,3 +1621,33 @@ con la línea base de D. Los umbrales para n = 21, escritos antes de mirar nada,
 **Las ventanas para puntuar**: `SQL_34_06` con `'NOR-10'`, de `2026-11-02 17:54:00+01` a `2026-11-02 18:30:00+01` y 21
 esperadas; `SQL_34_09` con la fila 3 en esa misma ventana y 21, y la fila 4 (NOR-11) con una ventana vacía y 0 esperadas
 hasta que exista su tanda (mañana, 21 pasadas, después de la 01:00).
+
+## LA TANDA DEL VERIFICADOR NUEVO, DÍA 1 (NOR-10): SQL_34_09 CON LA VENTANA (ejecutada por el director, 02/11/2026)
+
+Ventana de NOR-10 de `2026-11-02 17:54:00+01` a `18:30:00+01` con 21 esperadas; NOR-11 con una ventana vacía y 0. El
+arquitecto la pegó dentro de su mensaje y Code la sacó del registro de la conversación con un script:
+
+```
+bloque,a,b,c,d
+organización leída,organización leída: 68bf28c3-8352-4052-8eb4-3a7e31b74b53 · «Mi workspace» · 45 documentos,null,null,null
+0 · control,línea base · NOR-10 · pasadas en su ventana: 21 · esperado: 21,OK,null,null
+0 · control,línea base · NOR-11 · pasadas en su ventana: 13 · esperado: 13,OK,null,null
+0 · control,tanda nueva · NOR-10 · pasadas en su ventana: 21 · esperado: 21,OK,null,null
+0 · control,tanda nueva · NOR-11 · pasadas en su ventana: 0 · esperado: 0,OK,null,null
+0 · control,pasadas que no son rápidas: 0,OK,null,null
+0 · control,CONTROL POSITIVO · pasadas de la tanda nueva con el contador nuevo (corrieron con el verificador nuevo): 21 de 21,OK,null,null
+0 · control,pasadas de la línea base con el contador nuevo (tienen que ser 0): 0,OK,null,null
+1 · por medición,línea base · NOR-10 · 21 pasadas,(a) confirmados SÓLO por la pregunta del cumplimiento: 0 en 0 pasadas (sin el contador: anterior al cambio),"(b) descartado.sin_veredicto: 0 en 0 pasadas, de 105 hallazgos que llegaron al verificador",por pasada: 0.00 sin veredicto
+1 · por medición,línea base · NOR-11 · 13 pasadas,(a) confirmados SÓLO por la pregunta del cumplimiento: 0 en 0 pasadas (sin el contador: anterior al cambio),"(b) descartado.sin_veredicto: 0 en 0 pasadas, de 55 hallazgos que llegaron al verificador",por pasada: 0.00 sin veredicto
+1 · por medición,tanda nueva · NOR-10 · 21 pasadas,(a) confirmados SÓLO por la pregunta del cumplimiento: 0 en 0 pasadas,"(b) descartado.sin_veredicto: 0 en 0 pasadas, de 106 hallazgos que llegaron al verificador",por pasada: 0.00 sin veredicto
+1 · por medición,tanda nueva · NOR-11 · 0 pasadas,(a) confirmados SÓLO por la pregunta del cumplimiento: 0 en 0 pasadas (sin el contador: anterior al cambio),"(b) descartado.sin_veredicto: 0 en 0 pasadas, de 0 hallazgos que llegaron al verificador",null
+"2 · sin_veredicto, nueva frente a base",NOR-10,línea base: 0 de 105 en 21 pasadas · tanda nueva: 0 de 106 en 21 pasadas,igual,null
+"2 · sin_veredicto, nueva frente a base",NOR-11,línea base: 0 de 55 en 13 pasadas · tanda nueva: 0 de 0 en 0 pasadas,igual,null
+3 · el total de la tanda nueva,confirmados SÓLO por la pregunta del cumplimiento: 0 en 0 de 21 pasadas,null,null,null
+```
+
+**Comprobado con script**: los 7 controles, OK, incluidos los dos positivos (21 de 21 de la tanda nueva con el contador, 0
+de la línea base). En la tanda nueva de NOR-10: `verificador.confirmados_solo_por_cumplimiento` = 0; `descartado.sin_veredicto`
+= 0 de 106 hallazgos entrantes, frente a 0 de 105 en la base: «igual».
+⚠️ **Esta consulta no dice nada de D**: ni cuántas veces se publicó, ni en qué pasada, ni con qué especie. Eso lo da
+`SQL_34_06`, y **su salida no ha llegado a Code** (02/11, 19:27).

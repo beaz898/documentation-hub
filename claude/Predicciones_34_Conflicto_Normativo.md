@@ -523,3 +523,68 @@ tres D publicadas iban sin etiqueta: el verificador viejo ya las confirmaba por 
 del cambio: es el mecanismo diciendo que no había nada por ese camino. **Pero un cero sólo vale si se puede demostrar que se
 buscó**: el denominador es `verificador.hallazgos_entrantes` (`SQL_34_09`, bloque 1). Si los hallazgos que llegaron al
 verificador son más que cero y el contador sale a cero, el cero es una medida; si no llegó ninguno, es una pantalla apagada.
+
+## LA TANDA DEL VERIFICADOR NUEVO, DÍA 1 (NOR-10): LA PUNTUACIÓN (arquitecto y Code, 02/11/2026, 19:27)
+
+**De `SQL_34_09`, comprobada por Code con un script** (la salida, literal, en `claude/Medida_F130_E3_Y_Vecindad_29-10-2026.md`):
+- **P-VN-1a SE CUMPLE EN SUS DOS MITADES**: el contador sale a 0, y no deja a D en más de una pasada por encima de lo que
+  emite el juez; `descartado.sin_veredicto` sale 0 de 106 frente a 0 de 105, así que no sube.
+- **El cero es una medida, no una pantalla apagada**: llegaron 106 hallazgos al verificador. Y las dos tandas son
+  comparables en volumen: 106 frente a 105.
+
+**De `SQL_34_06`, según el arquitecto; su salida NO ha llegado a Code y no está comprobada**: D se publicó en 1 de 21 (la
+pasada 19), y todos los hallazgos de las 21 salen «sin especie». Con eso: **P-VN-1 falla** (la tachada: D en 1, no en 3 o 4),
+**P-VN-1b se cumple** (1 está en [0, 6]), y **no se puede decir que D haya empeorado** (1 de 21 sale el 13,7 % de las veces con
+la tasa de la base).
+
+### ⚠️ EL HALLAZGO: EL VERIFICADOR NUNCA FUE EL FRENO DE D (arquitecto; la cadena del código, comprobada por Code)
+
+**Si la D de la pasada 19 se publicó como contradicción y el contador de esa pasada es 0, entonces la pregunta 1 respondió
+«opuestos».** No hay otro camino; comprobado en el código, eslabón a eslabón:
+1. Lo que `SQL_34_06` cuenta como publicado sale de `analysis->'discrepancies'` (`SQL_34_06_hallazgos_por_pasada.sql:119`),
+   y en el rápido eso es `judgments[].contradictions` (`lib/analysis/synthesize.ts:69-72`, `construirDiscrepancias`).
+2. A `contradictions` sólo entra lo que confirmó el verificador, con `confirmedBy: 'juicio'` (`lib/analysis/pipeline.ts:649-655`).
+   `confirmedBy: 'estructura'` es exclusivo del diff de tablas (`pipeline.ts:498`), y D es prosa.
+3. El verificador confirma sólo por dos líneas: la 132 («opuestos», no suma al contador) y la 133 (sólo por el cumplimiento,
+   suma) de `lib/analysis/verify-findings.ts`. Si falta una respuesta, o la llamada falla, el hallazgo NO se confirma: va
+   a `descartado.sin_veredicto` (`verify-findings.ts:302-304` y `:333-336`).
+4. El contador se suma por cada confirmado de la 133 (`pipeline.ts:653`), y en las 21 pasadas vale 0 (`SQL_34_09`, bloque 3).
+
+**Lo que el arquitecto lee de ahí**: creíamos que D moría en el verificador porque se le hacía la pregunta equivocada.
+Resulta que, cuando D llega, el verificador la pasa, y la pasa por la pregunta 1. **El freno de D está entero arriba: el juez
+no la emite 20 de 21 veces.**
+*Una cota de Code, para no leer de más*: es UNA pasada. Dice que el verificador PUEDE leer D como oposición de dato, no que
+lo haga siempre. Y en la línea base pasaba lo mismo: las tres D publicadas iban sin etiqueta y el verificador viejo sólo
+les hacía la pregunta del dato, así que también entonces las confirmaba la pregunta 1. La tanda nueva lo deja visible con
+un contador; no lo descubre por primera vez.
+
+**LA TENSIÓN, que queda escrita**: el verificador lee D como oposición de dato, y eso contradice nuestra lectura de F-129:
+«D no es eso [el mismo dato con dos valores distintos]. D es una permisión contra un principio»
+(`claude/consultas-fable/F-129_2026-10-23_una-permision-contra-un-principio.md:191-192`). **O el verificador tiene una noción
+de «mismo dato» más ancha que la nuestra, o nuestra clasificación de D tiene que revisarse.**
+*Y la duda ya estaba escrita (Code)*: el mismo F-129, en su §3.1, punto 1 (`:198-202`), dejó la otra lectura como posible.
+Las dos frases «mencionan las dos figuras por su nombre y afirman cosas incompatibles sobre su relación. Si eso basta, D
+está dentro de la definición actual y lo que falla es el prompt, no la definición. No sé decidirlo yo». El verificador
+contesta esa pregunta del lado de «está dentro», al menos una vez.
+
+### EL CONTADOR A CERO NO DICE «EL CAMBIO NO SIRVE» (arquitecto, para el registro)
+
+Dice que **la situación que el cambio arregla no ocurrió en esta tanda**. En las 21 pasadas todos los hallazgos salen «sin
+especie» (dato de `SQL_34_06`, sin comprobar por Code), y la fuga que el cambio tapa sólo se dispara con un hallazgo
+etiquetado.
+
+### MAÑANA, NOR-11, escrito antes (arquitecto, con la corrección de Code)
+
+El arquitecto escribió que NOR-11 es el único sitio donde hemos visto al juez poner una etiqueta. **No es así.** Las
+etiquetas en pasadas del producto, según las medidas archivadas:
+- **NOR-11, el quinto, 26/10, pasada 5**: `norma_contra_norma`, confirmado (`claude/Medida_34_Conflicto_Normativo_26-10-2026.md:40`).
+- **NOR-10, D, 28/10, pasada 5 de 7** (ventana del control positivo, de 08:15 a 08:35): **D publicada con `norma_contra_norma`**
+  (`claude/Medida_F130_E3_Y_Vecindad_29-10-2026.md:780`).
+- **NOR-11, 28/10**: el quinto con la etiqueta en la pasada 5 (`:1214`), y un muerto sin texto, etiquetado, del verificador,
+  en la pasada 4 (`:1213`).
+- Ninguna en las 21 pasadas de la línea base de D (30-31/10), donde las tres D iban sin especie (`:809`, `:815`, `:820`).
+- *Las tandas de los arneses de E3 y de la medición de veinte llevan la etiqueta en todas las respuestas, pero son llamadas
+  sueltas al modelo con su propio prompt, no pasadas del producto.*
+
+**Así que el camino arreglado también se ha disparado en NOR-10**: una vez en 28 pasadas (7 del 28/10 y 21 de la línea base).
+NOR-11 sigue siendo el terreno más probable (dos etiquetas en 13 pasadas el 28/10, y una más el 26/10), pero no el único.
