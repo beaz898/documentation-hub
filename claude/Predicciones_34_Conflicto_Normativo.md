@@ -1003,3 +1003,14 @@ comprueba la frase y no el número.
 que SE HARÁ. **P-P3-2 dice que no PRODUCE HALLAZGO, no que no se haga.** Y su apoyo ya no es la clasificación del arquitecto:
 es que en la pasada abierta el juez sacó el quinto SIN etiqueta 8 veces de 9, o sea que él mismo lo enruta por la pregunta
 1. Es una medición, no una opinión (`claude/Medida_F130_E3_Y_Vecindad_29-10-2026.md`, día 2: la etiqueta, sólo en la pasada 3).
+
+### PASO 3 · LAS NOTAS DE LAS 20:45, COMPROBADAS CONTRA EL ENSAYO (Code, 03/11/2026)
+
+La salida del ensayo llegó y está archivada, literal, en `claude/Medida_F130_E3_Y_Vecindad_29-10-2026.md` («PASO 3 · EL
+ENSAYO…»). **Lo que el arquitecto escribió a las 20:45 se sostiene contra el texto guardado**, con una precisión:
+- la pareja: NOR-11·13 y CLI-12·13, generación 1 los dos. **Confirmada.**
+- **P-P3-4, cerrada**: las tres frases que cita son el principio literal de las guardadas (comprobado con script).
+- **La precisión, a la nota al pie de P-P3-1 y a la confirmación de la pareja**: el trozo de NOR-11 no trae «el §10 entero»,
+  sino sus apartados 10.3, 10.4 y 10.5. El 10.1 y el 10.2 van en otro trozo. La lista del arquitecto («10.3 contenedores,
+  10.4 mezcla de grupos, 10.5 revisión») es exacta, y su razonamiento no cambia: el «este apartado» del 10.5 sigue remitiendo
+  a criterios de residuos.
