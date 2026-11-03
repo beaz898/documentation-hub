@@ -310,6 +310,12 @@ a ojo. El procedimiento, el coste y la consulta se plantean ANTES de pedírselo 
     55 trozos de CLI-12, con el §4 (trozos 7 a 9) y el §6.2 (trozo 13) dentro todas las veces**. Control positivo en verde,
     con las tres cifras medidas por Code el 02/11, y las 34 horas coinciden con las de `SQL_34_06`. (Del 01/11 al 02/11
     estuvo marcada como sin verificar: el código lo daba por hecho y sólo se había medido en otras tandas.)
+    ⚠️ **LOS NÚMEROS DE TROZO DE ESTA FRASE NO ESTÁN VERIFICADOS (Code y arquitecto, 03/11).** «trozos 7 a 9» y «trozo 13» van
+    ESCRITOS A MANO en `SQL_34_08` (sus líneas 23 y 163): la consulta no los saca de la base, y salen del troceado local de
+    Code y de la siembra. **Lo que NO toca**: la premisa se apoya en las cuentas de caracteres y de trozos (55 de 55, 55.135 de
+    55.135); si el documento entró entero, sus apartados entraron, y «el fallo no está en buscar ni en entregar» aguanta
+    intacta. **Lo que SÍ toca**: el número de trozo de cada apartado, y con él el paso 3, donde el número de trozo selecciona
+    el texto que se mide. De ahí el ensayo de la herramienta, que lee el trozo de la base y comprueba su frase.
     ⚠️⚠️ **LA SEMANA 0, CERRADA CON ESO (arquitecto, 02/11): EL FALLO NO ESTÁ EN BUSCAR NI EN ENTREGAR, ESTÁ EN
     PREGUNTAR.** El juez tuvo delante, entero, todo lo que hacía falta en las 34 pasadas, y aun así D sale 3 de 21 y el
     quinto entre 5 y 9 de 13.

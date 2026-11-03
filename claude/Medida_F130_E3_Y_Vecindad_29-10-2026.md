@@ -1485,6 +1485,13 @@ organización leída,organización leída: 68bf28c3-8352-4052-8eb4-3a7e31b74b53 
 2 · el total,el quinto (NOR-11 ↔ CLI-12): los dos enteros en 13 de 13 pasadas,"el juez tuvo delante todo NOR-11 y todo CLI-12, con el §4 (trozos 7 a 9) y §6.2 (trozo 13)",null,null
 ```
 
+⚠️ **LOS NÚMEROS DE TROZO DE ESTA FRASE NO ESTÁN VERIFICADOS (Code y arquitecto, 03/11).** «trozos 7 a 9» y «trozo 13» van
+ESCRITOS A MANO en `SQL_34_08` (sus líneas 23 y 163): la consulta no los saca de la base, y salen del troceado local de
+Code y de la siembra. **Lo que NO toca**: la premisa se apoya en las cuentas de caracteres y de trozos (55 de 55, 55.135 de
+55.135); si el documento entró entero, sus apartados entraron, y «el fallo no está en buscar ni en entregar» aguanta
+intacta. **Lo que SÍ toca**: el número de trozo de cada apartado, y con él el paso 3, donde el número de trozo selecciona
+el texto que se mide. De ahí el ensayo de la herramienta, que lee el trozo de la base y comprueba su frase.
+
 **Comprobado con script sobre la salida**:
 - Seis controles, los seis OK. El control positivo da 55.135, 66.801 y 14.704, las tres cifras medidas por Code el 02/11.
 - Las 21 de D y las 13 del quinto: **LOS DOS ENTEROS** en todas. NOR-10 66.801 de 66.801, NOR-11 14.704 de 14.704,
