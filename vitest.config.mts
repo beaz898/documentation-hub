@@ -127,10 +127,34 @@ export default defineConfig({
      * `npm test` lanza los dos SEGUIDOS (package.json) y falla si falla cualquiera:
      * los arneses no son un paso opcional. Un `vitest run` a secas también corre los
      * dos, pero a la vez, que es justo lo que esto evita.
+     *
+     * ⚠️ Y UN TERCERO, `censos`, ENTRE LOS DOS Y SOLO (arquitecto, 03/11/2026). Un censo que
+     * RECORRE EL ÁRBOL Y LEE CADA FICHERO hace poco trabajo y mucha E/S: el de PGlite lee
+     * 598 ficheros (4,6 MB) en 0,1 s en caliente y en 5,6 s en frío, medido a solas. Dentro de
+     * `arneses`, compitiendo con las bases PGlite de los otros procesos, tardaba 46,3 s EN VERDE
+     * sobre su tope de 60 —el 77 %— y cayó por tiempo 4 veces en 37 ejecuciones, todas en las
+     * 18 últimas. No se le sube el tope: se le quita la competencia. Medido con `censos` en su
+     * paso, tres `npm test` seguidos el 03/11: 1,44 s, 1,29 s y 5,15 s de prueba, LAS TRES EN
+     * CALIENTE (la suite, justo antes, ya ha leído buena parte del árbol). EL MARGEN SE CUENTA SOBRE
+     * EL PEOR CASO VISTO, no sobre éstas: 16,8 s a solas con la máquina cargada desde fuera (y 5,6
+     * s en frío a solas), contra 60 s, son 3,6 veces. Dentro de `arneses` eran 1,3. Y el paso no
+     * llega en frío en la práctica: la suite acaba de leer el árbol, así que su peor caso realista
+     * es CALIENTE CON LA MÁQUINA CARGADA, que es lo que fueron los 16,8 s (justo tras dos suites).
+     * **EL PRÓXIMO CENSO QUE RECORRA EL ÁRBOL VA A ESTE PROYECTO**: se añade su fichero al
+     * `include` de `censos` y, si vive en `claude/arneses/`, también al `exclude` de `arneses`.
+     * Si se queda donde caiga, heredará el mismo rojo intermitente.
      */
     projects: [
       { extends: true, test: { name: 'suite', exclude: [...configDefaults.exclude, 'claude/arneses/**'] } },
-      { extends: true, test: { name: 'arneses', include: ['claude/arneses/**/*.test.ts'] } },
+      { extends: true, test: { name: 'censos', include: ['claude/arneses/pglite-fuera-del-producto.test.ts'] } },
+      {
+        extends: true,
+        test: {
+          name: 'arneses',
+          include: ['claude/arneses/**/*.test.ts'],
+          exclude: [...configDefaults.exclude, 'claude/arneses/pglite-fuera-del-producto.test.ts'],
+        },
+      },
     ],
   },
   resolve: {
