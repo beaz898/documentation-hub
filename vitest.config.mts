@@ -143,6 +143,17 @@ export default defineConfig({
      * **EL PRÓXIMO CENSO QUE RECORRA EL ÁRBOL VA A ESTE PROYECTO**: se añade su fichero al
      * `include` de `censos` y, si vive en `claude/arneses/`, también al `exclude` de `arneses`.
      * Si se queda donde caiga, heredará el mismo rojo intermitente.
+     *
+     * ⚠️ LA REGLA DE LAS PRUEBAS QUE LEEN DISCO (arquitecto, 03/11/2026). Una prueba que lee un fichero
+     * y compara texto hereda las propiedades del SISTEMA DE FICHEROS, no sólo las del código. Tres
+     * casos del 02-03/11: `pglite-fuera-del-producto` por la carga de la máquina, `corpus-del-examen`
+     * por la caché fría, y «la negativa dura es dura» (`medida-f130.test.ts`) por los finales de
+     * línea (con `core.autocrlf`, el disco tiene CRLF y el repositorio LF). Así que TODA prueba que
+     * lea un fichero y compare texto: (1) normaliza los finales de línea al leer
+     * (`.replace(/\r\n/g, '\n')`); (2) declara su codificación (`readFileSync(f, 'utf8')`); (3) si
+     * recorre el árbol, va a `censos`. Y cuando una de éstas se pone en rojo, LA PRIMERA HIPÓTESIS
+     * ES QUE EL DEFECTO ES DE LA PRUEBA, no del código. (El cuarto rojo del día, el typecheck del
+     * worker, NO es de esta clase: es `allowJs` en una configuración de `tsc` y no en la otra.)
      */
     projects: [
       { extends: true, test: { name: 'suite', exclude: [...configDefaults.exclude, 'claude/arneses/**'] } },
