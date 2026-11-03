@@ -199,6 +199,27 @@ pruebas lentas de la sección 5: la lentitud es de la primera pasada en frío.
   ⚠️ **CUARTA RECAÍDA (Code, 02/11, 22:39)**: la misma prueba, 73 s, en la suite de un commit sólo de documentos. Repetida la
   suite entera, verde (2127 y 167). No se toca: tiene su disparador con fecha (el primer commit después de puntuar la tanda,
   o el 05/11).
+  ✅ **RESUELTO EL 03/11 (`075f8083`): `pglite-fuera-del-producto` VA A SU PROPIO PASO, `censos`, ENTRE LA SUITE Y LOS
+  ARNESES.** No se le subió el tope: se le quitó la competencia. Las cifras, el diagnóstico y las comprobaciones, en el mensaje
+  del commit y en el comentario de `vitest.config.mts`.
+  - **Lo que protege**: que ningún fichero fuera de `claude/arneses/` importe PGlite (`pglite-fuera-del-producto.test.ts:31`).
+    Es lo único que lo vigila, y PGlite es `devDependency`, que Vercel instala para compilar.
+  - **El diagnóstico, corregido por el arquitecto con su nombre**: había escrito «la prueba no está rota, está en el filo del
+    tiempo». **Es más grave: con 46,302 s en una ejecución VERDE sobre un tope de 60, no visita el filo, VIVE en él, al 77,2 %
+    del tope. Un verde al 77 % del tope no es información, es suerte.**
+  - **El denominador**: 4 rojas por tiempo de 37 ejecuciones guardadas (10,8 %, Wilson del 4,3 al 24,7 %), y no repartidas:
+    0 de las 19 primeras frente a 4 de las 18 últimas, Fisher exacto bilateral p = 0,046 (aritmética del arquitecto,
+    comprobada por Code). ⚠️ **No es el número entero**: las 37 son las salidas guardadas del 01/11 a las 16:56 al 03/11 a las
+    09:47; la recaída del 30/10 es de otra sesión y su denominador no consta; y las ejecuciones de una sola prueba no cuentan.
+  - **La predicción que sale de ahí (arquitecto)**: el deterioro no es ruido y tiene su mecanismo medido, los arneses
+    crecieron. **ESTO SE AGRAVA SOLO CADA VEZ QUE SE AÑADE UN ARNÉS.** Es lo que descarta subir el tope: 180 s compran tiempo
+    hasta el siguiente arnés, no lo arreglan.
+  - ~~**Commit 2: `corpus-del-examen` al mismo proyecto.**~~ **RETIRADO POR EL ARQUITECTO, POR LA MEDICIÓN DE CODE.** Sola, en
+    frío y sin competencia, su primera prueba de censo tarda **19,5 s contra su tope propio de 30** (el fichero entero, 34,1 s;
+    en caliente, 2,3 s). Las tres razones, de más a menos fuerte: (1) moverla haría que un problema real PARECIERA arreglado,
+    porque el paso de censos llega caliente y ahí sale impecable; (2) no es la misma enfermedad: 19,5 s en frío y a solas
+    frente a los 5,6 del censo de PGlite, y quitar la competencia es la cura de aquél, no de éste; (3) metería competencia en
+    el paso creado para quitarla, y `--maxWorkers=1` no lo salva, porque el tope de vitest es por prueba y no por paso.
 
 **REGISTRO, 29/10/2026 (sólo registro; no se reescribe ningún commit)**: el mensaje del commit `142a6930` («F-130: el
 segundo mensaje de Fable tras los prompts…») dice «Gates: npm test (suite 2115, arneses 117)», y **en ese momento no lo
@@ -659,8 +680,16 @@ a ojo. El procedimiento, el coste y la consulta se plantean ANTES de pedírselo 
   sin marca es seguro y barato, no abrió su puerta en 42 pasadas, y el quinto no regresó (de 9 a 10 de 21).
   - **Pendiente A** (rehacer `SQL_34_07` sobre la base del quinto): **cerrado desde el 01/11.** El «hasta 9» de la base
     sale de los muertos sin texto, no de los agujeros.
-  - **Pendiente B, DISPARADOR CUMPLIDO** (la tanda está puntuada): `pglite-fuera-del-producto`, en un commit solo, para que un
-    fallo de tiempo no produzca un rojo que se aprenda a ignorar. Fecha tope, el 05/11.
+  - ~~**Pendiente B, DISPARADOR CUMPLIDO** (la tanda está puntuada): `pglite-fuera-del-producto`, en un commit solo, para que un
+    fallo de tiempo no produzca un rojo que se aprenda a ignorar. Fecha tope, el 05/11.~~ ✅ Hecho el 03/11 (`075f8083`).
+  - ⚠️ **PENDIENTE CON DISPARADOR (arquitecto, 03/11): `corpus-del-examen`.** «Su primer censo tarda 19,5 s contra un tope propio
+    de 30 —margen 1,5— a solas, en frío y sin competencia. Cayó una vez, el 03/11. PRIMER PASO: medir qué lee ese censo,
+    cuántos ficheros y cuántos MB, y compararlo con los 598 ficheros y 4,6 MB del censo de PGlite, que en las mismas
+    condiciones tarda 5,6 s. Hasta que esa cifra exista, la cura está sin decidir: no se le sube el tope, no se le recorta el
+    alcance y no se mueve de proyecto.»
+    **DISPARADOR: el próximo rojo de ese fichero, O el próximo cambio que alguien le haga, O el 10/11/2026, lo que llegue
+    primero.** *(Sustituye al «partir el fichero en dos», retirado por el arquitecto: partirlo aísla la lectura en frío, no la
+    acelera.)*
   - **C**: la especificación de Fable NO se construye. La inversión de nivel_1, el veto del escape insuficiente, las dos
     autocontradicciones y el choque de nombres de los pasos vuelven a Fable antes de tocar código.
   - **D**: la línea de la prelación NO entra en el prompt del juez antes de volver a medir: confundiría la medición.
