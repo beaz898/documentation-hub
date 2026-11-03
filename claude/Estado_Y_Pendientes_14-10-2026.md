@@ -699,7 +699,10 @@ a ojo. El procedimiento, el coste y la consulta se plantean ANTES de pedírselo 
   - ⚠️⚠️ **PENDIENTE CON DISPARADOR (arquitecto y Code, 03/11): EL TYPECHECK DEL WORKER LLEVA EN ROJO DESDE EL 25/09, Y CON ÉL
     `npm run comprobar` ENTERO.** `npm run typecheck` es `tsc --noEmit && tsc --noEmit -p worker/tsconfig.json`, y la segunda
     mitad falla con UN error: `lib/analysis/normalize.ts(42,63): TS7016`, no hay declaración para `./normalize-core.mjs`.
-    - **Desde cuándo, medido** (copias aparte del repositorio con los `node_modules` enlazados): el commit anterior a
+    - **Desde cuándo, medido, Y CÓMO SE MIDIÓ** (porque es lo que hace creíble el número, arquitecto): copias aparte del
+      repositorio con los `node_modules` enlazados; el commit anterior a `2b6d7002`, a cero; `2b6d7002`, con el error; y **DOS
+      MUESTRAS INTERMEDIAS** para descartar que se arreglara y se rompiera otra vez. Sin ellas, «39 días» habría sido una
+      interpolación. Las cifras: el commit anterior a
       `2b6d7002`, 0 errores; `2b6d7002` (25/09, 23:17, «normalize: las TRES funciones bajan a un .mjs»), 1; y el mismo error
       en `05085d92` (11/10) y `1a11616f` (27/10). **39 días sin esa puerta**, hasta el 03/11.
     - **Por qué la raíz pasa y el worker no**: la raíz tiene `allowJs: true` (`tsconfig.json:5`) y el worker no
@@ -709,7 +712,12 @@ a ojo. El procedimiento, el coste y la consulta se plantean ANTES de pedírselo 
       poder desplegar) o no. Es lo primero que hay que mirar cuando se abra.
     - **Mientras tanto, la puerta de un commit** que no toque el grafo del worker es `tsc --noEmit` de la raíz, la suite y la
       compilación; y se dice en el mensaje, con la comprobación de que el grafo no incluye lo tocado.
-    - **DISPARADOR (propuesta de Code, pendiente de que el arquitecto lo fije)**: el próximo commit que toque `worker/` o un
+    - ⚠️ **PRECONDICIÓN, DELANTE DEL DISPARADOR (arquitecto, 03/11)**: «Antes de la fecha tope y antes de cualquier commit que
+      toque worker/: establecer si el despliegue del worker en Railway pasa por tsc. Si pasa, el pendiente NO espera al 10/11:
+      el worker llevaría 39 días sin poder desplegarse y eso cambia de clase. Si no pasa, o usa otra configuración, el
+      disparador que propusiste vale tal cual. El director mira el historial de despliegues de Railway; es más rápido que
+      deducirlo del repositorio.»
+    - **DISPARADOR (propuesto por Code, ACEPTADO por el arquitecto el 03/11)**: el próximo commit que toque `worker/` o un
       fichero del grafo del worker, O el 10/11/2026, lo que llegue primero. No se arregla hoy y no se mezcla con el paso 3.
   - **C**: la especificación de Fable NO se construye. La inversión de nivel_1, el veto del escape insuficiente, las dos
     autocontradicciones y el choque de nombres de los pasos vuelven a Fable antes de tocar código.
