@@ -109,7 +109,10 @@ describe('las medidas temporales de F-130', () => {
   });
 
   it('⚠️ LA NEGATIVA DURA ES DURA: en la ruta del quinto, el 409 de los trozos va ANTES del ensayo y antes de llamar al modelo', () => {
-    const ruta = readFileSync('app/api/admin/medida-f130/quinto/route.ts', 'utf8');
+    // los finales de línea, normalizados: con core.autocrlf el disco tiene CRLF y el repositorio LF (03/11, el commit de
+    // esta prueba la puso en rojo al reescribir el fichero en CRLF)
+    const leer = (f: string) => readFileSync(f, 'utf8').replace(/\r\n/g, '\n');
+    const ruta = leer('app/api/admin/medida-f130/quinto/route.ts');
     const negativa = ruta.indexOf("if (!leidos.ok) return NextResponse.json({ error: leidos.error }, { status: 409 });");
     const ensayo = ruta.indexOf("if (req.nextUrl.searchParams.get('ensayo') === '1')");
     const modelo = ruta.indexOf('await preguntarAlJuez(');
@@ -121,7 +124,7 @@ describe('las medidas temporales de F-130', () => {
     // y la única llamada al modelo es ésa: ninguna antes de la negativa
     expect(ruta.split('preguntarAlJuez(').length - 1).toBe(1);
     // y `leerTrozos` pasa de verdad por la negativa: es lo que hace que el 409 de arriba exista
-    const lectura = readFileSync('app/api/admin/medida-f130/leer-de-la-base.ts', 'utf8');
+    const lectura = leer('app/api/admin/medida-f130/leer-de-la-base.ts');
     expect(lectura).toContain('const elegido = trozoConSuFrase(todos, pedido);\n    if (!elegido.ok) return { ok: false, error: elegido.error };');
   });
 
