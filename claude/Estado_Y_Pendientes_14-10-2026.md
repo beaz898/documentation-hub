@@ -696,6 +696,20 @@ a ojo. El procedimiento, el coste y la consulta se plantean ANTES de pedírselo 
     **DISPARADOR: el próximo rojo de ese fichero, O el próximo cambio que alguien le haga, O el 10/11/2026, lo que llegue
     primero.** *(Sustituye al «partir el fichero en dos», retirado por el arquitecto: partirlo aísla la lectura en frío, no la
     acelera.)*
+  - ⚠️⚠️⚠️ **SUBE DE CLASE (arquitecto, 03/11, 20:45): NO ES UNA PUERTA CIEGA, ES QUE EL EXHAUSTIVO PUEDE ESTAR CORRIENDO EL
+    CÓDIGO DEL 25/09.** Bajo `worker/` no ha cambiado nada desde el 25/09 (`git log --since=2026-09-25 -- worker/`, vacío), pero
+    su grafo de tipos sí: 68 commits en 22 días tocan sus 112 ficheros, 59 de ellos de `lib/analysis/` (`pipeline.ts`,
+    `judge.ts`, `verify-findings.ts`, `rama-de-las-reglas.ts`), del propio `2b6d7002` (25/09) a `f1d94cbc` (02/11, el
+    verificador nuevo). Si el despliegue del worker pasa por `tsc`, o si sus rutas vigiladas sólo miran `worker/`, el
+    exhaustivo corre sin nada de F-129 ni de F-130, y desde fuera no se nota: un despliegue fallido deja corriendo el anterior.
+    **LA COMPROBACIÓN, ANTES DE RAILWAY**: `SQL_34_11_el_codigo_del_exhaustivo.sql` (PENDIENTE DE EJECUTAR, sólo lectura) mira
+    los tres marcadores de cada exhaustivo —`lecturaDeLasParejas` (29/09), `llamadasAlModelo` (21/10) y el contador del
+    verificador nuevo (02/11)— frente a la hora del primer rápido que ya lleva cada uno, y dice cuál de los tres casos es: al
+    día, código viejo (y cuánto), o ningún exhaustivo posterior (y entonces Railway).
+    ⚠️ **LO QUE NO TOCA, y es la primera pregunta que hará cualquiera mañana: TODO LO MEDIDO EN F-129 Y F-130 ES DE ANÁLISIS
+    RÁPIDOS, QUE CORREN EN VERCEL, NO EN EL WORKER.** Cada consulta de las tandas lo controla («pasadas que no son rápidas: 0»,
+    en `SQL_34_06`, `SQL_34_09` y `SQL_34_10`), y las herramientas de `app/api/admin/medida-f130/` son rutas de Vercel. Las
+    mediciones no están contaminadas.
   - ⚠️⚠️ **PENDIENTE CON DISPARADOR (arquitecto y Code, 03/11): EL TYPECHECK DEL WORKER LLEVA EN ROJO DESDE EL 25/09, Y CON ÉL
     `npm run comprobar` ENTERO.** `npm run typecheck` es `tsc --noEmit && tsc --noEmit -p worker/tsconfig.json`, y la segunda
     mitad falla con UN error: `lib/analysis/normalize.ts(42,63): TS7016`, no hay declaración para `./normalize-core.mjs`.

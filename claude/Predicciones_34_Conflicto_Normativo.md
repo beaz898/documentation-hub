@@ -972,3 +972,34 @@ enmiendas; (2) el diff de la herramienta, sin comitear: la ruta del quinto, el e
 un trozo no contiene su frase (con su prueba), los dos botones y las pruebas; (3) aprobado y subido, el director pulsa el
 ensayo; (4) las dos frases como están guardadas, con su número de trozo real; el arquitecto confirma la pareja y cierra
 P-P3-4; (5) la tanda de 21. **Nada de modelo ni de coste hasta el 5.**
+
+### PASO 3 · LA PAREJA, CONFIRMADA POR EL ARQUITECTO, Y TRES NOTAS SUYAS (03/11/2026, 20:45; archivadas por Code a las 20:50)
+
+⚠️ **LA SALIDA DEL ENSAYO NO HA LLEGADO A CODE.** El arquitecto dice haber leído los dos textos enteros; a Code no le ha
+llegado ninguna salida de `quinto?ensayo=1`. Lo que sigue es lo que escribió el arquitecto, sin comprobar contra el texto
+guardado hasta que llegue la salida.
+
+**LA PAREJA, CONFIRMADA (arquitecto)**: NOR-11·13, generación 1, con el §10 entero de «Errores frecuentes y buenas
+prácticas», el §10.5 y su frase literal; CLI-12·13, generación 1, con el §6 de auditorías internas y las DOS frases del §6.2.
+Si algún día se reindexa cualquiera de los dos, el 13 puede dejar de ser esa sección, y la negativa dura lo caza porque
+comprueba la frase y no el número.
+
+**P-P3-4, CERRADA con el texto guardado y sin la mitad del §4** (literal del arquitecto):
+> «Las citas siguen siendo NOR-11 §10.5 ("El Coordinador de Calidad de cada clínica revisa trimestralmente el cumplimiento de
+> los criterios descritos en este apartado mediante observación directa del área de almacenamiento intermedio y de los
+> gabinetes…") y CLI-12 §6.2, en sus DOS frases ("Las auditorías internas las realiza siempre personal ajeno al área
+> auditada, habitualmente el Coordinador de Calidad de otra clínica de la red…" y "El Coordinador de Calidad de la propia
+> clínica participa en la auditoría como interlocutor, pero no como auditor de su propia área").»
+
+**NOTA AL PIE DE P-P3-1, CON SU HORA; LA PREDICCIÓN NO CAMBIA** (literal del arquitecto):
+> «03/11, 20:45, después del ensayo y antes de la tanda. El trozo de NOR-11 trae el §10 entero (10.3 contenedores, 10.4
+> mezcla de grupos, 10.5 revisión), y el "este apartado" del §10.5 remite a esos criterios de residuos. Ese contexto hace MÁS
+> difícil identificar la revisión trimestral con una "auditoría interna", no más fácil. El arquitecto baja su confianza en la
+> banda A y NO cambia la predicción: el mecanismo en que se apoyaba —el fallo medido es no llegar a la pareja, y la pregunta
+> cerrada lo elimina por construcción— no ha cambiado. Sólo ha cambiado el tamaño de la dificultad restante. Una predicción
+> que se mueve porque se le ha visto mejor la cara, sin mecanismo nuevo, deja de poder fallar.»
+
+**P-P3-2, SIN AMBIGÜEDAD (arquitecto)**: la pregunta 2 sólo se hace «cuando los dos textos sean reglas», y los dos lo son, así
+que SE HARÁ. **P-P3-2 dice que no PRODUCE HALLAZGO, no que no se haga.** Y su apoyo ya no es la clasificación del arquitecto:
+es que en la pasada abierta el juez sacó el quinto SIN etiqueta 8 veces de 9, o sea que él mismo lo enruta por la pregunta
+1. Es una medición, no una opinión (`claude/Medida_F130_E3_Y_Vecindad_29-10-2026.md`, día 2: la etiqueta, sólo en la pasada 3).
