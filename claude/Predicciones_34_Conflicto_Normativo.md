@@ -878,7 +878,7 @@ y antes de la primera pasada.** Texto literal, sacado de su mensaje con un scrip
 >
 > LAS BANDAS, con su tasa de error Y SU POTENCIA, que es la mitad que me faltó ayer:
 >
-> banda                                     H0=43%   H1=90%   H2=65%   H3=100%
+> banda                                     ~~H0=43%~~ H0=42,86%   H1=90%   H2=65%   H3=100%   *(enmienda 1, 16:50)*
 > A · lo ve con la pareja delante  [17-21]    0,04%    94,8%     9,2%    100%
 > B · lo ve a medias               [13-16]     6,2%     5,2%    61,4%      0%
 > C · no mejora convincentemente   [10-12]    34,7%     0,0%    26,3%      0%
@@ -891,15 +891,15 @@ y antes de la primera pasada.** Texto literal, sacado de su mensaje con un scrip
 >
 > P-P3-1 (del número): el quinto sale en banda A, 17 o más de 21. Razón: su fallo medido es no llegar a la pareja (11 de 21 sin nada superviviente, 5 de ellas declarando los documentos sin relación), y la pregunta cerrada elimina ese fallo por construcción.
 >
-> P-P3-2 (de la especie, y vale MÁS que el número): sigue saliendo SIN etiqueta. El quinto es un caso de dato y la taxonomía sólo tiene norma_contra_norma y norma_contra_practica; no poner etiqueta es el acierto. En la pasada abierta fueron 8 bien de 9. SI LA PREGUNTA CERRADA SUBE EL NÚMERO PERO LO ETIQUETA, el resultado es PEOR que un número bajo: significaría que la pregunta lo empuja a la familia equivocada.
+> ~~P-P3-2 (de la especie, y vale MÁS que el número): sigue saliendo SIN etiqueta. El quinto es un caso de dato y la taxonomía sólo tiene norma_contra_norma y norma_contra_practica; no poner etiqueta es el acierto. En la pasada abierta fueron 8 bien de 9. SI LA PREGUNTA CERRADA SUBE EL NÚMERO PERO LO ETIQUETA, el resultado es PEOR que un número bajo: significaría que la pregunta lo empuja a la familia equivocada.~~ *(SUSTITUIDA por la versión medible, enmienda 3, 16:50)*
 >
-> P-P3-3 (del contador): confirmados_solo_por_cumplimiento se queda en 0 en las 21. Si sube, la pregunta cerrada está rescatando el quinto por la puerta equivocada y el número NO es comparable con los 9 de 21.
+> ~~P-P3-3 (del contador): confirmados_solo_por_cumplimiento se queda en 0 en las 21. Si sube, la pregunta cerrada está rescatando el quinto por la puerta equivocada y el número NO es comparable con los 9 de 21.~~ *(RETIRADA por no medible, enmienda 3, 16:50; su sustancia migra a P-P3-2)*
 >
-> P-P3-4 (de las citas): las dos citas siguen siendo NOR-11 §10.5 («revisa trimestralmente el cumplimiento…») y CLI-12 §6.2 («personal ajeno al área auditada…»), las mismas frases que en la pasada abierta. Y el §4 (el glosario) SIGUE sin aparecer: la semana 0 midió que en las 5 veces que salió el quinto, la cita de CLI-12 fue siempre del §6.2 y nunca del §4. Si ahora aparece el §4, es información nueva y hay que escribirla.
+> ~~P-P3-4 (de las citas): las dos citas siguen siendo NOR-11 §10.5 («revisa trimestralmente el cumplimiento…») y CLI-12 §6.2 («personal ajeno al área auditada…»), las mismas frases que en la pasada abierta. Y el §4 (el glosario) SIGUE sin aparecer: la semana 0 midió que en las 5 veces que salió el quinto, la cita de CLI-12 fue siempre del §6.2 y nunca del §4. Si ahora aparece el §4, es información nueva y hay que escribirla.~~ *(la mitad del §4, RETIRADA por no poder fallar; la otra mitad se reescribe con las dos frases del §6.2 cuando el ensayo dé el texto guardado; enmienda 3, 16:50)*
 >
 > P-P3-5 (de lo que NO demuestra): un resultado en banda A no demuestra que la pasada 2 funcione. La pregunta cerrada quita por construcción el fallo de alcance; lo que A demostraría es sólo que el juez SABE LEER este caso con la pareja delante. Que la pasada 2 produzca esa pareja es otra cosa, y su especificación tiene cuatro defectos abiertos. ESTO SE ARCHIVA AHORA para que un 20 de 21 no se lea mañana como permiso para construir el paso 4.
 >
-> Y lo que haría el resultado NO PUNTUABLE: que se toque el prompt, que cambie la pareja, o que el contador de P-P3-3 se mueva.
+> ~~Y lo que haría el resultado NO PUNTUABLE: que se toque el prompt, que cambie la pareja, o que el contador de P-P3-3 se mueva.~~ *(sin «el contador de P-P3-3», retirado; queda: que se toque el prompt o que cambie la pareja; enmienda 3, 16:50)*
 
 **La numeración (Code)**: la serie P-P3-n no choca con ninguna de la casa (P-F130-1 a 19, P-VN, P-VL, P-E3-R). Se queda así.
 
@@ -926,3 +926,49 @@ y antes de la primera pasada.** Texto literal, sacado de su mensaje con un scrip
    Propuesta, para que la decida el arquitecto: la pregunta 1 en «sí», con una cita de NOR-11 que contenga «revisa
    trimestralmente el cumplimiento» y una de CLI-12 que contenga «personal ajeno al área auditada» o «no como auditor de su
    propia área». Las respuestas que no casen con eso se leen aparte y se cuentan, como las dudosas de `SQL_34_06`.
+
+### LAS ENMIENDAS, ANTES DE LANZAR (arquitecto, 03/11/2026; archivadas por Code a las 16:50, con la versión de las 13:10 tachada en su sitio)
+
+**ENMIENDA 1 · El rótulo del H0.** La tabla ponía «H0 = 43 %»; el cálculo usó 9/21 = 42,857 % exacto. El rótulo pasa a
+42,86 % y las cifras se quedan como están, porque ya salían de 9/21.
+
+**ENMIENDA 2 · LO QUE MIDE LA HERRAMIENTA FRENTE A LA PASADA ABIERTA: TRES DIFERENCIAS, NO UNA** (aceptada con el matiz de
+Code). La ruta de la pregunta cerrada llama al modelo con la configuración del juez y nada más
+(`app/api/admin/medida-f130/preguntar-al-juez.ts:18`). Frente a los 9 de 21 PUBLICADOS de la pasada abierta:
+1. **otro prompt, la pregunta cerrada: ES LA INTERVENCIÓN**, y se quiere medir;
+2. **sólo los dos trozos, no los documentos enteros: ES LA INTERVENCIÓN**, y se quiere medir;
+3. **sin la puerta de citas y sin el verificador: ES LA CONTAMINACIÓN.** Sesga la comparación A FAVOR de la pregunta
+   cerrada, porque un publicado nunca puede ser mayor que lo emitido.
+**LA LECTURA, escrita ahora**: la banda D (≤9) sería evidencia FUERTE en contra, porque perdería una comparación sesgada a
+su favor. La banda A (≥17) es MÁS DÉBIL de lo que parece, porque parte de la subida son la puerta y el verificador
+ausentes. La referencia honesta sería la tasa de EMISIÓN del juez en la pasada abierta, y no está medida: es la deuda del
+medidor (lo que el juez emite por pareja sólo vive en los logs). Lo más cerca que hay: en 11 de 21 pasadas no sobrevivió
+nada en esa pareja, y una de las once, la 9, emitió algo que murió sin texto.
+
+**ENMIENDA 3 · Lo que no se puede medir, retirado; y lo que sobrevive, a la vista.**
+- **P-P3-3, RETIRADA por no medible**: el contador es del verificador del producto, y la herramienta no pasa por él. **Su
+  sustancia no se pierde: migra a P-P3-2**, que mide la misma preocupación (por qué puerta entra el quinto) con lo que esta
+  ruta sí devuelve.
+- **P-P3-2, CONSERVADA EN SU VERSIÓN MEDIBLE**, que sustituye a la de las 13:10 (que hablaba de la especie del producto, y
+  esta ruta no la emite):
+  > «P-P3-2 (de la familia, y vale MÁS que el número): la pregunta 2 no dispara. El quinto es un caso de dato y la pregunta
+  > 1 es la que le corresponde. Si la pregunta 2 dispara, el juez está leyendo el caso en la familia del cumplimiento — el
+  > mismo error que etiquetarlo norma_contra_norma, con otro traje. Un número alto con la pregunta 2 disparando es PEOR
+  > resultado que un número bajo con la pregunta 1 limpia.»
+- **P-P3-4, la mitad del §4, RETIRADA por no poder fallar**: el §4 no está en lo que se entrega. La otra mitad se reescribe
+  con las DOS frases del §6.2 que se citaron en la pasada abierta («personal ajeno al área auditada…» y «…no como auditor de
+  su propia área») en cuanto el ensayo dé el texto guardado.
+- **Lo que haría el resultado NO PUNTUABLE**, sin el contador retirado: que se toque el prompt o que cambie la pareja.
+
+**ENMIENDA 4 · NUEVA: LAS DOS INTERVENCIONES VAN JUNTAS, Y UNA BANDA A NO DIRÁ CUÁL DE LAS DOS LO CONSIGUIÓ** (arquitecto, a
+partir del reparto de la enmienda 2). Si sale A, no se sabrá si fue la pregunta más afilada o el pajar más pequeño. Y
+importa para el paso 4, porque la pasada 2 entrega parejas (pajar pequeño) y habrá que decidir con qué prompt.
+**El remedio, nombrado y NO CONSTRUIDO HOY**: un segundo brazo, la misma pregunta cerrada con los dos documentos ENTEROS, o
+el prompt abierto con sólo la pareja. Otra tanda de unos 0,04 $. **Queda como límite conocido, para que cuando llegue el
+número nadie diga «entonces la pasada 2 funciona».**
+
+**EL ORDEN, CORREGIDO POR CODE Y ACEPTADO**: el ensayo es parte de la herramienta, así que va después del diff. (1) Estas
+enmiendas; (2) el diff de la herramienta, sin comitear: la ruta del quinto, el ensayo con `?ensayo=1`, la negativa dura si
+un trozo no contiene su frase (con su prueba), los dos botones y las pruebas; (3) aprobado y subido, el director pulsa el
+ensayo; (4) las dos frases como están guardadas, con su número de trozo real; el arquitecto confirma la pareja y cierra
+P-P3-4; (5) la tanda de 21. **Nada de modelo ni de coste hasta el 5.**
