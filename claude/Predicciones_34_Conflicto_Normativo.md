@@ -791,3 +791,76 @@ mirar. Al registro.
 El «15-25 %» no estaba registrado y queda como expectativa contada después. **Pero no se convierte en ceremonia para todo**:
 sólo se pre-registran las predicciones que DECIDEN algo. Ésa no decidía nada. P-VN-1 y los umbrales sí, y se registraron a
 tiempo.
+
+## LA TANDA DEL VERIFICADOR NUEVO, DÍA 2 (NOR-11): LA PUNTUACIÓN Y EL CIERRE DEL PASO 2 (arquitecto y Code, 03/11/2026)
+
+Salidas literales en `claude/Medida_F130_E3_Y_Vecindad_29-10-2026.md`, comprobadas con script.
+
+**LA BANDA, como se escribió el 02/11 a las 18:38, sin reinterpretar**: ≥16 de 21 lo demuestra; 14-15 lo sugiere; 10-13
+ambiguo; ≤9 «no se ve rescate», que no significa que no hubiera nada que rescatar. **El quinto: 9 de 21, en la última
+banda.** Si el muerto sin texto de la pasada 9 fuera el quinto, serían 10: en el límite inferior de «ambiguo» (ver la
+corrección 1). P-VN-2 («el quinto tampoco sube mucho») se cumple. **Fisher contra la base (5 de 13): p = 1,000 con 9 y
+p = 0,728 con 10. No se ha movido nada, ni arriba ni abajo.**
+
+### LA LECTURA DEL ARQUITECTO (sus puntos 1 a 10, resumidos; la aritmética de los puntos 8 a 10, firmada por él)
+
+1. El quinto, 9 de 21. 2. Especie: 8 sin etiqueta y 1 con `norma_contra_norma` (la pasada 3). 3. Muertas en la puerta con
+texto, 0; sin texto, 4 en 4 pasadas, ninguna con la marca del verificador. 4. `sin_veredicto`: 0 en las cuatro mediciones.
+5. El contador: 0 en 42 pasadas. 6. El coste de NOR-11: +1,8 %, el verificador +7,1 %, de 39,5 a 40,0 s. 7. «El juicio
+del juez sobre la pareja está en la base, con tipo, % de solape y contadores crudos: SALDA la deuda.» 8. 42,9 %, Wilson del
+24,5 al 63,5 %, Fisher p = 1,0. 9. Las tres familias (sin_relacion, 5; tema_similar con 0, 6; con 1, 10), y «el quinto
+sale en 9 de las 10 pasadas en que el juez emite una contradicción cruda». 10. El % de solape no separa el quinto.
+**Code: los puntos 2 a 6, 8 y 10, comprobados y bien. La aritmética entera, bien** (`cuentas_nor11.mjs`, de un solo uso).
+
+### LAS CORRECCIONES DE CODE
+
+1. **«9 EXACTAS, sin cota superior» no se sostiene: son 9 o 10.** `SQL_34_07` cierra los AGUJEROS (las 5 pasadas sin
+   «discarded» son cero real), no los MUERTOS SIN TEXTO. Hay 4 muertos sin texto, y tres van en pasadas que ya tienen el
+   quinto publicado (la 3, la 10 y la 12): ahí el muerto es otro hallazgo. **El de la pasada 9 puede ser el quinto.** Como
+   las muertes sin texto van por pareja y no por caso, la cifra es «de 9 a 10 de 21».
+2. **El punto 7 es falso, y la deuda sigue abierta.** Los «contadores crudos» de `SQL_34_07` son las longitudes de
+   `judgments[].contradictions` y `overlappingContent` (sus líneas 87-88), y lo guardado ahí es lo que SOBREVIVIÓ:
+   `contradictions: keptContradictions` (`lib/analysis/pipeline.ts:720`, después de la puerta y del verificador), y los
+   solapamientos llevan dentro los reclasificados (`:721`). **Lo que sí es crudo: el veredicto y el % de solape**, que nadie
+   reescribe después del juez (`judge.ts:964`). Lo que emitió el juez sigue sólo en el log (pendiente del medidor, en el
+   estado).
+3. **El punto 9, releído con eso**: las 10 pasadas «con 1» son las pasadas en que SOBREVIVIÓ una contradicción en la pareja.
+   Que el quinto esté en 9 de ellas es casi una tautología: el quinto ES una contradicción superviviente de esa pareja. La
+   otra, la pasada 1, guarda un hallazgo distinto.
+   **Lo que sí se puede decir, DEDUCIDO y no medido**: en las 6 pasadas «tema_similar con 0» no hay ninguna muerte contada
+   salvo en la 9 (la suma «sin texto» de `SQL_34_06` incluye el verificador, la frontera, la puerta y las reclasificaciones,
+   `descartado.equivalentes`, `pipeline.ts:570`). Así que **el juez no emitió ninguna contradicción en esa pareja en 10 de
+   las 21 pasadas** (la 2, la 4, la 8, la 13, la 15, la 17, la 18, la 19, la 20 y la 21), **5 de ellas porque la declaró sin
+   relación** (eso sí, medido: el veredicto se guarda). **En la 9 emitió al menos una que murió sin texto.** Es la deducción
+   que la deuda del medidor haría innecesaria.
+4. **La retirada de la banda: la aritmética es buena y la lectura no.** Con la tasa de la base, P(X ≤ 9) = 74,1 %, P(X ≥ 16)
+   = 0,05 % (comprobado). Pero el 74,1 % no es una tasa de fallo falso: con el cambio sin efecto, «no se ve rescate» es la
+   lectura CORRECTA. Y las tasas de error sí se calcularon el 02/11 a las 18:38: contra la nula (≥16 por azar, 0,05 %) y
+   contra el rescate de los cuatro (≤9, 1,1 %). **Lo que faltó es otra cosa: la POTENCIA contra los rescates parciales.**
+
+   | Rescatados de los 4 | ≥16, «demuestra» | 14-15 | 10-13 | ≤9 |
+   |---|---|---|---|---|
+   | 0 (p = 5/13) | 0,0 % | 0,8 % | 25,0 % | 74,1 % |
+   | 1 (p = 6/13) | 0,5 % | 4,3 % | 48,4 % | 46,9 % |
+   | 2 (p = 7/13) | 3,1 % | 13,8 % | 61,7 % | 21,4 % |
+   | 3 (p = 8/13) | 12,2 % | 28,2 % | 53,1 % | 6,4 % |
+   | 4 (p = 9/13) | 33,4 % | 36,2 % | 29,3 % | 1,1 % |
+
+   **Ni rescatando los cuatro salía «demuestra» más de una vez de cada tres.** La prueba podía DESCARTAR el rescate entero,
+   que es lo que ha hecho: con 9, el rescate de los cuatro queda en un 1,1 %. Pero no podía DEMOSTRAR casi nada.
+5. **El pendiente A ya está cerrado desde el 01/11.** `SQL_34_07` se pasó a la ventana del 28/10 de 08:30 a 09:00 con NOR-11
+   y 13 esperadas, y sus 4 agujeros salieron cero real (salida literal en la medida, «EL AGUJERO DE «discarded» EN EL QUINTO»).
+   **El «hasta 9» de la base no sale de los agujeros: sale de los 4 muertos sin texto** (las pasadas 4, 6, 10 y 11), que
+   `SQL_34_07` no puede cerrar. Volver a pasarla no cambiaría nada, y el «hasta 9» se queda, pero por ese motivo.
+
+### LO QUE EL PASO 2 DEJA DICHO (arquitecto, con las cifras corregidas por Code)
+
+**El verificador sin marca es SEGURO** (no mata a ciegas: `sin_veredicto` en 0 en las cuatro mediciones) **y BARATO** (+1,8 %
+en NOR-11, +5,4 % en NOR-10). Y **no ha abierto su puerta ni una vez en 42 pasadas** (el contador, en 0). **El quinto no ha
+regresado**: de 9 a 10 de 21 frente a 5-9 de 13. Es lo que le pide la decisión de producto del 01/11, guarda de no
+regresión y no objetivo.
+**El fallo del quinto está arriba, en el juez**: en 10 de 21 pasadas no emite ninguna contradicción en esa pareja
+(deducido), y en 5 de ellas porque la declara sin relación (medido). El paso 3 del plan (la pregunta cerrada sobre la
+pareja NOR-11·13 ↔ CLI-12·13, 0 créditos, ~0,04 $ por tanda de 20, sin tocar el prompt) apunta exactamente ahí.
+*Code: el quinto etiquetado de la pasada 3 se publicó con el contador a 0, así que lo confirmó la pregunta del DATO. Es el
+camino arreglado disparándose y respondiendo como caso de dato, que es lo que el quinto es.*

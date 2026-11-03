@@ -1801,3 +1801,155 @@ organización leída,organización leída: 68bf28c3-8352-4052-8eb4-3a7e31b74b53 
 **Comprobado con script** (02/11, 22:27): 8 controles OK, más el de NOR-11 nueva, que da NO APLICA; el control positivo, 55 de
 55. NOR-10: **0,031515 → 0,033229 $ (+0,001714 $, +5,4 %)**. El verificador, **0,011599 → 0,013314 $ (+0,001715 $): el 100 % del
 aumento**. El juez, 0,013514 → 0,013461 $, igual. Duración, 33,7 → 34,4 s; espera, 0,99 → 1,34 s; 0 peticiones fallidas de 109.
+
+## LA TANDA DEL VERIFICADOR NUEVO, DÍA 2 (NOR-11): LAS CUATRO SALIDAS, LITERALES (ejecutadas por el director, 03/11/2026)
+
+21 pasadas rápidas de NOR-11 el 03/11, de 08:13:48 a 08:50:23, todas con el verificador nuevo. Ventana de `SQL_34_06` y
+`SQL_34_07`, de 08:13 a 08:51, con 21 esperadas; `SQL_34_09` y `SQL_34_10`, con las cuatro ventanas. El arquitecto las pegó
+dentro de su mensaje, y Code las sacó del registro de la conversación con un script, una por una.
+
+**SALIDA 1 · SQL_34_06, NOR-11**
+```
+bloque,a,b,c,d
+organización leída,organización leída: 68bf28c3-8352-4052-8eb4-3a7e31b74b53 · «Mi workspace» · 45 documentos,null,null,null
+0 · control,ventana: 03/11 08:13 a 03/11 08:51 (hora de Madrid),OK,null,null
+0 · control,pasadas de NOR-11 en la ventana: 21 · esperado: 21,OK,null,null
+0 · control,pasadas que no son rápidas: 0,OK,null,null
+0 · control,documentos CLI-12 en la organización: 1 (tiene que ser uno),OK,null,null
+0 · control,casos de NOR-11: quinto · frases dentro de su párrafo: 1 de 1,OK,null,null
+0 · control,"pasadas sin juicio de CLI-12, o con él pero sin «discarded» guardado: 5",⚠️⚠️ FALLA,null,null
+1 · por pasada,pasada 1 · 03/11 08:13:48 · claude-haiku-5-5 · 41 s,quinto: no,"sin texto en la pareja: 0 (con la etiqueta, del verificador: 0)",null
+1 · por pasada,pasada 2 · 03/11 08:15:40 · claude-haiku-5-5 · 38 s,quinto: no,"sin texto en la pareja: 0 (con la etiqueta, del verificador: 0) · ⚠️ SIN «discarded»: agujero",null
+1 · por pasada,pasada 3 · 03/11 08:16:56 · claude-haiku-5-5 · 49 s,quinto: sí (norma_contra_norma),"sin texto en la pareja: 1 (con la etiqueta, del verificador: 0)",null
+1 · por pasada,pasada 3 · cita de quinto,norma_contra_norma · CLI-12: fuera de §3.1 y §3.5,cita del documento: «El Coordinador de Calidad de cada clínica revisa trimestralmente el cumplimiento de los criterios descritos en este apartado mediante observación directa del área de almacenamiento intermedio y de los gabinetes»,"CLI-12: «El Coordinador de Calidad de la propia clínica participa en la auditoría como interlocutor, pero no como auditor de su propia área.»"
+1 · por pasada,pasada 4 · 03/11 08:19:16 · claude-haiku-5-5 · 55 s,quinto: no,"sin texto en la pareja: 0 (con la etiqueta, del verificador: 0)",null
+1 · por pasada,pasada 5 · 03/11 08:21:02 · claude-haiku-5-5 · 33 s,quinto: sí (sin especie),"sin texto en la pareja: 0 (con la etiqueta, del verificador: 0)",null
+1 · por pasada,pasada 5 · cita de quinto,sin especie · CLI-12: fuera de §3.1 y §3.5,cita del documento: «El Coordinador de Calidad de cada clínica revisa trimestralmente el cumplimiento de los criterios descritos en este apartado mediante observación directa del área de almacenamiento intermedio y de los gabinetes»,"CLI-12: «Las auditorías internas las realiza siempre personal ajeno al área auditada, habitualmente el Coordinador de Calidad de otra clínica de la red, para garantizar independencia de criterio»"
+1 · por pasada,pasada 6 · 03/11 08:22:36 · claude-haiku-5-5 · 45 s,quinto: sí (sin especie),"sin texto en la pareja: 0 (con la etiqueta, del verificador: 0)",null
+1 · por pasada,pasada 6 · cita de quinto,sin especie · CLI-12: fuera de §3.1 y §3.5,cita del documento: «El Coordinador de Calidad de cada clínica revisa trimestralmente el cumplimiento de los criterios descritos en este apartado mediante observación directa del área de almacenamiento intermedio y de los gabinetes»,"CLI-12: «El Coordinador de Calidad de la propia clínica participa en la auditoría como interlocutor, pero no como auditor de su propia área»"
+1 · por pasada,pasada 7 · 03/11 08:23:58 · claude-haiku-5-5 · 43 s,quinto: sí (sin especie),"sin texto en la pareja: 0 (con la etiqueta, del verificador: 0)",null
+1 · por pasada,pasada 7 · cita de quinto,sin especie · CLI-12: fuera de §3.1 y §3.5,cita del documento: «El Coordinador de Calidad de cada clínica revisa trimestralmente el cumplimiento de los criterios descritos en este apartado mediante observación directa del área de almacenamiento intermedio y de los gabinetes»,"CLI-12: «Las auditorías internas las realiza siempre personal ajeno al área auditada, habitualmente el Coordinador de Calidad de otra clínica de la red, para garantizar independencia de criterio.»"
+1 · por pasada,pasada 8 · 03/11 08:25:56 · claude-haiku-5-5 · 41 s,quinto: no,"sin texto en la pareja: 0 (con la etiqueta, del verificador: 0)",null
+1 · por pasada,pasada 9 · 03/11 08:29:43 · claude-haiku-5-5 · 36 s,quinto: no,"sin texto en la pareja: 1 (con la etiqueta, del verificador: 0)",null
+1 · por pasada,pasada 10 · 03/11 08:32:46 · claude-haiku-5-5 · 51 s,quinto: sí (sin especie),"sin texto en la pareja: 1 (con la etiqueta, del verificador: 0)",null
+1 · por pasada,pasada 10 · cita de quinto,sin especie · CLI-12: fuera de §3.1 y §3.5,cita del documento: «El Coordinador de Calidad de cada clínica revisa trimestralmente el cumplimiento de los criterios descritos en este apartado mediante observación directa del área de almacenamiento intermedio»,CLI-12: «Las auditorías internas las realiza siempre personal ajeno al área auditada»
+1 · por pasada,pasada 11 · 03/11 08:33:46 · claude-haiku-5-5 · 39 s,quinto: sí (sin especie),"sin texto en la pareja: 0 (con la etiqueta, del verificador: 0)",null
+1 · por pasada,pasada 11 · cita de quinto,sin especie · CLI-12: fuera de §3.1 y §3.5,cita del documento: «El Coordinador de Calidad de cada clínica revisa trimestralmente el cumplimiento de los criterios descritos en este apartado mediante observación directa del área de almacenamiento intermedio y de los gabinetes»,"CLI-12: «Las auditorías internas las realiza siempre personal ajeno al área auditada, habitualmente el Coordinador de Calidad de otra clínica de la red, para garantizar independencia de criterio»"
+1 · por pasada,pasada 12 · 03/11 08:36:41 · claude-haiku-5-5 · 41 s,quinto: sí (sin especie),"sin texto en la pareja: 1 (con la etiqueta, del verificador: 0)",null
+1 · por pasada,pasada 12 · cita de quinto,sin especie · CLI-12: fuera de §3.1 y §3.5,cita del documento: «El Coordinador de Calidad de cada clínica revisa trimestralmente el cumplimiento de los criterios descritos en este apartado mediante observación directa del área de almacenamiento intermedio y de los gabinetes»,CLI-12: «Las auditorías internas las realiza siempre personal ajeno al área auditada»
+1 · por pasada,pasada 13 · 03/11 08:37:40 · claude-haiku-5-5 · 45 s,quinto: no,"sin texto en la pareja: 0 (con la etiqueta, del verificador: 0)",null
+1 · por pasada,pasada 14 · 03/11 08:39:12 · claude-haiku-5-5 · 39 s,quinto: sí (sin especie),"sin texto en la pareja: 0 (con la etiqueta, del verificador: 0)",null
+1 · por pasada,pasada 14 · cita de quinto,sin especie · CLI-12: fuera de §3.1 y §3.5,cita del documento: «El Coordinador de Calidad de cada clínica revisa trimestralmente el cumplimiento de los criterios descritos en este apartado mediante observación directa del área de almacenamiento intermedio y de los gabinetes»,CLI-12: «Las auditorías internas las realiza siempre personal ajeno al área auditada»
+1 · por pasada,pasada 15 · 03/11 08:43:10 · claude-haiku-5-5 · 39 s,quinto: no,"sin texto en la pareja: 0 (con la etiqueta, del verificador: 0)",null
+1 · por pasada,pasada 16 · 03/11 08:44:38 · claude-haiku-5-5 · 39 s,quinto: sí (sin especie),"sin texto en la pareja: 0 (con la etiqueta, del verificador: 0)",null
+1 · por pasada,pasada 16 · cita de quinto,sin especie · CLI-12: fuera de §3.1 y §3.5,cita del documento: «El Coordinador de Calidad de cada clínica revisa trimestralmente el cumplimiento de los criterios descritos en este apartado mediante observación directa del área de almacenamiento intermedio y de los gabinetes»,"CLI-12: «Las auditorías internas las realiza siempre personal ajeno al área auditada, habitualmente el Coordinador de Calidad de otra clínica de la red, para garantizar independencia de criterio.»"
+1 · por pasada,pasada 17 · 03/11 08:46:08 · claude-haiku-5-5 · 44 s,quinto: no,"sin texto en la pareja: 0 (con la etiqueta, del verificador: 0) · ⚠️ SIN «discarded»: agujero",null
+1 · por pasada,pasada 18 · 03/11 08:47:02 · claude-haiku-5-5 · 39 s,quinto: no,"sin texto en la pareja: 0 (con la etiqueta, del verificador: 0) · ⚠️ SIN «discarded»: agujero",null
+1 · por pasada,pasada 19 · 03/11 08:48:17 · claude-haiku-5-5 · 45 s,quinto: no,"sin texto en la pareja: 0 (con la etiqueta, del verificador: 0)",null
+1 · por pasada,pasada 20 · 03/11 08:49:15 · claude-haiku-5-5 · 31 s,quinto: no,"sin texto en la pareja: 0 (con la etiqueta, del verificador: 0) · ⚠️ SIN «discarded»: agujero",null
+1 · por pasada,pasada 21 · 03/11 08:50:23 · claude-haiku-5-5 · 41 s,quinto: no,"sin texto en la pareja: 0 (con la etiqueta, del verificador: 0) · ⚠️ SIN «discarded»: agujero",null
+2 · el total,quinto en 9 de 21 pasadas · con la etiqueta: 1 · dudosas aparte: 0,"muertas en la puerta, con texto: 0 pasadas",null,null
+2 · el total,"sin texto en la pareja, que no se reparte por caso: 4 hallazgos en 4 pasadas (con la etiqueta, del verificador: 0)",null,null,null
+```
+
+**SALIDA 2 · SQL_34_07, NOR-11**
+```
+bloque,a,b,c,d
+organización leída,organización leída: 68bf28c3-8352-4052-8eb4-3a7e31b74b53 · «Mi workspace» · 45 documentos,null,null,null
+0 · control,ventana: 03/11 08:13 a 03/11 08:51 (hora de Madrid),OK,null,null
+0 · control,pasadas de NOR-11 en la ventana: 21 · esperado: 21,OK,null,null
+0 · control,pasadas que no son rápidas: 0,OK,null,null
+0 · control,documentos CLI-12 en la organización: 1 (tiene que ser uno),OK,null,null
+0 · control,pasadas con el registro por llamada: 21 de 21 · que pasaron su guarda de 200: 0,OK,null,null
+0 · control,CONTROL POSITIVO · pasadas con «discarded» y una petición del juez a CLI-12 con 200: 16 de 16,OK,null,null
+1 · por pasada,pasada 1 · 03/11 08:13:48,con «discarded»: no es un agujero,"juez a CLI-12: 1 peticiones, 1 con 200, la última: ok · caídas del juez en el análisis: 0",el juicio de CLI-12: tema_similar · solape 8 % · contradicciones 1 · solapes 1 · únicos 8
+1 · por pasada,pasada 2 · 03/11 08:15:40,CERO REAL: el juez contestó a CLI-12 (el juicio no es el de reserva) y no descartó nada,"juez a CLI-12: 1 peticiones, 1 con 200, la última: ok · caídas del juez en el análisis: 0",el juicio de CLI-12: sin_relacion · solape 0 % · contradicciones 0 · solapes 0 · únicos 9
+1 · por pasada,pasada 3 · 03/11 08:16:56,con «discarded»: no es un agujero,"juez a CLI-12: 1 peticiones, 1 con 200, la última: ok · caídas del juez en el análisis: 0",el juicio de CLI-12: tema_similar · solape 5 % · contradicciones 1 · solapes 1 · únicos 11
+1 · por pasada,pasada 4 · 03/11 08:19:16,con «discarded»: no es un agujero,"juez a CLI-12: 1 peticiones, 1 con 200, la última: ok · caídas del juez en el análisis: 0",el juicio de CLI-12: tema_similar · solape 4 % · contradicciones 0 · solapes 1 · únicos 7
+1 · por pasada,pasada 5 · 03/11 08:21:02,con «discarded»: no es un agujero,"juez a CLI-12: 1 peticiones, 1 con 200, la última: ok · caídas del juez en el análisis: 0",el juicio de CLI-12: tema_similar · solape 3 % · contradicciones 1 · solapes 1 · únicos 6
+1 · por pasada,pasada 6 · 03/11 08:22:36,con «discarded»: no es un agujero,"juez a CLI-12: 1 peticiones, 1 con 200, la última: ok · caídas del juez en el análisis: 0",el juicio de CLI-12: tema_similar · solape 5 % · contradicciones 1 · solapes 2 · únicos 10
+1 · por pasada,pasada 7 · 03/11 08:23:58,con «discarded»: no es un agujero,"juez a CLI-12: 1 peticiones, 1 con 200, la última: ok · caídas del juez en el análisis: 0",el juicio de CLI-12: tema_similar · solape 5 % · contradicciones 1 · solapes 1 · únicos 9
+1 · por pasada,pasada 8 · 03/11 08:25:56,con «discarded»: no es un agujero,"juez a CLI-12: 1 peticiones, 1 con 200, la última: ok · caídas del juez en el análisis: 0",el juicio de CLI-12: tema_similar · solape 5 % · contradicciones 0 · solapes 1 · únicos 5
+1 · por pasada,pasada 9 · 03/11 08:29:43,con «discarded»: no es un agujero,"juez a CLI-12: 1 peticiones, 1 con 200, la última: ok · caídas del juez en el análisis: 0",el juicio de CLI-12: tema_similar · solape 5 % · contradicciones 0 · solapes 1 · únicos 10
+1 · por pasada,pasada 10 · 03/11 08:32:46,con «discarded»: no es un agujero,"juez a CLI-12: 1 peticiones, 1 con 200, la última: ok · caídas del juez en el análisis: 0",el juicio de CLI-12: tema_similar · solape 4 % · contradicciones 1 · solapes 1 · únicos 12
+1 · por pasada,pasada 11 · 03/11 08:33:46,con «discarded»: no es un agujero,"juez a CLI-12: 1 peticiones, 1 con 200, la última: ok · caídas del juez en el análisis: 0",el juicio de CLI-12: tema_similar · solape 5 % · contradicciones 1 · solapes 1 · únicos 10
+1 · por pasada,pasada 12 · 03/11 08:36:41,con «discarded»: no es un agujero,"juez a CLI-12: 1 peticiones, 1 con 200, la última: ok · caídas del juez en el análisis: 0",el juicio de CLI-12: tema_similar · solape 4 % · contradicciones 1 · solapes 1 · únicos 8
+1 · por pasada,pasada 13 · 03/11 08:37:40,con «discarded»: no es un agujero,"juez a CLI-12: 1 peticiones, 1 con 200, la última: ok · caídas del juez en el análisis: 0",el juicio de CLI-12: tema_similar · solape 3 % · contradicciones 0 · solapes 2 · únicos 10
+1 · por pasada,pasada 14 · 03/11 08:39:12,con «discarded»: no es un agujero,"juez a CLI-12: 1 peticiones, 1 con 200, la última: ok · caídas del juez en el análisis: 0",el juicio de CLI-12: tema_similar · solape 5 % · contradicciones 1 · solapes 1 · únicos 10
+1 · por pasada,pasada 15 · 03/11 08:43:10,con «discarded»: no es un agujero,"juez a CLI-12: 1 peticiones, 1 con 200, la última: ok · caídas del juez en el análisis: 0",el juicio de CLI-12: tema_similar · solape 5 % · contradicciones 0 · solapes 1 · únicos 10
+1 · por pasada,pasada 16 · 03/11 08:44:38,con «discarded»: no es un agujero,"juez a CLI-12: 1 peticiones, 1 con 200, la última: ok · caídas del juez en el análisis: 0",el juicio de CLI-12: tema_similar · solape 0 % · contradicciones 1 · solapes 0 · únicos 8
+1 · por pasada,pasada 17 · 03/11 08:46:08,CERO REAL: el juez contestó a CLI-12 (el juicio no es el de reserva) y no descartó nada,"juez a CLI-12: 1 peticiones, 1 con 200, la última: ok · caídas del juez en el análisis: 0",el juicio de CLI-12: sin_relacion · solape 0 % · contradicciones 0 · solapes 0 · únicos 10
+1 · por pasada,pasada 18 · 03/11 08:47:02,CERO REAL: el juez contestó a CLI-12 (el juicio no es el de reserva) y no descartó nada,"juez a CLI-12: 1 peticiones, 1 con 200, la última: ok · caídas del juez en el análisis: 0",el juicio de CLI-12: sin_relacion · solape 0 % · contradicciones 0 · solapes 0 · únicos 11
+1 · por pasada,pasada 19 · 03/11 08:48:17,con «discarded»: no es un agujero,"juez a CLI-12: 1 peticiones, 1 con 200, la última: ok · caídas del juez en el análisis: 0",el juicio de CLI-12: tema_similar · solape 5 % · contradicciones 0 · solapes 1 · únicos 10
+1 · por pasada,pasada 20 · 03/11 08:49:15,CERO REAL: el juez contestó a CLI-12 (el juicio no es el de reserva) y no descartó nada,"juez a CLI-12: 1 peticiones, 1 con 200, la última: ok · caídas del juez en el análisis: 0",el juicio de CLI-12: sin_relacion · solape 0 % · contradicciones 0 · solapes 0 · únicos 8
+1 · por pasada,pasada 21 · 03/11 08:50:23,CERO REAL: el juez contestó a CLI-12 (el juicio no es el de reserva) y no descartó nada,"juez a CLI-12: 1 peticiones, 1 con 200, la última: ok · caídas del juez en el análisis: 0",el juicio de CLI-12: sin_relacion · solape 0 % · contradicciones 0 · solapes 0 · únicos 10
+2 · el total,agujeros: 5 · cero real: 5 · juez caído: 0 · no se distingue: 0 · no se sabe: 0,null,null,null
+```
+
+**SALIDA 3 · SQL_34_09, las cuatro ventanas**
+```
+bloque,a,b,c,d
+organización leída,organización leída: 68bf28c3-8352-4052-8eb4-3a7e31b74b53 · «Mi workspace» · 45 documentos,null,null,null
+0 · control,línea base · NOR-10 · pasadas en su ventana: 21 · esperado: 21,OK,null,null
+0 · control,línea base · NOR-11 · pasadas en su ventana: 13 · esperado: 13,OK,null,null
+0 · control,tanda nueva · NOR-10 · pasadas en su ventana: 21 · esperado: 21,OK,null,null
+0 · control,tanda nueva · NOR-11 · pasadas en su ventana: 21 · esperado: 21,OK,null,null
+0 · control,pasadas que no son rápidas: 0,OK,null,null
+0 · control,CONTROL POSITIVO · pasadas de la tanda nueva con el contador nuevo (corrieron con el verificador nuevo): 42 de 42,OK,null,null
+0 · control,pasadas de la línea base con el contador nuevo (tienen que ser 0): 0,OK,null,null
+1 · por medición,línea base · NOR-10 · 21 pasadas,(a) confirmados SÓLO por la pregunta del cumplimiento: 0 en 0 pasadas (sin el contador: anterior al cambio),"(b) descartado.sin_veredicto: 0 en 0 pasadas, de 105 hallazgos que llegaron al verificador",por pasada: 0.00 sin veredicto
+1 · por medición,línea base · NOR-11 · 13 pasadas,(a) confirmados SÓLO por la pregunta del cumplimiento: 0 en 0 pasadas (sin el contador: anterior al cambio),"(b) descartado.sin_veredicto: 0 en 0 pasadas, de 55 hallazgos que llegaron al verificador",por pasada: 0.00 sin veredicto
+1 · por medición,tanda nueva · NOR-10 · 21 pasadas,(a) confirmados SÓLO por la pregunta del cumplimiento: 0 en 0 pasadas,"(b) descartado.sin_veredicto: 0 en 0 pasadas, de 106 hallazgos que llegaron al verificador",por pasada: 0.00 sin veredicto
+1 · por medición,tanda nueva · NOR-11 · 21 pasadas,(a) confirmados SÓLO por la pregunta del cumplimiento: 0 en 0 pasadas,"(b) descartado.sin_veredicto: 0 en 0 pasadas, de 80 hallazgos que llegaron al verificador",por pasada: 0.00 sin veredicto
+"2 · sin_veredicto, nueva frente a base",NOR-10,línea base: 0 de 105 en 21 pasadas · tanda nueva: 0 de 106 en 21 pasadas,igual,null
+"2 · sin_veredicto, nueva frente a base",NOR-11,línea base: 0 de 55 en 13 pasadas · tanda nueva: 0 de 80 en 21 pasadas,igual,null
+3 · el total de la tanda nueva,confirmados SÓLO por la pregunta del cumplimiento: 0 en 0 de 42 pasadas,null,null,null
+```
+
+**SALIDA 4 · SQL_34_10, las cuatro ventanas**
+```
+bloque,a,b,c,d
+organización leída,organización leída: 68bf28c3-8352-4052-8eb4-3a7e31b74b53 · «Mi workspace» · 45 documentos,null,null,null
+0 · control,línea base · NOR-10 · pasadas en su ventana: 21 · esperado: 21,OK,null,null
+0 · control,tanda nueva · NOR-10 · pasadas en su ventana: 21 · esperado: 21,OK,null,null
+0 · control,línea base · NOR-11 · pasadas en su ventana: 13 · esperado: 13,OK,null,null
+0 · control,tanda nueva · NOR-11 · pasadas en su ventana: 21 · esperado: 21,OK,null,null
+0 · control,pasadas que no son rápidas: 0,OK,null,null
+0 · control,pasadas sin registro por llamada (su coste no se puede medir): 0,OK,null,null
+0 · control,peticiones con un modelo que no está en la tabla de precios: 0,OK,null,null
+0 · control,pasadas con peticiones fuera del detalle o sin etapa (las cifras por etapa no serían el total): 0,OK,null,null
+0 · control,CONTROL POSITIVO · pasadas medidas con alguna petición del verificador: 76 de 76,OK,null,null
+1 · por medición,línea base · NOR-10 · 21 pasadas,coste medio por análisis 0.031515 $ (de 0.025901 a 0.040039) · total 0.661821 $,verificador: 0.011599 $ por análisis · 36.8 % del coste · 1.19 peticiones por análisis · latencia media por petición 1435 ms,"duración media del análisis 33.7 s, con la espera (la columna de SQL_34_06, sin espera ni origen: 36.6 s) · espera media por análisis 0.99 s · peticiones que no salieron bien: 0 de 109"
+1 · por medición,tanda nueva · NOR-10 · 21 pasadas,coste medio por análisis 0.033229 $ (de 0.028531 a 0.040537) · total 0.697800 $,verificador: 0.013314 $ por análisis · 40.1 % del coste · 1.19 peticiones por análisis · latencia media por petición 1821 ms,"duración media del análisis 34.4 s, con la espera (la columna de SQL_34_06, sin espera ni origen: 37.5 s) · espera media por análisis 1.34 s · peticiones que no salieron bien: 0 de 109"
+1 · por medición,línea base · NOR-11 · 13 pasadas,coste medio por análisis 0.030208 $ (de 0.025468 a 0.035011) · total 0.392710 $,verificador: 0.010118 $ por análisis · 33.5 % del coste · 1.69 peticiones por análisis · latencia media por petición 1066 ms,"duración media del análisis 39.5 s, con la espera (la columna de SQL_34_06, sin espera ni origen: 40.9 s) · espera media por análisis 1.18 s · peticiones que no salieron bien: 0 de 74"
+1 · por medición,tanda nueva · NOR-11 · 21 pasadas,coste medio por análisis 0.030766 $ (de 0.025884 a 0.037481) · total 0.646091 $,verificador: 0.010834 $ por análisis · 35.2 % del coste · 1.52 peticiones por análisis · latencia media por petición 1511 ms,"duración media del análisis 40.0 s, con la espera (la columna de SQL_34_06, sin espera ni origen: 41.7 s) · espera media por análisis 1.14 s · peticiones que no salieron bien: 0 de 116"
+2 · por etapa,línea base · NOR-10,juez,0.013514 $ por análisis · 42.9 % del coste,2.00 peticiones por análisis
+2 · por etapa,línea base · NOR-10,verificador,0.011599 $ por análisis · 36.8 % del coste,1.19 peticiones por análisis
+2 · por etapa,línea base · NOR-10,rerank,0.004910 $ por análisis · 15.6 % del coste,1.00 peticiones por análisis
+2 · por etapa,línea base · NOR-10,sintesis,0.001492 $ por análisis · 4.7 % del coste,1.00 peticiones por análisis
+2 · por etapa,tanda nueva · NOR-10,juez,0.013461 $ por análisis · 40.5 % del coste,2.00 peticiones por análisis
+2 · por etapa,tanda nueva · NOR-10,verificador,0.013314 $ por análisis · 40.1 % del coste,1.19 peticiones por análisis
+2 · por etapa,tanda nueva · NOR-10,rerank,0.004965 $ por análisis · 14.9 % del coste,1.00 peticiones por análisis
+2 · por etapa,tanda nueva · NOR-10,sintesis,0.001489 $ por análisis · 4.5 % del coste,1.00 peticiones por análisis
+2 · por etapa,línea base · NOR-11,juez,0.011533 $ por análisis · 38.2 % del coste,2.00 peticiones por análisis
+2 · por etapa,línea base · NOR-11,verificador,0.010118 $ por análisis · 33.5 % del coste,1.69 peticiones por análisis
+2 · por etapa,línea base · NOR-11,rerank,0.006917 $ por análisis · 22.9 % del coste,1.00 peticiones por análisis
+2 · por etapa,línea base · NOR-11,sintesis,0.001640 $ por análisis · 5.4 % del coste,1.00 peticiones por análisis
+2 · por etapa,tanda nueva · NOR-11,juez,0.011425 $ por análisis · 37.1 % del coste,2.00 peticiones por análisis
+2 · por etapa,tanda nueva · NOR-11,verificador,0.010834 $ por análisis · 35.2 % del coste,1.52 peticiones por análisis
+2 · por etapa,tanda nueva · NOR-11,rerank,0.006855 $ por análisis · 22.3 % del coste,1.00 peticiones por análisis
+2 · por etapa,tanda nueva · NOR-11,sintesis,0.001652 $ por análisis · 5.4 % del coste,1.00 peticiones por análisis
+3 · nueva frente a base,NOR-10,coste medio por análisis: 0.031515 → 0.033229 $ (+5.4 %),verificador: 0.011599 → 0.013314 $ (+14.8 %),"duración media, con la espera: 33.7 → 34.4 s · espera media: 0.99 → 1.34 s"
+3 · nueva frente a base,NOR-11,coste medio por análisis: 0.030208 → 0.030766 $ (+1.8 %),verificador: 0.010118 → 0.010834 $ (+7.1 %),"duración media, con la espera: 39.5 → 40.0 s · espera media: 1.18 → 1.14 s"
+```
+
+**Comprobado con script** (03/11):
+- `SQL_34_06`: 21 pasadas. **El quinto, en 9**: las pasadas 3, 5, 6, 7, 10, 11, 12, 14 y 16. **Con la etiqueta, una**: la 3.
+  **Muertos sin texto, en 4 pasadas**: la 3, la 9, la 10 y la 12, y de ellas **sólo la 9 no tiene el quinto**. Los agujeros
+  del control 6 son la 2, la 17, la 18, la 20 y la 21.
+- `SQL_34_07`: **esos 5 agujeros son los 5 cero real**, con el juicio de CLI-12 en «sin_relacion · solape 0 %». «tema_similar»
+  con 0 contradicciones guardadas: la 4, la 8, la 9, la 13, la 15 y la 19. Con 1: la 1, la 3, la 5, la 6, la 7, la 10, la 11,
+  la 12, la 14 y la 16. **Las 9 del quinto están entre esas 10. La otra, la 1, guarda una contradicción que no es el quinto.**
+- `SQL_34_09`: 7 de 7 controles OK, el positivo en 42 de 42. NOR-11 nueva: `sin_veredicto` 0 de 80; el contador, 0.
+- `SQL_34_10`: 9 de 9 controles OK, el positivo en 76 de 76. **NOR-11: 0,030208 → 0,030766 $ (+1,8 %)**; el verificador,
+  0,010118 → 0,010834 $ (+7,1 %); duración, 39,5 → 40,0 s; 0 fallidas de 116.

@@ -1387,6 +1387,14 @@ arquitecto dio los rangos del quinto como 4 a 12 y 10 a 19 con la aproximación 
 **Los dos se desviaron un punto, y en direcciones distintas, que es la firma de la aproximación.** Los corrigió Code con
 la cuenta exacta, antes de mirar ningún resultado.
 
+**Y NINGUNA BANDA PRERREGISTRADA SE ESCRIBE SIN SU TASA DE FALLO FALSO CALCULADA CONTRA LA LÍNEA BASE QUE YA TENEMOS**
+(arquitecto, 03/11/2026, al retirar la banda del quinto). *Code*: esa mitad ya la exigía esta sección, y la banda del quinto
+la llevaba (02/11, 18:38: «≥16» por azar el 0,05 %; «≤9» con el rescate de los cuatro, el 1,1 %). **Lo que le faltó es la otra
+mitad: LA POTENCIA**, la probabilidad de cada banda bajo CADA alternativa plausible, no sólo bajo la nula y la extrema. Con
+los rescates parciales delante, se habría visto antes de lanzar que «demuestra» no salía más de una vez de cada tres ni en el
+mejor caso (`claude/Predicciones_34_Conflicto_Normativo.md`, día 2, corrección 4). **Una banda se escribe con su tabla
+entera: cada banda, bajo cada hipótesis.**
+
 ---
 
 ## ⚠️ EL CASO DE EJEMPLO DE LOS MUTANTES: UN HUECO EN LAS PRUEBAS QUE HABRÍA DEJADO PASAR UN NÚMERO SEGURO Y FALSO

@@ -637,6 +637,35 @@ a ojo. El procedimiento, el coste y la consulta se plantean ANTES de pedírselo 
       nuevo y las dos fechas escritas aquí. **Lo que no puede pasar es que se quede a 50 y nadie recuerde por qué**: el día
       que haya un cliente, ese número será el suyo también.
     - **El momento**: cuando una medición necesite los dos documentos el mismo día, que son E5 y la pasada 2.
+  - ⚠️⚠️ **PENDIENTE DEL MEDIDOR, DE LOS IMPORTANTES (arquitecto y Code, 03/11): LO QUE EMITE EL JUEZ POR PAREJA, ANTES DE LA
+    PUERTA, NO SE GUARDA.** La línea del log `[judge] RAW … overlap=…%, N contradicciones, M solapamientos`
+    (`lib/analysis/judge.ts:982-991`, con un hash por contradicción) existe justo para distinguir «el juez no emitió nada» de
+    «emitió y murió después» (su comentario, `:975-981`), **y sólo vive en los logs de Vercel, que son efímeros.**
+    - **Sí se guarda, por pareja**, en `analysis->'judgments'[]`: el `overlapPercent` tal como lo da el juez (`judge.ts:964`;
+      nadie lo reescribe después); lo que SOBREVIVE (`contradictions` y `overlappingContent`, después de la puerta y del
+      verificador); y las muertes CONTADAS por motivo, sin texto (`discarded`, `descartesPorCita`).
+    - **No se guarda**: cuántas contradicciones y cuántos solapamientos emitió el juez. Hoy sólo se deducen como «lo que
+      sobrevive más las muertes contadas», que es lo que hizo `SQL_34_07`. La deducción depende de que toda salida esté
+      contada, y ya falló una vez (las 4 pasadas sin «discarded»).
+    - ⚠️ **Y un fallo del juez se guarda con la misma forma que «no emitió nada»** (`judge.ts:1015-1040`: overlap 0,
+      `sin_relacion`, listas vacías). Lo distingue sólo `stageFailures` con `stage = 'judge'`, que **no dice la pareja**
+      (`SQL_34_07`, líneas 100-104).
+    - **Lo que haría falta** (no se construye sin encargo): dos números por pareja, las contradicciones y los solapamientos
+      emitidos, guardados donde ya vive la pareja; y la pareja en el fallo del juez.
+    - ⚠️ **Y NO, NO LO SALDA `SQL_34_07`** (03/11): sus «contradicciones» y «solapes» son las longitudes de lo que SOBREVIVIÓ
+      (`pipeline.ts:720-721`). Crudos sólo son el veredicto y el % de solape.
+  ✅ **EL PASO 2 DE F-130, MEDIDO EN LOS DOS DOCUMENTOS (NOR-10 el 02/11, NOR-11 el 03/11) Y CERRADO.** Puntuación, lectura del
+  arquitecto y correcciones de Code, en `claude/Predicciones_34_Conflicto_Normativo.md` (día 2). En una línea: el verificador
+  sin marca es seguro y barato, no abrió su puerta en 42 pasadas, y el quinto no regresó (de 9 a 10 de 21).
+  - **Pendiente A** (rehacer `SQL_34_07` sobre la base del quinto): **cerrado desde el 01/11.** El «hasta 9» de la base
+    sale de los muertos sin texto, no de los agujeros.
+  - **Pendiente B, DISPARADOR CUMPLIDO** (la tanda está puntuada): `pglite-fuera-del-producto`, en un commit solo, para que un
+    fallo de tiempo no produzca un rojo que se aprenda a ignorar. Fecha tope, el 05/11.
+  - **C**: la especificación de Fable NO se construye. La inversión de nivel_1, el veto del escape insuficiente, las dos
+    autocontradicciones y el choque de nombres de los pasos vuelven a Fable antes de tocar código.
+  - **D**: la línea de la prelación NO entra en el prompt del juez antes de volver a medir: confundiría la medición.
+  - **E**: P-F130-17 sigue NO PUNTUABLE (su base era el 0,015 $ inventado). El coste medido es de unos 0,031 $ por análisis
+    en los dos documentos.
   ⚠️⚠️ **EL ORDEN FINAL (arquitecto, 01/11). Sustituye al orden de arriba en lo que no coincida:**
   1. **Verificar qué recibió el juez**, gratis: `SQL_34_08_lo_que_recibio_el_juez.sql`, las 21 de D y las 13 del quinto.
      ✅ **HECHO (02/11): los dos documentos enteros, 34 de 34.**
