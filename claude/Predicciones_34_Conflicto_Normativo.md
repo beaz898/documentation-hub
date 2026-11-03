@@ -864,3 +864,65 @@ regresión y no objetivo.
 pareja NOR-11·13 ↔ CLI-12·13, 0 créditos, ~0,04 $ por tanda de 20, sin tocar el prompt) apunta exactamente ahí.
 *Code: el quinto etiquetado de la pasada 3 se publicó con el contador a 0, así que lo confirmó la pregunta del DATO. Es el
 camino arreglado disparándose y respondiendo como caso de dato, que es lo que el quinto es.*
+
+## PASO 3 · LA PREGUNTA CERRADA SOBRE LA PAREJA DEL QUINTO: LAS PREDICCIONES, ANTES DE LANZAR
+
+**Escritas por el arquitecto el 03/11/2026 a las 13:10 (su hora); archivadas por Code a las 13:09 por su reloj (son relojes distintos), antes de construir nada
+y antes de la primera pasada.** Texto literal, sacado de su mensaje con un script:
+
+> Predicciones del paso 3, escritas el 03/11/2026 a las 13:10, ANTES de lanzar. Numeradas P-P3-n porque no sé por dónde va la serie de la casa; si hay numeración, renumérala tú y dilo.
+>
+> CONDICIONES: 21 pasadas (no 20 como decía el plan de la semana 0; subo a 21 SÓLO para que el denominador coincida exacto con la pasada abierta y nadie tenga que explicar mañana por qué los n eran distintos; el coste sube unos 2 milésimos de dólar). Pareja NOR-11 trozo 13 ↔ CLI-12 trozo 13. EL PROMPT NO SE TOCA: su pregunta 1, la del dato, es la que corresponde. Nada más cambia entre pasadas.
+>
+> LA REFERENCIA: la pasada abierta dio el quinto en 9 de 21 = 42,9 % (Wilson 24,5-63,5 %).
+>
+> LAS BANDAS, con su tasa de error Y SU POTENCIA, que es la mitad que me faltó ayer:
+>
+> banda                                     H0=43%   H1=90%   H2=65%   H3=100%
+> A · lo ve con la pareja delante  [17-21]    0,04%    94,8%     9,2%    100%
+> B · lo ve a medias               [13-16]     6,2%     5,2%    61,4%      0%
+> C · no mejora convincentemente   [10-12]    34,7%     0,0%    26,3%      0%
+> D · la pregunta cerrada NO lo arregla [0-9]  59,1%  0,0000%     3,1%      0%
+>
+> - Banda A: error 0,04 % y potencia 94,8 % si la verdad es el 90 %. Y el 17 coincide con el primer resultado donde Fisher afirma la diferencia contra 9 de 21 (p = 0,0247). El umbral no es arbitrario.
+> - Banda A es CIEGA al caso intermedio a propósito: si la verdad fuera el 65 %, A sólo sale el 9,2 % de las veces. Para eso está B.
+> - Banda D no puede salir si la verdad es el 90 %: fallo falso 0,0000 %. Si sale D, no es mala suerte.
+> - Fisher por resultado, prefijado para que no se elija después: 11→0,758 · 13→0,354 · 15→0,118 · 17→0,0247 · 19→0,0025 · 21→0,0001.
+>
+> P-P3-1 (del número): el quinto sale en banda A, 17 o más de 21. Razón: su fallo medido es no llegar a la pareja (11 de 21 sin nada superviviente, 5 de ellas declarando los documentos sin relación), y la pregunta cerrada elimina ese fallo por construcción.
+>
+> P-P3-2 (de la especie, y vale MÁS que el número): sigue saliendo SIN etiqueta. El quinto es un caso de dato y la taxonomía sólo tiene norma_contra_norma y norma_contra_practica; no poner etiqueta es el acierto. En la pasada abierta fueron 8 bien de 9. SI LA PREGUNTA CERRADA SUBE EL NÚMERO PERO LO ETIQUETA, el resultado es PEOR que un número bajo: significaría que la pregunta lo empuja a la familia equivocada.
+>
+> P-P3-3 (del contador): confirmados_solo_por_cumplimiento se queda en 0 en las 21. Si sube, la pregunta cerrada está rescatando el quinto por la puerta equivocada y el número NO es comparable con los 9 de 21.
+>
+> P-P3-4 (de las citas): las dos citas siguen siendo NOR-11 §10.5 («revisa trimestralmente el cumplimiento…») y CLI-12 §6.2 («personal ajeno al área auditada…»), las mismas frases que en la pasada abierta. Y el §4 (el glosario) SIGUE sin aparecer: la semana 0 midió que en las 5 veces que salió el quinto, la cita de CLI-12 fue siempre del §6.2 y nunca del §4. Si ahora aparece el §4, es información nueva y hay que escribirla.
+>
+> P-P3-5 (de lo que NO demuestra): un resultado en banda A no demuestra que la pasada 2 funcione. La pregunta cerrada quita por construcción el fallo de alcance; lo que A demostraría es sólo que el juez SABE LEER este caso con la pareja delante. Que la pasada 2 produzca esa pareja es otra cosa, y su especificación tiene cuatro defectos abiertos. ESTO SE ARCHIVA AHORA para que un 20 de 21 no se lea mañana como permiso para construir el paso 4.
+>
+> Y lo que haría el resultado NO PUNTUABLE: que se toque el prompt, que cambie la pareja, o que el contador de P-P3-3 se mueva.
+
+**La numeración (Code)**: la serie P-P3-n no choca con ninguna de la casa (P-F130-1 a 19, P-VN, P-VL, P-E3-R). Se queda así.
+
+### LAS NOTAS DE CODE, AL LADO Y SIN TOCAR EL TEXTO (03/11, antes de lanzar)
+
+1. **La aritmética, comprobada** (`bandas_p3.mjs`, de un solo uso): las cuatro bandas bajo las cuatro hipótesis y el Fisher
+   prefijado, bien. *Matiz*: la columna «H0=43 %» está calculada con 9/21 = 42,86 % (con el 43 % redondo se mueve la segunda
+   decimal: A 0,044 %, B 6,33 %, C 35,06 %, D 58,56 %). Y para el hueco entre 15 y 17: 16 → p = 0,058.
+2. ⚠️ **P-P3-3 NO SE PUEDE MEDIR CON ESTA HERRAMIENTA TAL COMO ESTÁ ESCRITA.** `verificador.confirmados_solo_por_cumplimiento`
+   es un contador del VERIFICADOR DEL PRODUCTO (`pipeline.ts:653`). La pregunta cerrada (`app/api/admin/medida-f130/`) llama
+   al modelo del juez con su propio prompt y devuelve TEXTO: no pasa por el verificador ni escribe `pipelineCounters`. El
+   análogo dentro de la herramienta sería «el modelo contesta "no" a la pregunta 1 y "no" a la 2» (el quinto encontrado SÓLO
+   por el cumplimiento). Si P-P3-3 no se reescribe antes de lanzar, **la condición de NO PUNTUABLE que depende de ella no se
+   puede evaluar**.
+3. ⚠️ **P-P3-4, en su mitad del §4, no puede fallar.** La herramienta entrega al modelo SÓLO los dos trozos 13; el §4 de
+   CLI-12 está en los trozos 7 a 9 (`claude/Medida_F130_E3_Y_Vecindad_29-10-2026.md:1374`), así que no puede aparecer. Una
+   predicción que no puede fallar no informa. Y en su otra mitad: en la pasada abierta la cita de CLI-12 fue de **dos**
+   frases distintas del §6.2, las dos del trozo 13: «Las auditorías internas las realiza siempre personal ajeno…» (7 de 9)
+   y «…participa en la auditoría como interlocutor, pero no como auditor de su propia área» (2 de 9: las pasadas 3 y 6).
+   P-P3-4 nombra sólo la primera.
+4. **P-P3-2 en esta herramienta**: el prompt sólo pide etiqueta cuando la pregunta 2 dispara («no se pueden cumplir»). Con
+   la pregunta 1 en «sí» y la 2 en «sí», no hay etiqueta posible. «Sin etiqueta» equivale aquí a «la pregunta 2 no dispara».
+5. **Falta el CRITERIO DE CUENTA, y tiene que estar escrito antes de lanzar**: qué respuesta cuenta como «el quinto sale».
+   Propuesta, para que la decida el arquitecto: la pregunta 1 en «sí», con una cita de NOR-11 que contenga «revisa
+   trimestralmente el cumplimiento» y una de CLI-12 que contenga «personal ajeno al área auditada» o «no como auditor de su
+   propia área». Las respuestas que no casen con eso se leen aparte y se cuentan, como las dudosas de `SQL_34_06`.
