@@ -696,6 +696,21 @@ a ojo. El procedimiento, el coste y la consulta se plantean ANTES de pedírselo 
     **DISPARADOR: el próximo rojo de ese fichero, O el próximo cambio que alguien le haga, O el 10/11/2026, lo que llegue
     primero.** *(Sustituye al «partir el fichero en dos», retirado por el arquitecto: partirlo aísla la lectura en frío, no la
     acelera.)*
+  - ⚠️⚠️ **PENDIENTE CON DISPARADOR (arquitecto y Code, 03/11): EL TYPECHECK DEL WORKER LLEVA EN ROJO DESDE EL 25/09, Y CON ÉL
+    `npm run comprobar` ENTERO.** `npm run typecheck` es `tsc --noEmit && tsc --noEmit -p worker/tsconfig.json`, y la segunda
+    mitad falla con UN error: `lib/analysis/normalize.ts(42,63): TS7016`, no hay declaración para `./normalize-core.mjs`.
+    - **Desde cuándo, medido** (copias aparte del repositorio con los `node_modules` enlazados): el commit anterior a
+      `2b6d7002`, 0 errores; `2b6d7002` (25/09, 23:17, «normalize: las TRES funciones bajan a un .mjs»), 1; y el mismo error
+      en `05085d92` (11/10) y `1a11616f` (27/10). **39 días sin esa puerta**, hasta el 03/11.
+    - **Por qué la raíz pasa y el worker no**: la raíz tiene `allowJs: true` (`tsconfig.json:5`) y el worker no
+      (`worker/tsconfig.json`), así que el worker no acepta un import de `.mjs` sin declaración. Su grafo de tipos llega a
+      `lib/analysis/normalize.ts` por los imports de `worker/src/` (112 ficheros propios, `--listFilesOnly`, ninguno de `app/`).
+    - **Lo que NO se sabe todavía**: si el despliegue del worker en Railway pasa por `tsc` (si pasara, llevaría 39 días sin
+      poder desplegar) o no. Es lo primero que hay que mirar cuando se abra.
+    - **Mientras tanto, la puerta de un commit** que no toque el grafo del worker es `tsc --noEmit` de la raíz, la suite y la
+      compilación; y se dice en el mensaje, con la comprobación de que el grafo no incluye lo tocado.
+    - **DISPARADOR (propuesta de Code, pendiente de que el arquitecto lo fije)**: el próximo commit que toque `worker/` o un
+      fichero del grafo del worker, O el 10/11/2026, lo que llegue primero. No se arregla hoy y no se mezcla con el paso 3.
   - **C**: la especificación de Fable NO se construye. La inversión de nivel_1, el veto del escape insuficiente, las dos
     autocontradicciones y el choque de nombres de los pasos vuelven a Fable antes de tocar código.
   - **D**: la línea de la prelación NO entra en el prompt del juez antes de volver a medir: confundiría la medición.
