@@ -1,7 +1,9 @@
+import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import {
-  CADUCA_EL, MARCAS_DE_A, PAREJAS_DE_E3, PAREJA_DE_LA_VARIANTE_LIMPIA, PREGUNTA_CERRADA, TROZOS, VECES_DE_E3, VECES_DE_LA_VARIANTE_LIMPIA,
-  construirPrompt, contarFiguras, correspondencia, coseno, estaCaducada, fraseQueContiene, puestos,
+  CADUCA_EL, FRASES_DEL_QUINTO, MARCAS_DE_A, PAREJAS_DE_E3, PAREJA_DE_LA_VARIANTE_LIMPIA, PAREJA_DEL_QUINTO, PREGUNTA_CERRADA, TROZOS,
+  VECES_DE_E3, VECES_DE_LA_VARIANTE_LIMPIA, VECES_DEL_QUINTO,
+  construirPrompt, contarFiguras, correspondencia, coseno, estaCaducada, fraseQueContiene, puestos, trozoConSuFrase,
 } from './medida-f130';
 
 /**
@@ -86,6 +88,41 @@ describe('las medidas temporales de F-130', () => {
     expect(fraseQueContiene('## 2.4 Cargo\nEl cargo puede recaer en X\nOtra línea.', 'puede recaer')).toEqual({ ok: true, frase: 'El cargo puede recaer en X' });
     expect(fraseQueContiene('El cargo puede recaer en X.', 'puede recaer')).toEqual({ ok: true, frase: 'El cargo puede recaer en X.' });
     expect(fraseQueContiene('Uno. El cargo puede recaer', 'puede recaer')).toEqual({ ok: true, frase: 'El cargo puede recaer' });
+  });
+
+  it('EL PASO 3: la pareja del quinto, NOR-11·13 ↔ CLI-12·13, veintiuna veces, con la frase de NOR-11 y las DOS de CLI-12', () => {
+    expect([TROZOS[PAREJA_DEL_QUINTO.analizado], TROZOS[PAREJA_DEL_QUINTO.candidato]].map(t => `${t.codigo}·${t.trozo}`)).toEqual(['NOR-11·13', 'CLI-12·13']);
+    expect(TROZOS.nor11_13.frase).toBe('revisa trimestralmente el cumplimiento');
+    expect(TROZOS.cli12_13.frase).toBe('Las auditorías internas las realiza siempre');
+    expect(VECES_DEL_QUINTO).toBe(21);
+    expect(FRASES_DEL_QUINTO).toEqual({ analizado: ['revisa trimestralmente el cumplimiento'], candidato: ['personal ajeno al área auditada', 'no como auditor de su propia área'] });
+  });
+
+  it('⚠️ LA NEGATIVA DURA: sin trozos, sin el número pedido o sin su frase, NO hay trozo; y con todo, sí', () => {
+    const pedido = TROZOS.cli12_13;
+    const bueno = { chunkIndex: 13, text: 'Las auditorías internas las realiza siempre personal ajeno al área auditada.' };
+    expect(trozoConSuFrase([], pedido)).toEqual({ ok: false, error: 'CLI-12: la lectura de sus trozos vino vacía (o falló)' });
+    expect(trozoConSuFrase([{ chunkIndex: 12, text: bueno.text }], pedido)).toEqual({ ok: false, error: 'CLI-12: no tiene trozo 13 (tiene 1)' });
+    expect(trozoConSuFrase([{ chunkIndex: 13, text: 'El §4, el glosario.' }], pedido)).toEqual({ ok: false, error: 'CLI-12 trozo 13 NO contiene «Las auditorías internas las realiza siempre»: el número de trozo no corresponde al texto que se quería medir' });
+    // control positivo: con el trozo bueno, lo devuelve
+    expect(trozoConSuFrase([{ chunkIndex: 12, text: 'otro' }, bueno], pedido)).toEqual({ ok: true, trozo: bueno });
+  });
+
+  it('⚠️ LA NEGATIVA DURA ES DURA: en la ruta del quinto, el 409 de los trozos va ANTES del ensayo y antes de llamar al modelo', () => {
+    const ruta = readFileSync('app/api/admin/medida-f130/quinto/route.ts', 'utf8');
+    const negativa = ruta.indexOf("if (!leidos.ok) return NextResponse.json({ error: leidos.error }, { status: 409 });");
+    const ensayo = ruta.indexOf("if (req.nextUrl.searchParams.get('ensayo') === '1')");
+    const modelo = ruta.indexOf('await preguntarAlJuez(');
+    expect(negativa).toBeGreaterThan(-1);
+    expect(ruta.indexOf('await leerTrozos(')).toBeGreaterThan(-1);
+    expect(ruta.indexOf('await leerTrozos(')).toBeLessThan(negativa);
+    expect(negativa).toBeLessThan(ensayo);
+    expect(ensayo).toBeLessThan(modelo);
+    // y la única llamada al modelo es ésa: ninguna antes de la negativa
+    expect(ruta.split('preguntarAlJuez(').length - 1).toBe(1);
+    // y `leerTrozos` pasa de verdad por la negativa: es lo que hace que el 409 de arriba exista
+    const lectura = readFileSync('app/api/admin/medida-f130/leer-de-la-base.ts', 'utf8');
+    expect(lectura).toContain('const elegido = trozoConSuFrase(todos, pedido);\n    if (!elegido.ok) return { ok: false, error: elegido.error };');
   });
 
   it('LA FRASE NO SE ADIVINA: sin el ancla, con el ancla dos veces, o con A dentro, no hay frase', () => {

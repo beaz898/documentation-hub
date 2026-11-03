@@ -84,8 +84,26 @@ export const TROZOS = {
   nor10_4: { codigo: 'NOR-10', trozo: 4, frase: 'puede recaer en el propio Director Clínico' },
   cli12_3: { codigo: 'CLI-12', trozo: 3, frase: 'separar la responsabilidad de un proceso crítico de seguridad del paciente' },
   cli12_6: { codigo: 'CLI-12', trozo: 6, frase: 'nunca por el Director Clínico del propio centro' },
+  // el paso 3 (03/11): los números salen del troceado local y de la siembra, NO de la base; la frase es lo que los comprueba
+  nor11_13: { codigo: 'NOR-11', trozo: 13, frase: 'revisa trimestralmente el cumplimiento' },
+  cli12_13: { codigo: 'CLI-12', trozo: 13, frase: 'Las auditorías internas las realiza siempre' },
 } as const;
 export type ClaveDeTrozo = keyof typeof TROZOS;
+
+/**
+ * LA NEGATIVA DURA (arquitecto, 03/11): el trozo pedido, sólo si existe Y contiene su frase. Si no, error, y la ruta no
+ * llama al modelo. Pura, para que tenga prueba; `leerTrozos` (`leer-de-la-base.ts`) la usa tal cual.
+ */
+export function trozoConSuFrase<T extends { chunkIndex: number; text: string }>(todos: T[], pedido: { codigo: string; trozo: number; frase: string }):
+  { ok: true; trozo: T } | { ok: false; error: string } {
+  if (todos.length === 0) return { ok: false, error: `${pedido.codigo}: la lectura de sus trozos vino vacía (o falló)` };
+  const t = todos.find(c => c.chunkIndex === pedido.trozo);
+  if (!t) return { ok: false, error: `${pedido.codigo}: no tiene trozo ${pedido.trozo} (tiene ${todos.length})` };
+  if (!t.text.includes(pedido.frase)) {
+    return { ok: false, error: `${pedido.codigo} trozo ${pedido.trozo} NO contiene «${pedido.frase}»: el número de trozo no corresponde al texto que se quería medir` };
+  }
+  return { ok: true, trozo: t };
+}
 
 /**
  * E3 EN LA CONDICIÓN REALISTA (arquitecto, 28/10): los dos trozos ENTEROS, con A dentro, y no las dos frases de D
@@ -120,6 +138,23 @@ export const VECES_DE_E3 = 20;
  */
 export const PAREJA_DE_LA_VARIANTE_LIMPIA: { analizado: ClaveDeTrozo; candidato: ClaveDeTrozo } = { analizado: 'nor10_4', candidato: 'cli12_3' };
 export const VECES_DE_LA_VARIANTE_LIMPIA = 20;
+
+/**
+ * EL PASO 3 DE F-130 (arquitecto, 03/11): la pregunta cerrada, SIN TOCAR, sobre la pareja del quinto, NOR-11·13 (§10.5) ↔
+ * CLI-12·13 (§6.2), con los dos trozos ENTEROS. 21 veces, para que el n coincida con la pasada abierta (9 de 21).
+ * Las predicciones y sus bandas, archivadas antes de construir: `claude/Predicciones_34_Conflicto_Normativo.md`, paso 3.
+ * ⚠️ LO QUE MIDE Y LO QUE NO (enmienda 2): otro prompt y sólo la pareja son la intervención; que no pase por la puerta de
+ * citas ni por el verificador es la contaminación, y sesga a favor de la pregunta cerrada frente a los 9 de 21 PUBLICADOS.
+ * El ensayo (`?ensayo=1`) lee los dos trozos por el MISMO camino que la tanda y devuelve su texto, sin llamar al modelo.
+ */
+export const PAREJA_DEL_QUINTO: { analizado: ClaveDeTrozo; candidato: ClaveDeTrozo } = { analizado: 'nor11_13', candidato: 'cli12_13' };
+export const VECES_DEL_QUINTO = 21;
+/** Las frases que el ensayo enseña cortadas de cada trozo: la de NOR-11 y las DOS de CLI-12 que se citaron en la pasada
+ *  abierta (7 y 2 de 9), para reescribir la mitad que queda de P-P3-4 con el texto guardado. */
+export const FRASES_DEL_QUINTO = {
+  analizado: ['revisa trimestralmente el cumplimiento'],
+  candidato: ['personal ajeno al área auditada', 'no como auditor de su propia área'],
+} as const;
 
 /** Lo que delata a A (quién es el responsable último): si la frase cortada lo lleva, A va delante y no se mide. */
 export const MARCAS_DE_A = ['responsabilidad última', 'responsable último'] as const;

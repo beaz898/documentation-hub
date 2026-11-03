@@ -9,7 +9,7 @@ export default function MedidaF130() {
   const [salida, setSalida] = useState('');
   const [ocupado, setOcupado] = useState(false);
 
-  async function medir(ruta: 'vecindad' | 'pregunta' | 'limpia?ensayo=1' | 'limpia') {
+  async function medir(ruta: 'vecindad' | 'pregunta' | 'limpia?ensayo=1' | 'limpia' | 'quinto?ensayo=1' | 'quinto') {
     setOcupado(true);
     setSalida(`Midiendo ${ruta}…`);
     try {
@@ -35,6 +35,11 @@ export default function MedidaF130() {
       <p>
         <button disabled={ocupado} onClick={() => medir('pregunta')}>Condición 1 · la pareja entera, con A, 20 veces (gasta en la API)</button>{' '}
         <button disabled={ocupado} onClick={() => medir('limpia')}>Condición 2 · las dos frases de D, sin A, 20 veces (gasta en la API)</button>
+      </p>
+      <p>Paso 3 (03/11): la pareja del quinto. PRIMERO el ensayo, y la tanda sólo cuando el arquitecto haya confirmado la pareja:</p>
+      <p>
+        <button disabled={ocupado} onClick={() => medir('quinto?ensayo=1')}>Paso 3 · ensayo: los dos trozos como están guardados (sin modelo, no gasta)</button>{' '}
+        <button disabled={ocupado} onClick={() => medir('quinto')}>Paso 3 · la tanda: la pareja del quinto, 21 veces (gasta en la API)</button>
       </p>
       <p>Copia todo lo que salga abajo y pégaselo a Claude Code.</p>
       <pre style={{ whiteSpace: 'pre-wrap', background: '#f4f4f4', padding: '1rem', minHeight: '10rem' }}>{salida}</pre>

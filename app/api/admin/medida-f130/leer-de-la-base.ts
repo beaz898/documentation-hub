@@ -4,7 +4,7 @@ import { getAuthenticatedUserHybrid } from '@/lib/supabase-server';
 import { resolverOrg } from '@/lib/org';
 import { respuestaDeOrgNoResuelta } from '@/lib/org-respuesta';
 import { getDocumentChunks } from '@/lib/read-chunks';
-import { estaCaducada, CADUCA_EL, TROZOS, type ClaveDeTrozo } from './medida-f130';
+import { estaCaducada, CADUCA_EL, TROZOS, trozoConSuFrase, type ClaveDeTrozo } from './medida-f130';
 
 /**
  * Lo común a las tres rutas temporales de F-130: la caducidad, el administrador y la lectura de los trozos de la base.
@@ -66,12 +66,9 @@ export async function leerTrozos(supabase: Supabase, orgId: string, claves: Clav
     const doc = await documentoPorCodigo(supabase, orgId, pedido.codigo);
     if (!doc.ok) return { ok: false, error: doc.error };
     const todos = await getDocumentChunks(supabase, { orgId, documentId: doc.id, generation: doc.generacion });
-    if (todos.length === 0) return { ok: false, error: `${pedido.codigo}: la lectura de sus trozos vino vacía (o falló)` };
-    const t = todos.find(c => c.chunkIndex === pedido.trozo);
-    if (!t) return { ok: false, error: `${pedido.codigo}: no tiene trozo ${pedido.trozo} (tiene ${todos.length})` };
-    if (!t.text.includes(pedido.frase)) {
-      return { ok: false, error: `${pedido.codigo} trozo ${pedido.trozo} NO contiene «${pedido.frase}»: el número de trozo no corresponde al texto que se quería medir` };
-    }
+    const elegido = trozoConSuFrase(todos, pedido);
+    if (!elegido.ok) return { ok: false, error: elegido.error };
+    const t = elegido.trozo;
     trozos[clave] = { clave, documentId: doc.id, nombre: doc.nombre, generacion: doc.generacion, chunkIndex: t.chunkIndex, texto: t.text };
   }
   return { ok: true, trozos };
