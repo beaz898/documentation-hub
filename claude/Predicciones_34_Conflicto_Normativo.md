@@ -1057,3 +1057,220 @@ escrita en el mismo script que cuente, enseñándola antes del número, y lo que
 
 **Con el criterio fijado y esta regla escrita, la tanda queda APROBADA por el arquitecto** (03/11). Su reserva sobre la ruta,
 retirada: leyó `quinto/route.ts` entero.
+
+### ⚠️ LA REGLA DE CUENTA, APROBADA, Y LOS TRES PRERREGISTROS, ANTES DE LA TANDA (arquitecto y Code, 04/11/2026; archivado a las 08:56)
+
+**LA REGLA DE RECONOCIMIENTO (R1 a R4), APROBADA por el arquitecto tal como está escrita, con sus tres límites declarados**:
+no juzga la literalidad más allá del ancla; no entiende el sentido (un «sí» en la primera línea que se desdice en la tercera
+cuenta como «sí»); y es conservadora a propósito (ante un formato raro, manda al cubo antes que adivinar).
+*El arquitecto se probó contra las trampas antes de proponer nada*: su impulso era aflojar R2 (con «sí» y «no» en la línea del
+veredicto, tomar el primero si es la primera palabra), y la trampa «No obstante, sí» la mata: la habría leído «no». **Mandar al
+cubo siempre es seguro; asignar mal no lo es nunca. NO SE TOCA.**
+
+**LOS TRES PRERREGISTROS (arquitecto), literales:**
+1. **UNA LLAMADA FALLIDA NO ES UN «NO»**: «Una llamada que no sale bien NO es un veredicto y NO cuenta como "el juez no vio el
+   quinto". La tanda es puntuable SÓLO con 21 respuestas buenas. Las fallidas se repiten —mismo prompt, misma pareja, nada
+   varía— hasta tener 21. Un reintento es una extracción de la misma distribución, porque por diseño no cambia nada entre
+   pasadas, así que no sesga. Cada reintento cuesta ~0,002 $. Y el registro deja escrito cuántas fallaron y se repitieron.»
+   *Code*: la versión que aprobó el arquitecto (huella `5125a34d0be5f842`) NO hacía esto (mandaba la fallida al cubo como «sin respuesta») y la ruta
+   no puede repetir sólo las fallidas: cada pulsación lanza 21 llamadas. **Cómo se cumple, fijado ahora**: las fallidas no
+   van al cubo; si hay menos de 21 buenas, el director pulsa otra vez, y las que faltan son **las PRIMERAS respuestas buenas de
+   la pulsación siguiente, por orden de vez**. El script lo hace, y dice cuántas fallaron.
+2. **EL CUBO TIENE UN TAMAÑO MÁXIMO**: «Si el cubo supera las 4 de 21, las bandas se declaran ILEGIBLES. No se reinterpretan
+   sobre un denominador más pequeño y no se baja el umbral: se endurece la regla con lo que el cubo haya enseñado y SE REPITE LA
+   TANDA entera. El 4 sale de que la banda A pide 17 de 21; no es una cifra elegida.»
+3. **EL CUBO SE ENSEÑA ANTES DEL NÚMERO**: «Code informa primero del tamaño del cubo y del motivo de cada respuesta que cae en
+   él, y sólo después del número de la columna 1. Si el cubo cabe en 4, se lee el número; si no, se repite la tanda. El
+   arquitecto no ve el número antes de saber si la regla fue utilizable.»
+Y lo ya fijado, para no mezclar al informar: **columna 1, «¿salió el quinto?»**, la que se compara con los 9 de 21; **columna
+2, «¿por qué pregunta?»**, que puntúa P-P3-2 y no afecta a la 1.
+
+**EL SCRIPT QUE CUENTA, ENTERO, CONGELADO POR SU HUELLA `2db4208f2d928a8d`** (sha256, los 16 primeros; `contar_quinto.mjs`, de un solo
+uso, en el scratchpad de Code). Sustituye a la versión de huella `5125a34d0be5f842`, la que vio el arquitecto, por los
+cambios de los prerregistros, todos ANTES de la tanda. Pasa 23 de 23 pruebas sobre respuestas inventadas: las 19 de la regla
+y 4 de los prerregistros. Si se cambia una sola línea después de la tanda, la huella no casa:
+
+```js
+// LA REGLA DE CUENTA DEL PASO 3 DE F-130, EN CÓDIGO (Code, 04/11/2026), escrita ANTES de la tanda y congelada por su huella.
+// Implementa el criterio del arquitecto (03/11, 21:20) y la regla de reconocimiento que él aprueba antes de pulsar.
+// Uso: node contar_quinto.mjs <salida-de-la-tanda.json>   ·   node contar_quinto.mjs --pruebas
+import { readFileSync } from 'node:fs';
+
+export const ANCLA_NOR11 = 'revisa trimestralmente el cumplimiento';
+export const ANCLAS_CLI12 = ['personal ajeno al área auditada', 'no como auditor de su propia área'];
+
+const plano = s => s.normalize('NFC').replace(/\s+/g, ' ').trim().toLowerCase();
+const sinMarcas = s => s.replace(/[*_#>`]/g, '');
+
+// R1 · LAS DOS SECCIONES. Cabeceras «PREGUNTA 1» y «PREGUNTA 2» (mayúsculas o no, con o sin espacio); si no están las dos,
+// una vez cada una y en orden, se prueba la forma numerada a principio de línea («1.» o «1)» y «2.» o «2)»). Si tampoco,
+// la respuesta va al tercer cubo: «sin las dos secciones».
+export function secciones(texto) {
+  const t = sinMarcas(texto);
+  const probar = (re1, re2) => {
+    const a = [...t.matchAll(re1)], b = [...t.matchAll(re2)];
+    if (a.length !== 1 || b.length !== 1 || a[0].index >= b[0].index) return null;
+    return { p1: t.slice(a[0].index + a[0][0].length, b[0].index), p2: t.slice(b[0].index + b[0][0].length) };
+  };
+  return probar(/pregunta\s*1\b/gi, /pregunta\s*2\b/gi) ?? probar(/^[ \t]*1[.)]/gm, /^[ \t]*2[.)]/gm);
+}
+
+// R2 · EL VEREDICTO de cada sección: en la PRIMERA LÍNEA NO VACÍA de la sección que no sea una pregunta (no acaba en «?»; lo
+// que queda de la línea de la cabecera cuenta si tiene texto), se buscan las palabras enteras «sí» y «no». «si» SIN TILDE
+// cuenta como «sí» SÓLO si es la primera palabra y va sola o con puntuación («Si.», «Si,»): suelto, también es el condicional
+// («Si se hace lo que permite…»). Exactamente una de las dos clases → ése es el veredicto; ninguna o las dos → «veredicto sin
+// decidir». Sólo esa línea, para que el «no» de «no como auditor de su propia área» dentro de una cita no se lea como respuesta.
+export function veredicto(seccion) {
+  const linea = (seccion.split('\n').map(l => l.replace(/^[\s·:.\-–—]*(el dato|el cumplimiento)?[\s·:.\-–—]*/i, ''))
+    .find(l => l.trim() !== '' && !l.trim().endsWith('?')) ?? '').trim();
+  const si = /(^|[^\p{L}])sí([^\p{L}]|$)/iu.test(linea) || /^si([.,;:!]|$)/i.test(linea);
+  const no = /(^|[^\p{L}])no([^\p{L}]|$)/iu.test(linea);
+  return si && !no ? 'sí' : no && !si ? 'no' : null;
+}
+
+// R3 · LAS CITAS: los tramos entre «…», “…” o "…" de la sección. Se contrastan con las anclas en minúsculas y con los espacios
+// colapsados; una cita casa con un ancla si la contiene entera.
+export function citas(seccion) {
+  return [...seccion.matchAll(/«([^»]*)»|“([^”]*)”|"([^"]*)"/g)].map(m => plano(m[1] ?? m[2] ?? m[3] ?? ''));
+}
+function anclasDe(seccion) {
+  const c = citas(seccion), p = plano(seccion);
+  const nor = c.some(x => x.includes(ANCLA_NOR11)), cli = c.some(x => ANCLAS_CLI12.some(a => x.includes(a)));
+  const fueraNor = !nor && p.includes(ANCLA_NOR11), fueraCli = !cli && ANCLAS_CLI12.some(a => p.includes(a));
+  return { nor, cli, fueraNor, fueraCli };
+}
+
+// R4 · LA CUENTA. «Hallazgo afirmado» = la 1 en «sí», o la 2 en «no». Una pregunta con hallazgo afirmado da EL QUINTO si su
+// sección trae, ENTRE COMILLAS, una cita con el ancla de NOR-11 y otra con una de las dos de CLI-12. Lo que no case va al
+// TERCER CUBO con su motivo, y nunca se decide a ojo:
+//   · sin respuesta (error de la API o texto vacío); · sin las dos secciones; · veredicto sin decidir en una pregunta;
+//   · hallazgo afirmado con una sola de las dos anclas; · hallazgo afirmado con un ancla fuera de comillas;
+//   · hallazgo afirmado sin ninguna de las anclas (otro hallazgo, o citas de otro apartado).
+// Columna 1: sí, si alguna pregunta da el quinto limpio (aunque la otra caiga al cubo: entonces la columna 2 queda «sin
+// decidir»). Columna 2: la 1, la 2 o las dos. Sin hallazgo afirmado en ninguna de las dos (y las dos decididas): «no salió»,
+// aunque las anclas aparezcan colgando de un «no hay hallazgo».
+export function contar(respuesta) {
+  if (!respuesta || typeof respuesta.respuesta !== 'string' || respuesta.respuesta.trim() === '') return { quinto: null, cubo: ['sin respuesta'] };
+  const s = secciones(respuesta.respuesta);
+  if (!s) return { quinto: null, cubo: ['sin las dos secciones'] };
+  const v1 = veredicto(s.p1), v2 = veredicto(s.p2);
+  const cubo = [], por = [];
+  for (const [n, v, sec, afirma] of [[1, v1, s.p1, 'sí'], [2, v2, s.p2, 'no']]) {
+    if (v === null) { cubo.push(`pregunta ${n}: veredicto sin decidir`); continue; }
+    if (v !== afirma) continue;
+    const a = anclasDe(sec);
+    if (a.nor && a.cli) { por.push(n); continue; }
+    if (a.fueraNor || a.fueraCli) cubo.push(`pregunta ${n}: hallazgo con un ancla fuera de comillas`);
+    else if (a.nor || a.cli) cubo.push(`pregunta ${n}: hallazgo con una sola de las dos anclas`);
+    else cubo.push(`pregunta ${n}: hallazgo sin las anclas del quinto`);
+  }
+  if (por.length > 0) return { quinto: true, porPregunta: cubo.length ? 'sin decidir' : (por.length === 2 ? 'las dos' : `la ${por[0]}`), cubo };
+  if (cubo.length > 0) return { quinto: null, cubo };
+  return { quinto: false, cubo: [] };
+}
+
+// LOS TRES PRERREGISTROS DEL ARQUITECTO (04/11), antes de la tanda:
+// P1 · UNA LLAMADA FALLIDA NO ES UN «NO»: no es un veredicto y no va al cubo. La tanda es puntuable SÓLO con 21 respuestas
+//      buenas; las que falten se completan con las primeras buenas de la pulsación SIGUIENTE, por orden de vez. Se escribe
+//      cuántas fallaron y cuáles las sustituyeron.
+// P2 · EL CUBO TIENE UN TAMAÑO MÁXIMO, 4: la banda A pide 17 de 21. Por encima, las bandas son ILEGIBLES y se repite la tanda.
+// P3 · EL CUBO SE ENSEÑA ANTES DEL NÚMERO: primero las fallidas, luego el cubo con el motivo de cada una, y el número sólo si
+//      el cubo cabe en 4.
+export const N_TANDA = 21;
+export const CUBO_MAXIMO = 4;
+const fallida = r => !r || typeof r.respuesta !== 'string' || r.respuesta.trim() === '';
+
+export function resumen(pulsaciones) {
+  const buenas = [], fallidas = [];
+  pulsaciones.forEach((respuestas, p) => respuestas.forEach(r => {
+    const id = `pulsación ${p + 1}, vez ${r?.vez}`;
+    if (fallida(r)) { if (buenas.length < N_TANDA) fallidas.push(`${id}: ${r?.error ?? 'texto vacío'}`); }
+    else if (buenas.length < N_TANDA) buenas.push({ id, ...contar(r) });
+  }));
+  const salida = [`1 · LAS FALLIDAS: ${fallidas.length}${fallidas.length ? ' — ' + fallidas.join(' · ') : ''}`];
+  if (buenas.length < N_TANDA) {
+    salida.push(`NO PUNTUABLE TODAVÍA: ${buenas.length} respuestas buenas de ${N_TANDA}. Se pulsa otra vez y las que faltan salen de la siguiente.`);
+    return salida;
+  }
+  const cubo = buenas.filter(f => f.cubo.length > 0);
+  salida.push(`2 · EL TERCER CUBO: ${cubo.length} de ${N_TANDA}${cubo.length ? ' — ' + cubo.map(f => `${f.id}: ${f.cubo.join('; ')}`).join(' · ') : ''}`);
+  if (cubo.length > CUBO_MAXIMO) {
+    salida.push(`ILEGIBLE: el cubo pasa de ${CUBO_MAXIMO} y la banda A (17 de 21) ya no se puede alcanzar. Se endurece la regla con lo que el cubo ha enseñado y se repite la tanda entera.`);
+    return salida;
+  }
+  const limpias = buenas.filter(f => f.quinto === true);
+  salida.push(`3 · COLUMNA 1, ¿salió el quinto?: ${limpias.length} de ${N_TANDA} (se compara con los 9 de 21)`);
+  salida.push(`4 · COLUMNA 2, ¿por qué pregunta? (puntúa P-P3-2, no afecta a la 1): ` +
+    ['la 1', 'la 2', 'las dos', 'sin decidir'].map(k => `${k}: ${limpias.filter(f => f.porPregunta === k).length}`).join(' · '));
+  return salida;
+}
+
+// LAS PRUEBAS, sobre respuestas INVENTADAS antes de la tanda: los casos que la regla tiene que decidir, y las trampas
+const R = (vez, respuesta) => ({ vez, respuesta });
+const N = '«El Coordinador de Calidad de cada clínica revisa trimestralmente el cumplimiento de los criterios descritos»';
+const C1 = '«Las auditorías internas las realiza siempre personal ajeno al área auditada»';
+const C2 = '«participa en la auditoría como interlocutor, pero no como auditor de su propia área»';
+const PRUEBAS = [
+  ['el quinto por la 1', R(1, `PREGUNTA 1 · EL DATO\nSí.\nTexto 1: ${N}\nTexto 2: ${C1}\n\nPREGUNTA 2 · EL CUMPLIMIENTO\nSí, se pueden cumplir.`), { quinto: true, porPregunta: 'la 1', cubo: [] }],
+  ['el quinto por la 1, con la otra frase de CLI-12 y la cabecera en negrita', R(2, `**Pregunta 1:** Sí\n${N} / ${C2}\n**Pregunta 2:** Sí.`), { quinto: true, porPregunta: 'la 1', cubo: [] }],
+  ['el quinto por la 2 (hace fallar P-P3-2)', R(3, `PREGUNTA 1\nNo.\nPREGUNTA 2\nNo. ${N} ${C1} norma_contra_norma`), { quinto: true, porPregunta: 'la 2', cubo: [] }],
+  ['el quinto por las dos', R(4, `PREGUNTA 1\nSí. ${N} ${C1}\nPREGUNTA 2\nNo. ${N} ${C2} norma_contra_norma`), { quinto: true, porPregunta: 'las dos', cubo: [] }],
+  ['no salió: sin hallazgo en ninguna', R(5, 'PREGUNTA 1\nNo.\nPREGUNTA 2\nSí.'), { quinto: false, cubo: [] }],
+  ['TRAMPA: las anclas colgando de un «no»', R(6, `PREGUNTA 1\nNo, ${N} y ${C1} no hablan del mismo dato.\nPREGUNTA 2\nSí.`), { quinto: false, cubo: [] }],
+  ['TRAMPA: el «no» de «no como auditor» dentro de una cita, en la segunda línea', R(7, `PREGUNTA 1\nSí.\n${N}\n${C2}\nPREGUNTA 2\nSí.`), { quinto: true, porPregunta: 'la 1', cubo: [] }],
+  ['al cubo: «sí» y «no» en la misma primera línea', R(8, 'PREGUNTA 1\nNo es exactamente el mismo dato, pero sí hay diferencia.\nPREGUNTA 2\nSí.'), { quinto: null, cubo: ['pregunta 1: veredicto sin decidir'] }],
+  ['al cubo: una sola de las dos anclas', R(9, `PREGUNTA 1\nSí. ${N} «El sistema de calidad se apoya en un calendario anual»\nPREGUNTA 2\nSí.`), { quinto: null, cubo: ['pregunta 1: hallazgo con una sola de las dos anclas'] }],
+  ['al cubo: un ancla fuera de comillas', R(10, `PREGUNTA 1\nSí.\nNOR-11 dice que el Coordinador revisa trimestralmente el cumplimiento; CLI-12: ${C1}\nPREGUNTA 2\nSí.`), { quinto: null, cubo: ['pregunta 1: hallazgo con un ancla fuera de comillas'] }],
+  ['al cubo: otro hallazgo, sin las anclas', R(11, 'PREGUNTA 1\nSí. «Se distinguen auditorías de proceso» «contenedor de los grupos III o IV»\nPREGUNTA 2\nSí.'), { quinto: null, cubo: ['pregunta 1: hallazgo sin las anclas del quinto'] }],
+  ['al cubo: sin las dos secciones', R(12, `Sí, hay contradicción: ${N} ${C1}`), { quinto: null, cubo: ['sin las dos secciones'] }],
+  ['al cubo: sin respuesta (error de la API)', { vez: 13, error: 'HTTP 529' }, { quinto: null, cubo: ['sin respuesta'] }],
+  ['el quinto por la 1, la 2 sin decidir', R(14, `PREGUNTA 1\nSí. ${N} ${C1}\nPREGUNTA 2\nDepende de cómo se lea.`), { quinto: true, porPregunta: 'sin decidir', cubo: ['pregunta 2: veredicto sin decidir'] }],
+  ['la forma numerada, si no hay cabeceras', R(15, `1. Sí. ${N} ${C1}\n2. Sí.`), { quinto: true, porPregunta: 'la 1', cubo: [] }],
+  ['«si» sin tilde cuenta como «sí»', R(16, `PREGUNTA 1\nSi.\n${N} ${C1}\nPREGUNTA 2\nSi.`), { quinto: true, porPregunta: 'la 1', cubo: [] }],
+  ['«No obstante» no es un «no» suelto... sí lo es: la palabra «no» entera', R(17, 'PREGUNTA 1\nNo obstante, sí.\nPREGUNTA 2\nSí.'), { quinto: null, cubo: ['pregunta 1: veredicto sin decidir'] }],
+  ['TRAMPA: «Si» condicional no es un «sí»', R(18, 'PREGUNTA 1\nNo.\nPREGUNTA 2\nSi se hace lo que una permite, la otra se cumple igual.'), { quinto: null, cubo: ['pregunta 2: veredicto sin decidir'] }],
+  ['TRAMPA: el modelo repite la pregunta antes de contestar', R(19, `PREGUNTA 1 · EL DATO\n¿Dicen los dos textos cosas DISTINTAS sobre el MISMO dato?\nSí.\n${N} ${C1}\nPREGUNTA 2 · EL CUMPLIMIENTO\n¿SE PUEDEN CUMPLIR LAS DOS A LA VEZ?\nSí.`), { quinto: true, porPregunta: 'la 1', cubo: [] }],
+];
+
+// LAS PRUEBAS DEL RESUMEN: los tres prerregistros
+const bien = v => R(v, `PREGUNTA 1\nSí. ${N} ${C1}\nPREGUNTA 2\nSí.`);
+const nada = v => R(v, 'PREGUNTA 1\nNo.\nPREGUNTA 2\nSí.');
+const raro = v => R(v, 'PREGUNTA 1\nNo obstante, sí.\nPREGUNTA 2\nSí.');
+const caida = v => ({ vez: v, error: 'HTTP 529' });
+const veces = (n, f) => Array.from({ length: n }, (_, i) => f(i + 1));
+const PRUEBAS_DEL_RESUMEN = [
+  ['P1: dos fallidas y sin segunda pulsación → no puntuable', [[...veces(19, bien), caida(20), caida(21)]],
+    ['1 · LAS FALLIDAS: 2 — pulsación 1, vez 20: HTTP 529 · pulsación 1, vez 21: HTTP 529', 'NO PUNTUABLE TODAVÍA: 19 respuestas buenas de 21. Se pulsa otra vez y las que faltan salen de la siguiente.']],
+  ['P1: las dos que faltan, de las PRIMERAS buenas de la segunda pulsación (la vez 1 cae y se salta)', [[...veces(19, bien), caida(20), caida(21)], [caida(1), nada(2), nada(3), bien(4)]],
+    ['1 · LAS FALLIDAS: 3 — pulsación 1, vez 20: HTTP 529 · pulsación 1, vez 21: HTTP 529 · pulsación 2, vez 1: HTTP 529', '2 · EL TERCER CUBO: 0 de 21', '3 · COLUMNA 1, ¿salió el quinto?: 19 de 21 (se compara con los 9 de 21)', '4 · COLUMNA 2, ¿por qué pregunta? (puntúa P-P3-2, no afecta a la 1): la 1: 19 · la 2: 0 · las dos: 0 · sin decidir: 0']],
+  ['P2 y P3: el cubo en 4 → se lee, y el cubo va antes del número', [[...veces(17, bien), ...veces(4, v => raro(17 + v))]],
+    ['1 · LAS FALLIDAS: 0', '2 · EL TERCER CUBO: 4 de 21 — pulsación 1, vez 18: pregunta 1: veredicto sin decidir · pulsación 1, vez 19: pregunta 1: veredicto sin decidir · pulsación 1, vez 20: pregunta 1: veredicto sin decidir · pulsación 1, vez 21: pregunta 1: veredicto sin decidir', '3 · COLUMNA 1, ¿salió el quinto?: 17 de 21 (se compara con los 9 de 21)', '4 · COLUMNA 2, ¿por qué pregunta? (puntúa P-P3-2, no afecta a la 1): la 1: 17 · la 2: 0 · las dos: 0 · sin decidir: 0']],
+  ['P2: el cubo en 5 → ILEGIBLE, y el número NO se enseña', [[...veces(16, bien), ...veces(5, v => raro(16 + v))]],
+    ['1 · LAS FALLIDAS: 0', '2 · EL TERCER CUBO: 5 de 21 — pulsación 1, vez 17: pregunta 1: veredicto sin decidir · pulsación 1, vez 18: pregunta 1: veredicto sin decidir · pulsación 1, vez 19: pregunta 1: veredicto sin decidir · pulsación 1, vez 20: pregunta 1: veredicto sin decidir · pulsación 1, vez 21: pregunta 1: veredicto sin decidir', 'ILEGIBLE: el cubo pasa de 4 y la banda A (17 de 21) ya no se puede alcanzar. Se endurece la regla con lo que el cubo ha enseñado y se repite la tanda entera.']],
+];
+
+if (process.argv[2] === '--pruebas') {
+  let mal = 0;
+  for (const [nombre, r, esperado] of PRUEBAS) {
+    const sale = contar(r);
+    const ok = JSON.stringify(sale) === JSON.stringify(esperado);
+    if (!ok) mal++;
+    console.log(`${ok ? 'ok ' : 'MAL'} · ${nombre}${ok ? '' : `\n      sale ${JSON.stringify(sale)}\n      debía ${JSON.stringify(esperado)}`}`);
+  }
+  for (const [nombre, pulsaciones, esperado] of PRUEBAS_DEL_RESUMEN) {
+    const sale = resumen(pulsaciones);
+    const ok = JSON.stringify(sale) === JSON.stringify(esperado);
+    if (!ok) mal++;
+    console.log(`${ok ? 'ok ' : 'MAL'} · ${nombre}${ok ? '' : `\n      sale ${JSON.stringify(sale, null, 1)}\n      debía ${JSON.stringify(esperado, null, 1)}`}`);
+  }
+  const total = PRUEBAS.length + PRUEBAS_DEL_RESUMEN.length;
+  console.log(`${total - mal} de ${total}`);
+  process.exit(mal ? 1 : 0);
+} else if (process.argv[2]) {
+  // una o varias pulsaciones, en orden: node contar_quinto.mjs pulsacion1.json [pulsacion2.json …]
+  const pulsaciones = process.argv.slice(2).map(f => JSON.parse(readFileSync(f, 'utf8')).respuestas);
+  console.log(resumen(pulsaciones).join('\n'));
+}
+```
+
+**CON ESTO, LA TANDA QUEDA APROBADA** (arquitecto, 04/11). El director la pulsa y pega la salida entera A CODE PRIMERO.
