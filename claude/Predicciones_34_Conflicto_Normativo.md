@@ -979,7 +979,7 @@ P-P3-4; (5) la tanda de 21. **Nada de modelo ni de coste hasta el 5.**
 llegado ninguna salida de `quinto?ensayo=1`. Lo que sigue es lo que escribió el arquitecto, sin comprobar contra el texto
 guardado hasta que llegue la salida.
 
-**LA PAREJA, CONFIRMADA (arquitecto)**: NOR-11·13, generación 1, con el §10 entero de «Errores frecuentes y buenas
+**LA PAREJA, CONFIRMADA (arquitecto)**: NOR-11·13, generación 1, con ~~el §10 entero~~ **los apartados 10.3, 10.4 y 10.5 del §10** *(corrección de Code, aceptada el 03/11: el §10 tiene cinco)* de «Errores frecuentes y buenas
 prácticas», el §10.5 y su frase literal; CLI-12·13, generación 1, con el §6 de auditorías internas y las DOS frases del §6.2.
 Si algún día se reindexa cualquiera de los dos, el 13 puede dejar de ser esa sección, y la negativa dura lo caza porque
 comprueba la frase y no el número.
@@ -992,7 +992,7 @@ comprueba la frase y no el número.
 > clínica participa en la auditoría como interlocutor, pero no como auditor de su propia área").»
 
 **NOTA AL PIE DE P-P3-1, CON SU HORA; LA PREDICCIÓN NO CAMBIA** (literal del arquitecto):
-> «03/11, 20:45, después del ensayo y antes de la tanda. El trozo de NOR-11 trae el §10 entero (10.3 contenedores, 10.4
+> «03/11, 20:45, después del ensayo y antes de la tanda. El trozo de NOR-11 trae ~~el §10 entero~~ **[los apartados 10.3 a 10.5 del §10: corrección de Code, aceptada]** (10.3 contenedores, 10.4
 > mezcla de grupos, 10.5 revisión), y el "este apartado" del §10.5 remite a esos criterios de residuos. Ese contexto hace MÁS
 > difícil identificar la revisión trimestral con una "auditoría interna", no más fácil. El arquitecto baja su confianza en la
 > banda A y NO cambia la predicción: el mecanismo en que se apoyaba —el fallo medido es no llegar a la pareja, y la pregunta
@@ -1014,3 +1014,46 @@ ENSAYO…»). **Lo que el arquitecto escribió a las 20:45 se sostiene contra el
   sino sus apartados 10.3, 10.4 y 10.5. El 10.1 y el 10.2 van en otro trozo. La lista del arquitecto («10.3 contenedores,
   10.4 mezcla de grupos, 10.5 revisión») es exacta, y su razonamiento no cambia: el «este apartado» del 10.5 sigue remitiendo
   a criterios de residuos.
+
+### ⚠️ EL CRITERIO DE CUENTA DEL PASO 3, FIJADO ANTES DE LA TANDA (arquitecto, 03/11, 21:20; archivado por Code el 04/11 a las 08:16)
+
+Literal del arquitecto:
+
+> «CRITERIO DE CUENTA DEL PASO 3 (arquitecto, 03/11 21:20, antes de la tanda).
+>
+> QUIÉN CUENTA: Code, mecánicamente, con este criterio, ANTES de que el arquitecto lea las respuestas. El arquitecto las lee
+> después y dice si discrepa de alguna, con su número. El que escribió la predicción no hace el recuento.
+>
+> UNA RESPUESTA CUENTA COMO «EL QUINTO» si, atada a un hallazgo afirmado, trae LAS DOS CITAS:
+>   · del lado de NOR-11, una cita que contenga literalmente «revisa trimestralmente el cumplimiento»;
+>   · del lado de CLI-12, una cita que contenga literalmente «personal ajeno al área auditada» O «no como auditor de su propia
+>     área».
+> Son las anclas que ya están en FRASES_DEL_QUINTO, así que el emparejado es el mismo que usó SQL_34_06 con la pasada abierta.
+> Si el emparejado no es el mismo, los dos números no son comparables, y la comparabilidad es todo el objetivo.
+>
+> «ATADA A UN HALLAZGO AFIRMADO» significa: la pregunta 1 contesta «sí», o la pregunta 2 contesta que no se pueden cumplir
+> las dos. Las dos citas correctas colgando de un «no hay hallazgo» NO cuentan.
+>
+> DOS COLUMNAS, NO UNA:
+>   (1) ¿salió el quinto? sí/no — ésta es la que se compara con los 9 de 21.
+>   (2) ¿por qué pregunta? la 1, la 2, o las dos — ésta es la que puntúa P-P3-2, y no afecta a la columna (1).
+> Un quinto que salga por la pregunta 2 SÍ cuenta en (1) y hace FALLAR P-P3-2. Son cosas distintas y se miden aparte.
+>
+> LO QUE NO CASE VA A UN TERCER CUBO Y SE NOMBRA, no se asigna: respuestas con una sola de las dos citas, con una cita de otro
+> apartado de CLI-12 (el §6.1 o el §6.3, por ejemplo), o cuyo sentido no se pueda decidir. El denominador se queda en 21 y las
+> dudosas se enumeran, igual que la columna «dudosas aparte» de SQL_34_06. NINGUNA RESPUESTA SE DECIDE A OJO.»
+
+*Code, una nota que no cambia el criterio*: «el mismo emparejado que usó SQL_34_06» vale para el lado de NOR-11 y el de
+CLI-12, que `SQL_34_06` también ancla en el §10.5 y en el §6.2. Que el recuento sea mecánico obliga a decidir, con el texto de
+las respuestas delante, cómo se reconoce «la pregunta 1 contesta sí»: la respuesta es texto libre. Code lo hará con una regla
+escrita en el mismo script que cuente, enseñándola antes del número, y lo que la regla no decida va al tercer cubo.
+
+### ENTRE EL ENSAYO Y LA TANDA NO SE REINDEXA NADA (arquitecto, 03/11; regla)
+
+> «ENTRE EL ENSAYO Y LA TANDA NO SE REINDEXA NADA. La negativa dura comprueba la frase, no el texto que la rodea: un troceado
+> nuevo podría dejar la frase en el trozo 13 con otros apartados alrededor, y el prompt cambiaría sin que nada avisara. Si se
+> reindexa cualquiera de los dos documentos, el ensayo se repite antes de la tanda. Va con la disciplina de tandas, que ya
+> prohíbe reindexar DURANTE; esto lo prohíbe también ENTRE el ensayo y la tanda.»
+
+**Con el criterio fijado y esta regla escrita, la tanda queda APROBADA por el arquitecto** (03/11). Su reserva sobre la ruta,
+retirada: leyó `quinto/route.ts` entero.

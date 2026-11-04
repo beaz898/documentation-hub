@@ -1688,6 +1688,9 @@ la extrapolación (llevar una cifra a otra condición). Enunciado literal:*
 10. **02/11 · «la primera tanda perfectamente limpia»**, en el balance del paso 2: es la primera tanda DE 21 limpia, no la
    primera limpia. Las 7 pasadas del 28/10 también salieron sin muertes sin texto y con los descartes registrados
    (`claude/Medida_F130_E3_Y_Vecindad_29-10-2026.md:775-783`). La cazó Code al comprobar el balance contra las medidas.
+11. **03/11 · «el §10 entero»**, en la confirmación de la pareja del paso 3: el §10 de NOR-11 tiene cinco apartados y el trozo
+   13 trae tres (10.3 a 10.5). La lista, bien; el cuantificador, sin medir. La cazó Code leyendo el .docx. El arquitecto lo
+   cuenta como **el sexto del día de la misma clase: número correcto, adjetivo sin medir**.
 ⚠️ **Referencia cruzada, sin contar dos veces (arquitecto, 02/11)**: «el sistema encuentra el 100 % de las contradicciones
 de dato» (31/10) también es un absoluto sobre un conjunto sin enumerar, pero se cuenta en la extrapolación, ocurrencia
 5, donde ya estaba.

@@ -731,6 +731,22 @@ a ojo. El procedimiento, el coste y la consulta se plantean ANTES de pedírselo 
       el worker llevaría 39 días sin poder desplegarse y eso cambia de clase. Si no pasa, o usa otra configuración, el
       disparador que propusiste vale tal cual. El director mira el historial de despliegues de Railway; es más rápido que
       deducirlo del repositorio.»
+    - ⚠️⚠️ **LA PRECONDICIÓN, REESCRITA (arquitecto, 03/11, tras `SQL_34_11`; sustituye a la de arriba)**: «Precondición, ANTES DEL
+      PRÓXIMO ANÁLISIS EXHAUSTIVO que se ejecute: establecer si el despliegue del worker en Railway pasa por tsc y si redespliega
+      con cambios fuera de worker/. Cero exhaustivos desde el 20/09 (SQL_34_11, 03/11), así que no hay nada producido con
+      código viejo; el riesgo es enteramente hacia delante. Si alguien va a pulsar «Exhaustivo», esto se mira ANTES. Y se
+      mantienen los otros dos disparadores: el próximo commit que toque worker/ o su grafo, y el 10/11.»
+      - ⚠️ **La salida de `SQL_34_11` no ha llegado a Code**: el caso 3 y la fecha del 26/10 son la lectura del arquitecto, sin
+        comprobar hasta que llegue.
+      - **LA VENTANA DE VERDAD NO SON 44 DÍAS (Code)**: `SQL_34_11` lee sólo la organización ACTUAL, y la del piloto se purgó el
+        25/10, con sus análisis y sus trabajos del exhaustivo (arriba, «Lo que borra `purgeOrganization`»); la de hoy es nueva
+        desde el 26/10. Así que «cero exhaustivos desde el 20/09» son, en realidad, **cero exhaustivos desde el 26/10, unos 9
+        días**. Y el mes entre el commit del marcador 1 (29/09) y su primer rápido (26/10) **es la purga, no el retraso de un
+        despliegue**. El diseño del «desde» medido sigue siendo el correcto, pero esa diferencia no lo demuestra. Se comprueba
+        sin código: si los tres «desde» de los controles caen el 26/10 o muy cerca, es la purga.
+      - **PREGUNTA ABIERTA, para cuando se mire Railway, sin afirmar nada en ningún sentido (arquitecto)**: ¿no hay exhaustivos
+        porque nadie lo ha pulsado (toda la campaña de F-129 y F-130 ha sido en rápido, y la disciplina de las tandas prohíbe el
+        exhaustivo), o porque falla?
     - **DISPARADOR (propuesto por Code, ACEPTADO por el arquitecto el 03/11)**: el próximo commit que toque `worker/` o un
       fichero del grafo del worker, O el 10/11/2026, lo que llegue primero. No se arregla hoy y no se mezcla con el paso 3.
   - **C**: la especificación de Fable NO se construye. La inversión de nivel_1, el veto del escape insuficiente, las dos
