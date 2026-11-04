@@ -736,6 +736,10 @@ a ojo. El procedimiento, el coste y la consulta se plantean ANTES de pedírselo 
       con cambios fuera de worker/. Cero exhaustivos desde el 20/09 (SQL_34_11, 03/11), así que no hay nada producido con
       código viejo; el riesgo es enteramente hacia delante. Si alguien va a pulsar «Exhaustivo», esto se mira ANTES. Y se
       mantienen los otros dos disparadores: el próximo commit que toque worker/ o su grafo, y el 10/11.»
+      - **«No hay nada producido con código viejo» SE SOSTIENE, PERO NO PORQUE NO PASARA NADA: PORQUE NO QUEDA NADA** (Code,
+        aceptado por el arquitecto el 04/11). La purga del 25/10 se llevó lo que hubiera de antes, y desde el 26/10 no hay
+        ningún exhaustivo. No hay nada que reparar hacia atrás porque no hay nada guardado de ese tiempo, no porque se sepa
+        que el exhaustivo funcionaba.
       - ⚠️ **La salida de `SQL_34_11` no ha llegado a Code**: el caso 3 y la fecha del 26/10 son la lectura del arquitecto, sin
         comprobar hasta que llegue.
       - **LA VENTANA DE VERDAD NO SON 44 DÍAS (Code)**: `SQL_34_11` lee sólo la organización ACTUAL, y la del piloto se purgó el
@@ -744,9 +748,14 @@ a ojo. El procedimiento, el coste y la consulta se plantean ANTES de pedírselo 
         días**. Y el mes entre el commit del marcador 1 (29/09) y su primer rápido (26/10) **es la purga, no el retraso de un
         despliegue**. El diseño del «desde» medido sigue siendo el correcto, pero esa diferencia no lo demuestra. Se comprueba
         sin código: si los tres «desde» de los controles caen el 26/10 o muy cerca, es la purga.
+        **EL MOTIVO DE VERDAD DEL «DESDE» MEDIDO (arquitecto, 04/11)**: se mide de los RÁPIDOS para que un worker con código viejo
+        NO PUEDA FIJAR SU PROPIA REFERENCIA. Lo demostró el mutante «el desde de cualquier análisis» (vivo hasta sembrar un
+        exhaustivo con el contador antes que el primer rápido), no el desfase de un mes, que es la purga.
       - **PREGUNTA ABIERTA, para cuando se mire Railway, sin afirmar nada en ningún sentido (arquitecto)**: ¿no hay exhaustivos
         porque nadie lo ha pulsado (toda la campaña de F-129 y F-130 ha sido en rápido, y la disciplina de las tandas prohíbe el
         exhaustivo), o porque falla?
+        ⚠️ **Y ESTÁ MÁS ABIERTA DE LO QUE PARECE (arquitecto, 04/11)**: nueve días de cero no dicen casi nada. **Que no se lea
+        mañana como «el exhaustivo no se usa»**: lo único medido es que no hay ninguno en la organización actual desde que existe.
     - **DISPARADOR (propuesto por Code, ACEPTADO por el arquitecto el 03/11)**: el próximo commit que toque `worker/` o un
       fichero del grafo del worker, O el 10/11/2026, lo que llegue primero. No se arregla hoy y no se mezcla con el paso 3.
   - **C**: la especificación de Fable NO se construye. La inversión de nivel_1, el veto del escape insuficiente, las dos
