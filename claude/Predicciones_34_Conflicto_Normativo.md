@@ -3251,3 +3251,31 @@ a efectos de medir el producto, §2.4 ↔ §3.1 ES una ruta de D, y cualquier ot
   condición 2 (sólo las dos frases de D). **Son los dos trozos enteros con A a medias.** Si la pregunta es «¿tapa A a D?», esta
   pareja no la contesta. La comparación con el quinto tampoco está igualada en eso: qué otros conflictos llevan NOR-11·13 y
   CLI-12·13 no se ha medido.
+
+### DE DÓNDE VIENE EL BLOQUE DEL PRINCIPIO DEL PROMPT DE E3 (Code, 04/11/2026, con `git log -S` y `git show`)
+
+**`b3b4e9da` (29/10, 19:16 +01:00) NO añadió el bloque.** En el prompt sólo cambió UNA línea de `PREGUNTA_CERRADA`: la de «ESTA
+PREGUNTA SE CONTESTA SOLA…», que pasó a hacerse «SOBRE FRASES, NO SOBRE LOS DOS TEXTOS EN BLOQUE» (más un comentario, pruebas,
+mutantes y fichas).
+
+**El bloque es anterior, y es el del JUEZ DEL PRODUCTO** (`lib/analysis/excepcion-de-las-reglas.ts`, el frente 3.4):
+- **26/10, 20:59, `5ca99f12`** («3.4, fase 2…, contrato del arquitecto»): entra el bloque en el prompt del juez, con «SI SE HACE LO
+  QUE UNA PERMITE» y el ejemplo del taller de «norma_contra_norma» («El encargado del taller puede ser el mismo socio que el
+  tesorero»). El commit no nombra ningún caso de origen.
+- **27/10, 09:32, `1912469a`** («3.4: el principio en el bloque del juez…»): entra el bloque del principio («CUIDADO CON UN CASO QUE
+  PARECE UNA RAZÓN», «ENUNCIAN UN PRINCIPIO») y el ejemplo del «principio SOLO». **Y la cabecera del módulo dice su motivo**: «la
+  cláusula de antes excluía §3.1 de CLI-12, la mitad que el juez escogía para D». **Esa parte se escribió A PARTIR DE D**, de su
+  mitad del §3.1.
+- **29/10, 00:33, `a58deaf8`**: el bloque entra en el prompt de E3, RECORTADO del bloque del juez (`criterio-del-cumplimiento.ts`),
+  no copiado.
+- **Las fechas que importan**: el bloque del principio está en el juez desde el 27/10 y en E3 desde el 29/10 a las 00:33. La
+  condición 1 corrió el 30/10 a las 08:03 UTC. La línea base del producto (3 de 21, 30-31/10) también corrió con él en el juez.
+  *(Son horas de commit; la del despliegue es la del push, que no se ha mirado aquí.)*
+
+**LA DECIMOSÉPTIMA, una retirada del arquitecto, la primera del día por EXCESO DE ALARMA** (con su nombre): presentó el ejemplo del
+prompt como si invalidara la medición de D, y se pasó. Los ejemplos son de otro dominio (taller, socio, tesorero, compras) con otro
+vocabulario; lo único compartido es la forma lógica, y **transferir una forma lógica de un taller a una clínica es la habilidad que
+se quiere, no un atajo**. La pregunta honesta es más estrecha: ¿el bloque cubre UNA forma o UNA FAMILIA de formas? **Eso lo contesta
+el caso reservado, no esto.** *(La decimoquinta y la decimosexta no le han llegado a Code.)*
+
+**LO SIGUIENTE, sin cambios** (arquitecto): el recuento estricto de las 40 (§2.4 ↔ §3.1, con su nombre), después de esto.
