@@ -1885,3 +1885,8 @@ if (process.argv[2] === '--pruebas') {
 - **El tope de 4 de la COLUMNA 2 está puesto POR ANALOGÍA, no derivado**: P-P3-2 no tiene bandas, así que no hay nada de donde
   sacarlo. Su función real es impedir que P-P3-2 se puntúe sobre un denominador tan pequeño que no diga nada. **Que nadie le dé
   mañana el mismo peso que al de la columna 1.**
+
+**HUELLA `cea980ddc9356e68` APROBADA POR EL ARQUITECTO (04/11/2026).** Sustituye a `a059848eccfef66b` y a `2db4208f2d928a8d`, las
+dos archivadas arriba con su historia. **El número sólo vale si sale de un script con esta huella.** La segunda tanda queda
+liberada. No se mueven, pase lo que pase: las bandas (A ≥17, B 13-16, C 10-12, D ≤9, n = 21), el criterio de qué cuenta como
+hallazgo y el alto (si sale ILEGIBLE por la columna 1, no hay tercer endurecimiento y la decisión vuelve al arquitecto).
