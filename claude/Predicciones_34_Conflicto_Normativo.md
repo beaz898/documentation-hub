@@ -1304,3 +1304,17 @@ if (process.argv[2] === '--pruebas') {
 
 **LA TANDA ESTÁ LIBERADA.** El director pulsa y pega la salida entera a Code primero. Code informa en el orden fijado: las
 fallidas, el cubo con sus motivos, y el número sólo si el cubo cabe en 4.
+
+### PASO 3 · LA PRIMERA TANDA, ILEGIBLE (Code, 04/11/2026)
+
+Fallidas, 0. **Cubo, 15 de 21: ILEGIBLE**, por encima del tope de 4. Por los prerregistros 2 y 3, el número no se calcula ni se
+enseña, se endurece la regla con lo que ha enseñado el cubo, y **se repite la tanda entera**. La salida, literal, en la medida.
+**LO QUE HA ENSEÑADO EL CUBO (Code; sólo formato, sin contar el quinto)**: los defectos son de la REGLA, no de las respuestas.
+- **9 de 15, por R1** («sin las dos secciones»): en las 9, cada cabecera sale **exactamente una vez a principio de línea**. Lo que
+  sobra son menciones en la prosa («ya está contada en la pregunta 1»). R1 contaba la palabra en cualquier sitio, y tenía que
+  contarla sólo como cabecera.
+- **5 de 15, por R2, todas en la pregunta 2** («veredicto sin decidir»): en 4, la primera línea es un preámbulo sin veredicto
+  («Ambos textos son reglas, así que aplica la pregunta de cumplimiento.», «Respondo a esta pregunta por separado…»). En la otra
+  (vez 3), la polaridad va al revés: «Sí, hay hallazgo. … No se pueden cumplir a la vez», y ésa tiene que seguir yendo al cubo.
+- **1 de 15** (vez 20), «hallazgo con una sola de las dos anclas», en la pregunta 2: correcto según la regla. En esa sección sólo
+  cita entre comillas el lado de CLI-12.

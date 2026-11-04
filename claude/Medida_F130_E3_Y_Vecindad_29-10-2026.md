@@ -2034,3 +2034,646 @@ organización leída,organización leída: 68bf28c3-8352-4052-8eb4-3a7e31b74b53 
 - **El «desde» del marcador 3, el 02/11 a las 17:54, es la primera pasada de la tanda del verificador nuevo en NOR-10**
   (17:54:03, la lista de `SQL_34_09`, archivada arriba): la consulta encuentra el contador justo donde se sabe que está, y eso
   es un control positivo independiente del suyo.
+
+## PASO 3 · LA PRIMERA TANDA DE LA PAREJA DEL QUINTO, LITERAL (pulsada por el director el 04/11/2026, 08:36 UTC)
+
+La salida entera, como la pegó el director (a Code primero), sacada del registro de la conversación con un script:
+
+```json
+{
+  "estadoHttp": 200,
+  "medida": "Paso 3 de F-130 · la pregunta cerrada sobre la pareja del quinto, los dos trozos enteros, 21 veces",
+  "cuando": "2026-11-04T08:36:10.250Z",
+  "modelo": "claude-haiku-5-5",
+  "respuestas": [
+    {
+      "pareja": "NOR-11_gestion-de-residuos-sanitarios.docx · trozo 13 ↔ CLI-12_manual-calidad-clinica.docx · trozo 13",
+      "vez": 1,
+      "respuesta": "**PREGUNTA 1 · EL DATO: no.**\n\nLos dos trozos tratan temas distintos. El NOR-11 regula el manejo de contenedores de residuos en almacenamiento intermedio, y el CLI-12 regula la planificación y el equipo de las auditorías internas. Aunque ambos mencionan a los Coordinadores de Calidad, no afirman nada distinto sobre el mismo dato.\n\n**PREGUNTA 2 · EL CUMPLIMIENTO: sí, se pueden cumplir las dos a la vez.**\n\nAmbos textos contienen reglas, y las que podrían chocar se pueden cumplir simultáneamente. La revisión trimestral del área de almacenamiento intermedio que encarga el NOR-11 puede hacerla el Coordinador de Calidad de la clínica sin incumplir el CLI-12, porque el Coordinador no forma parte del área de almacenamiento y, por tanto, es personal ajeno a ella. La restricción del CLI-12 sobre el \"área propia\" del Coordinador se refiere a su propia área de trabajo, no a la zona de residuos."
+    },
+    {
+      "pareja": "NOR-11_gestion-de-residuos-sanitarios.docx · trozo 13 ↔ CLI-12_manual-calidad-clinica.docx · trozo 13",
+      "vez": 2,
+      "respuesta": "## PREGUNTA 1 · EL DATO\n\n**Respuesta: sí.**\n\nAmbos textos regulan quién verifica el cumplimiento de las prácticas en el área de almacenamiento intermedio y los gabinetes, y dicen cosas incompatibles sobre ello:\n\n- **Texto 1 (10.5):** «El Coordinador de Calidad de cada clínica revisa trimestralmente el cumplimiento de los criterios descritos en este apartado mediante observación directa del área de almacenamiento intermedio y de los gabinetes»\n- **Texto 2 (6.2):** «Las auditorías internas las realiza siempre personal ajeno al área auditada, habitualmente el Coordinador de Calidad de otra clínica de la red» y «El Coordinador de Calidad de la propia clínica participa en la auditoría como interlocutor, pero no como auditor de su propia área»\n\nEl texto 1 atribuye la verificación al coordinador de la propia clínica. El texto 2 le prohíbe ser auditor de su propia área.\n\n## PREGUNTA 2 · EL CUMPLIMIENTO\n\nAmbos textos son reglas, así que aplica la pregunta de cumplimiento.\n\n**Respuesta: no.**\n\nSi el coordinador de la clínica realiza la revisión del 10.5 mediante observación directa de su propia área, esa revisión es una auditoría de proceso en el sentido del apartado 6.1 («verifican el cumplimiento de un protocolo concreto»). Por tanto, quedaría incumplido el 6.2, que prohíbe esa función al coordinador de la propia clínica. Y si el 6.2 se cumple, el coordinador no puede hacer esa revisión, con lo que el 10.5 no se cumple.\n\n- **Etiqueta: \"norma_contra_norma\".** Ambas son reglas que mandan sobre la misma cosa (la verificación del área), y no pueden cumplirse a la vez.\n\nLas frases de los apartados 10.3 y 10.4 no entran en conflicto con el texto 2.\n\n**Matiz:** el conflicto depende de que la «revisión» del 10.5 sea una auditoría en el sentido del 6.1. El texto 1 no usa la palabra «auditoría», pero la descripción (verificar el cumplimiento de criterios mediante observación directa) coincide con la de una auditoría de proceso."
+    },
+    {
+      "pareja": "NOR-11_gestion-de-residuos-sanitarios.docx · trozo 13 ↔ CLI-12_manual-calidad-clinica.docx · trozo 13",
+      "vez": 3,
+      "respuesta": "## 6.3. Informe de auditoría\n\n**PREGUNTA 1 · EL DATO**\n\n**No.** Los dos textos no dan valores distintos a un mismo dato. El TEXTO 1 describe una revisión trimestral de cumplimiento que hace el Coordinador de Calidad de la clínica. El TEXTO 2 regula las auditorías internas, que son un mecanismo distinto, y no dice nada sobre revisiones trimestrales ni sobre el área de almacenamiento intermedio.\n\n**PREGUNTA 2 · EL CUMPLIMIENTO**\n\n**Sí, hay hallazgo.** Ambos textos son reglas. No se pueden cumplir a la vez, y el conflicto es normativo.\n\n- TEXTO 1 (apartado 10.5): «El Coordinador de Calidad de cada clínica revisa trimestralmente el cumplimiento de los criterios descritos en este apartado mediante observación directa del área de almacenamiento intermedio y de los gabinetes».\n- TEXTO 2 (apartado 6.2): «Las auditorías internas las realiza siempre personal ajeno al área auditada» y «El Coordinador de Calidad de la propia clínica participa en la auditoría como interlocutor, pero no como auditor de su propia área».\n\nEtiqueta: **norma_contra_norma**.\n\nLa regla del TEXTO 2 enuncia un principio, que es la independencia de criterio: el TEXTO 2 dice que el auditor externo se exige «para garantizar independencia de criterio». Ese principio excluye que el Coordinador verifique su propia área. El TEXTO 1 le encarga justamente esa verificación sobre el almacenamiento intermedio y los gabinetes de su clínica. Si la revisión del 10.5 es una verificación de cumplimiento de un protocolo, que es lo que el TEXTO 2 llama auditoría de proceso, no hay forma de cumplir ambas reglas. La conclusión depende de esa identificación, aunque el TEXTO 1 no use la palabra «auditoría»."
+    },
+    {
+      "pareja": "NOR-11_gestion-de-residuos-sanitarios.docx · trozo 13 ↔ CLI-12_manual-calidad-clinica.docx · trozo 13",
+      "vez": 4,
+      "respuesta": "## PREGUNTA 1 · EL DATO\n\n**No.** Ninguno de los dos textos da un valor distinto a un mismo dato. Ambos regulan quién verifica el cumplimiento en la clínica, pero lo hacen mediante reglas, no mediante afirmaciones sobre hechos que puedan contradecirse. Ese choque se analiza en la pregunta 2.\n\n## PREGUNTA 2 · EL CUMPLIMIENTO\n\nLos dos textos son reglas, así que aplica la pregunta.\n\n**¿Se pueden cumplir las dos a la vez?** No.\n\n- **Texto 1 (10.5)** manda: «El Coordinador de Calidad de cada clínica revisa trimestralmente el cumplimiento de los criterios descritos en este apartado mediante observación directa del área de almacenamiento intermedio y de los gabinetes».\n- **Texto 2 (6.2)** manda: «Las auditorías internas las realiza siempre personal ajeno al área auditada, habitualmente el Coordinador de Calidad de otra clínica de la red». Y añade: «El Coordinador de Calidad de la propia clínica participa en la auditoría como interlocutor, pero no como auditor de su propia área».\n\nLo que el Texto 1 ordena es que el Coordinador de la clínica verifique el cumplimiento de los criterios en el área de almacenamiento y los gabinetes de su propia clínica. Según el 6.1 del Texto 2, verificar el cumplimiento de un protocolo es una auditoría de proceso. Por tanto, esa revisión es una auditoría interna sobre el área de su propia clínica, y el Texto 2 la prohíbe para ese Coordinador. No cabe cumplir las dos reglas sin tratar la revisión del Texto 1 como algo que no es, y el propio Texto 1 la describe como verificación de cumplimiento.\n\nAdemás, el Texto 2 enuncia un principio: la auditoría debe ser independiente («para garantizar independencia de criterio»). El Texto 1 permite justo lo que ese principio excluye: que quien verifica sea el responsable de calidad de la misma clínica cuya área se verifica.\n\n**HALLAZGO: «norma_contra_norma».**\n\n- Frase del Texto 1: «El Coordinador de Calidad de cada clínica revisa trimestralmente el cumplimiento de los criterios descritos en este apartado mediante observación directa del área de almacenamiento intermedio y de los gabinetes».\n- Frase del Texto 2: «Las auditorías internas las realiza siempre personal ajeno al área auditada» y «El Coordinador de Calidad de la propia clínica participa en la auditoría como interlocutor, pero no como auditor de su propia área»."
+    },
+    {
+      "pareja": "NOR-11_gestion-de-residuos-sanitarios.docx · trozo 13 ↔ CLI-12_manual-calidad-clinica.docx · trozo 13",
+      "vez": 5,
+      "respuesta": "## Pregunta 1 · El dato\n\n**No.** Los dos textos no afirman nada distinto sobre el mismo dato. NOR-11 regula la gestión de contenedores de residuos sanitarios, y CLI-12 regula quién realiza las auditorías internas.\n\n## Pregunta 2 · El cumplimiento\n\nAmbos trozos son reglas, así que hago la segunda pregunta: **¿se pueden cumplir las dos a la vez?**\n\n**No.** Hay un conflicto entre dos frases:\n\n- **Lado NOR-11 (apartado 10.5):** «El Coordinador de Calidad de cada clínica revisa trimestralmente el cumplimiento de los criterios descritos en este apartado mediante observación directa del área de almacenamiento intermedio y de los gabinetes».\n- **Lado CLI-12 (apartado 6.2):** «Las auditorías internas las realiza siempre personal ajeno al área auditada» y «El Coordinador de Calidad de la propia clínica participa en la auditoría como interlocutor, pero no como auditor de su propia área».\n\nLa revisión de 10.5 verifica el cumplimiento de un protocolo (los criterios de almacenamiento) mediante observación directa. Según la propia definición de CLI-12 en 6.1, eso es una **auditoría de proceso**. Si el Coordinador de la clínica la realiza sobre su propio almacenamiento intermedio, actúa como auditor de su propia área, y 6.2 lo prohíbe. Por tanto, no hay forma de cumplir 10.5 y 6.2 a la vez sin dejar una sin efecto.\n\nEsto no depende de suponer ningún hecho adicional: la equivalencia entre «revisión por observación del cumplimiento» y «auditoría de proceso» está dentro de los propios textos.\n\n**Hallazgo: `norma_contra_norma`**"
+    },
+    {
+      "pareja": "NOR-11_gestion-de-residuos-sanitarios.docx · trozo 13 ↔ CLI-12_manual-calidad-clinica.docx · trozo 13",
+      "vez": 6,
+      "respuesta": "## Pregunta 1 · EL DATO\n\n**Sí, hay hallazgo.** Los dos textos regulan quién verifica el cumplimiento de los criterios en el área de almacenamiento intermedio, y dicen cosas incompatibles:\n\n- **Texto 1 (NOR-11, 10.5):** «El Coordinador de Calidad de cada clínica revisa trimestralmente el cumplimiento de los criterios descritos en este apartado mediante observación directa del área de almacenamiento intermedio y de los gabinetes».\n- **Texto 2 (CLI-12, 6.2):** «Las auditorías internas las realiza siempre personal ajeno al área auditada» y «El Coordinador de Calidad de la propia clínica participa en la auditoría como interlocutor, pero no como auditor de su propia área».\n\nEl texto 1 encarga la verificación al Coordinador de la propia clínica. El texto 2 le prohíbe auditar su propia área. Lo que hace el texto 1 corresponde a lo que el texto 2 llama auditoría de proceso (verificar el cumplimiento de un protocolo), aunque el texto 1 no use esa palabra. Esta lectura es la parte discutible del hallazgo.\n\n## Pregunta 2 · EL CUMPLIMIENTO\n\n**Sí, se pueden cumplir las dos a la vez.**\n\nLas frases de ambos textos que mandan sobre la misma cosa (quién verifica el almacenamiento intermedio) ya quedan recogidas en la pregunta 1. Revisando el resto de pares de frases:\n\n- Las reglas del texto 1 sobre contenedores (10.3: no trasladar un contenedor sin etiqueta; 10.4: reubicarlo de inmediato y documentar el error si pasa más de una jornada) no regulan auditorías, así que no pueden chocar con las del texto 2.\n- Las reglas del texto 2 sobre tipos de auditoría (6.1), equipo auditor (6.2) e informe (6.3) no obligan a nada sobre el manejo de contenedores ni sobre su trazabilidad.\n- El principio del texto 1 («para no perder la trazabilidad de la fecha de cierre») no lo excluye nada que permita el texto 2.\n- El principio del texto 2 («para garantizar independencia de criterio») solo choca con la revisión del texto 1 en 10.5, que ya está contada en la pregunta 1.\n- La revisión trimestral del texto 1 y el calendario anual de auditorías del texto 2 pueden convivir: son dos actividades distintas en el tiempo, y ninguna prohíbe la otra."
+    },
+    {
+      "pareja": "NOR-11_gestion-de-residuos-sanitarios.docx · trozo 13 ↔ CLI-12_manual-calidad-clinica.docx · trozo 13",
+      "vez": 7,
+      "respuesta": "## Pregunta 1 · El dato\n\n**Sí, hay hallazgo.** Ambos textos regulan quién verifica el cumplimiento de los protocolos de la clínica, y dicen cosas distintas:\n\n- NOR-11, 10.5: «El Coordinador de Calidad de cada clínica revisa trimestralmente el cumplimiento de los criterios descritos en este apartado mediante observación directa del área de almacenamiento intermedio y de los gabinetes».\n- CLI-12, 6.2: «Las auditorías internas las realiza siempre personal ajeno al área auditada» y «El Coordinador de Calidad de la propia clínica participa en la auditoría como interlocutor, pero no como auditor de su propia área».\n\nEl texto 1 asigna la verificación al coordinador de la propia clínica sobre su propia área. El texto 2 lo excluye expresamente. La revisión del texto 1 encaja con la definición de «auditoría de proceso» del apartado 6.1 (verificar el cumplimiento de un protocolo), por lo que es el mismo asunto. Aun así, el texto 1 no usa la palabra «auditoría», así que este hallazgo depende de que se considere que esa revisión es una auditoría.\n\n## Pregunta 2 · El cumplimiento\n\n**Sí, se pueden cumplir las dos a la vez.** Las reglas de los dos textos no se solapan en ningún otro punto:\n\n- Los apartados 10.3 y 10.4 (contenedores sin identificar, reubicación de contenedores mal situados y registro en el parte de incidencias) no tienen equivalente en el apartado 6 de CLI-12. Ninguno de los dos textos dice nada sobre ellos.\n- El apartado 6 de CLI-12 (calendario anual, tipos de auditoría y equipo auditor) no restringe lo que hace el personal de la clínica con los residuos.\n\nLa única pareja de frases que choca, el 10.5 frente a la prohibición del 6.2, versa sobre el mismo asunto que la pregunta 1, así que se ha tratado allí y no como conflicto normativo separado. El principio de «independencia de criterio» del 6.2 se refiere a las auditorías, y el 10.5 regula una revisión de cumplimiento; en la medida en que sea lo mismo, el conflicto ya consta en la pregunta 1."
+    },
+    {
+      "pareja": "NOR-11_gestion-de-residuos-sanitarios.docx · trozo 13 ↔ CLI-12_manual-calidad-clinica.docx · trozo 13",
+      "vez": 8,
+      "respuesta": "## Pregunta 1 · El dato\n\n**No.** Los dos textos no afirman valores distintos sobre un mismo dato. El texto 1 dice que el Coordinador de Calidad revisa trimestralmente el cumplimiento en el área de almacenamiento intermedio y los gabinetes. El texto 2 habla de un calendario anual de auditorías internas y de quién puede auditar. Ninguno de los dos dice qué frecuencia o qué procedimiento tiene la otra norma. No hay ningún hecho en el que coincidan y discrepen.\n\n## Pregunta 2 · El cumplimiento\n\n**Sí, se pueden cumplir las dos a la vez.**\n\nAmbos textos contienen reglas (el texto 1 obliga a revisar trimestralmente y el texto 2 fija quién audita), así que la pregunta es pertinente. Para que hubiera conflicto haría falta suponer que la revisión trimestral del texto 1 es una auditoría interna en el sentido del texto 2. Ningún texto dice eso: el texto 1 llama «revisión» a su actividad y el texto 2 reserva el término «auditoría» para su propio calendario. Con esa lectura, las dos reglas se cumplen sin renunciar a nada:\n\n- El Coordinador de Calidad de cada clínica revisa trimestralmente el área de almacenamiento intermedio (texto 1, 10.5).\n- Las auditorías internas, las de calendario del texto 2, las realiza personal ajeno al área auditada (texto 2, 6.2).\n\nNo hay ninguna frase de un texto que impida lo que pide el otro."
+    },
+    {
+      "pareja": "NOR-11_gestion-de-residuos-sanitarios.docx · trozo 13 ↔ CLI-12_manual-calidad-clinica.docx · trozo 13",
+      "vez": 9,
+      "respuesta": "## PREGUNTA 1 · EL DATO\n\n**No.** Los dos textos no afirman nada distinto sobre el mismo dato. Ninguno da una cifra, una fecha ni una característica que el otro contradiga. Lo que hacen es mandar: el NOR-11 regula cómo se gestionan los contenedores y quién revisa la práctica, y el CLI-12 regula cómo se planifican y quién realiza las auditorías internas.\n\n## PREGUNTA 2 · EL CUMPLIMIENTO\n\nLos dos trozos son reglas, así que aplica la pregunta de cumplimiento.\n\n**Sí, hay hallazgo: \"norma_contra_norma\".** Las frases que chocan son estas:\n\n- **NOR-11, apartado 10.5:** «El Coordinador de Calidad de cada clínica revisa trimestralmente el cumplimiento de los criterios descritos en este apartado mediante observación directa del área de almacenamiento intermedio y de los gabinetes».\n- **CLI-12, apartado 6.2:** «Las auditorías internas las realiza siempre personal ajeno al área auditada […]. El Coordinador de Calidad de la propia clínica participa en la auditoría como interlocutor, pero no como auditor de su propia área».\n\nLas dos mandan sobre el control de cumplimiento en el área de la propia clínica, pero no son lo mismo: una habla de «revisión» y la otra de «auditoría». Por eso no es un caso de la pregunta 1, sino de la 2.\n\nLa revisión trimestral que exige el NOR-11 tiene la forma de una auditoría de proceso según la definición del propio CLI-12 en el apartado 6.1: verifica por observación directa el cumplimiento de un protocolo concreto, en el área de la clínica. Si es una auditoría de proceso, el CLI-12 exige que la realice personal ajeno y prohíbe que el Coordinador de la propia clínica la haga sobre su área. El NOR-11 exige lo contrario. Ninguna persona puede cumplir las dos a la vez sin dejar de hacer la revisión que manda el NOR-11 o sin infringir el CLI-12.\n\nEl CLI-12 también enuncia un principio: las auditorías las hace personal ajeno «para garantizar independencia de criterio». La revisión del NOR-11 permite justo lo que ese principio excluye, que es que quien controla un área sea quien responde por ella.\n\n**Matiz:** se podría evitar el choque si la revisión del NOR-11 no se considerara auditoría, pero el texto no lo dice y su contenido coincide con la definición de auditoría de proceso. Si el lector la entendiera como una simple revisión sin verificación formal, el conflicto desaparecería."
+    },
+    {
+      "pareja": "NOR-11_gestion-de-residuos-sanitarios.docx · trozo 13 ↔ CLI-12_manual-calidad-clinica.docx · trozo 13",
+      "vez": 10,
+      "respuesta": "## PREGUNTA 1 · EL DATO\n\n**HAY HALLAZGO: SÍ.**\n\nAmbos textos regulan quién verifica el cumplimiento de los criterios en el área de almacenamiento intermedio de la clínica, y dicen cosas distintas:\n\n- NOR-11, 10.5: «El Coordinador de Calidad de cada clínica revisa trimestralmente el cumplimiento de los criterios descritos en este apartado mediante observación directa del área de almacenamiento intermedio y de los gabinetes».\n- CLI-12, 6.2: «Las auditorías internas las realiza siempre personal ajeno al área auditada, habitualmente el Coordinador de Calidad de otra clínica de la red». Y añade: «El Coordinador de Calidad de la propia clínica participa en la auditoría como interlocutor, pero no como auditor de su propia área».\n\nPara NOR-11 el Coordinador de la propia clínica es quien verifica. Para CLI-12 no puede hacerlo.\n\n## PREGUNTA 2 · EL CUMPLIMIENTO\n\n**HAY HALLAZGO: NO SE PUEDEN CUMPLIR LAS DOS A LA VEZ.**\n\nAmbos textos son reglas. Tomo los dos pares de frases que pueden entrar en conflicto, sin usar la respuesta a la pregunta 1:\n\n- **NOR-11 10.5** obliga a que el Coordinador de Calidad de cada clínica revise trimestralmente el cumplimiento de los criterios del almacenamiento intermedio.\n- **CLI-12 6.2** establece que la verificación de un proceso la hace siempre personal ajeno, y que el Coordinador de la propia clínica no puede actuar como auditor de su propia área.\n\nSi la revisión trimestral de NOR-11 es una verificación del cumplimiento de un protocolo, que es lo que CLI-12 llama auditoría de proceso en 6.1, entonces el Coordinador de la clínica tendría que hacerla, pero CLI-12 se lo prohíbe. Cumplir NOR-11 exige que el Coordinador verifique su propia área, y cumplir CLI-12 exige que no lo haga. Que el Coordinador participe «como interlocutor» no resuelve el conflicto, porque la norma de NOR-11 le atribuye la revisión, no un papel de acompañante.\n\nEtiqueta: **norma_contra_norma**."
+    },
+    {
+      "pareja": "NOR-11_gestion-de-residuos-sanitarios.docx · trozo 13 ↔ CLI-12_manual-calidad-clinica.docx · trozo 13",
+      "vez": 11,
+      "respuesta": "## 6.3. Informe de auditoría\n\n**PREGUNTA 1 · EL DATO: SÍ, hay hallazgo.**\n\nLos dos textos regulan la misma cosa, que es quién verifica el cumplimiento en el área de almacenamiento intermedio de cada clínica, y dicen cosas incompatibles:\n\n- NOR-11, 10.5: «El Coordinador de Calidad de cada clínica revisa trimestralmente el cumplimiento de los criterios descritos en este apartado mediante observación directa del área de almacenamiento intermedio y de los gabinetes».\n- CLI-12, 6.2: «Las auditorías internas las realiza siempre personal ajeno al área auditada» y «El Coordinador de Calidad de la propia clínica participa en la auditoría como interlocutor, pero no como auditor de su propia área».\n\nLa revisión de 10.5 verifica el cumplimiento de criterios mediante observación directa, que es lo que el propio CLI-12 (6.1) llama auditoría de proceso. Si se considera auditoría interna, la NOR obliga al Coordinador de la clínica a auditar su propia área, y el CLI se lo prohíbe. Si no se considera auditoría, no hay choque. El texto de la NOR no la llama auditoría, pero describe una verificación de cumplimiento, y eso basta para tratarla como tal aquí.\n\n**PREGUNTA 2 · EL CUMPLIMIENTO: sin hallazgo independiente.**\n\nRecorro las reglas de NOR-11 contra las de CLI-12 y busco pares que no se puedan cumplir a la vez siendo de materias distintas:\n\n- 10.3 (no trasladar al almacenamiento intermedio un contenedor sin etiqueta de apertura) y 6.x (auditorías): no regulan lo mismo y se pueden cumplir juntas.\n- 10.4 (reubicación inmediata, registro en el parte de incidencias si supera una jornada): no choca con ninguna regla de CLI-12.\n- 10.5 (revisión trimestral por el Coordinador de la clínica) frente a 6.2 (independencia del auditor): es el único par que se choca, pero regulan la misma cosa y ese caso ya es el hallazgo de la Pregunta 1. No lo cuento de nuevo aquí.\n- El principio de independencia que enuncia 6.2 («para garantizar independencia de criterio») tampoco se opone a ninguna regla de NOR-11 que no sea la ya citada.\n\nPor tanto, fuera del hallazgo de la Pregunta 1, las reglas de ambos documentos se pueden cumplir a la vez."
+    },
+    {
+      "pareja": "NOR-11_gestion-de-residuos-sanitarios.docx · trozo 13 ↔ CLI-12_manual-calidad-clinica.docx · trozo 13",
+      "vez": 12,
+      "respuesta": "## PREGUNTA 1 · EL DATO\n\n**Sí, hay hallazgo.** Ambos textos dicen cosas distintas sobre quién verifica el cumplimiento en el área de almacenamiento intermedio y los gabinetes:\n\n- **NOR-11, 10.5:** «El Coordinador de Calidad de cada clínica revisa trimestralmente el cumplimiento de los criterios descritos en este apartado mediante observación directa del área de almacenamiento intermedio y de los gabinetes».\n- **CLI-12, 6.2:** «Las auditorías internas las realiza siempre personal ajeno al área auditada» y «El Coordinador de Calidad de la propia clínica participa en la auditoría como interlocutor, pero no como auditor de su propia área».\n\nSegún NOR-11, el Coordinador de la clínica revisa su propia área. Según CLI-12, ese mismo Coordinador no puede auditar su propia área.\n\n## PREGUNTA 2 · EL CUMPLIMIENTO\n\nRespondo a esta pregunta por separado, sobre las frases de los dos textos.\n\n**No se pueden cumplir las dos a la vez: hallazgo.** Tipo: **norma_contra_norma**.\n\n- **NOR-11, 10.5:** «El Coordinador de Calidad de cada clínica revisa trimestralmente el cumplimiento de los criterios descritos en este apartado mediante observación directa del área de almacenamiento intermedio y de los gabinetes».\n- **CLI-12, 6.2:** «Las auditorías internas las realiza siempre personal ajeno al área auditada».\n\nLa revisión de 10.5 verifica el cumplimiento de un protocolo, que es exactamente lo que CLI-12 (6.1) define como auditoría de proceso. Por tanto, es una auditoría interna. CLI-12 exige que la realice personal ajeno al área, y NOR-11 exige que la realice el Coordinador de la propia clínica sobre su propia área. No hace falta suponer ningún hecho que no esté en los textos para ver el choque."
+    },
+    {
+      "pareja": "NOR-11_gestion-de-residuos-sanitarios.docx · trozo 13 ↔ CLI-12_manual-calidad-clinica.docx · trozo 13",
+      "vez": 13,
+      "respuesta": "## PREGUNTA 1 · EL DATO\n\n**Sí, hay hallazgo.** Ambos textos dicen cosas distintas sobre quién revisa el cumplimiento del área de almacenamiento intermedio de la clínica:\n\n- NOR-11, 10.5: «El Coordinador de Calidad de cada clínica revisa trimestralmente el cumplimiento de los criterios descritos en este apartado mediante observación directa del área de almacenamiento intermedio y de los gabinetes».\n- CLI-12, 6.2: «Las auditorías internas las realiza siempre personal ajeno al área auditada, habitualmente el Coordinador de Calidad de otra clínica de la red... El Coordinador de Calidad de la propia clínica participa en la auditoría como interlocutor, pero no como auditor de su propia área».\n\nSegún 6.1, una auditoría de proceso «verifica el cumplimiento de un protocolo concreto», que es lo que hace la revisión de 10.5. El texto de NOR-11 no la llama auditoría, pero describe la misma verificación, y por eso asigno ambas frases al mismo dato.\n\n## PREGUNTA 2 · EL CUMPLIMIENTO\n\nAmbos textos son reglas, así que aplica la pregunta de compatibilidad. Recorro los pares de frases:\n\n- NOR-11 10.3 (no trasladar contenedores sin etiqueta) y CLI-12 6.1–6.3: regulan cosas distintas, y pueden cumplirse a la vez.\n- NOR-11 10.4 (reubicar contenedores y documentar el error) y CLI-12: también regulan cosas distintas. Pueden cumplirse a la vez.\n- NOR-11 10.5 y CLI-12 6.2: es el único par que choca, y ya lo he tratado en la pregunta 1. Las dos frases mandan sobre la misma cosa, quién verifica el área de almacenamiento. Por las reglas de este apartado, ese caso es un hallazgo de la pregunta 1, no de la 2.\n\nNo encuentro ningún par de frases que mande sobre cosas distintas y no pueda cumplirse. **Se pueden cumplir las dos a la vez.**"
+    },
+    {
+      "pareja": "NOR-11_gestion-de-residuos-sanitarios.docx · trozo 13 ↔ CLI-12_manual-calidad-clinica.docx · trozo 13",
+      "vez": 14,
+      "respuesta": "## Pregunta 1 · EL DATO\n\n**Sí.** Ambos textos dicen cosas distintas sobre quién verifica el área de almacenamiento intermedio de la clínica.\n\n- TEXTO 1, apartado 10.5: «El Coordinador de Calidad de cada clínica revisa trimestralmente el cumplimiento de los criterios descritos en este apartado mediante observación directa del área de almacenamiento intermedio y de los gabinetes».\n- TEXTO 2, apartado 6.2: «Las auditorías internas las realiza siempre personal ajeno al área auditada» y «El Coordinador de Calidad de la propia clínica participa en la auditoría como interlocutor, pero no como auditor de su propia área».\n\nEl TEXTO 1 atribuye la verificación al Coordinador de la propia clínica; el TEXTO 2 se la niega para su propia área.\n\n## Pregunta 2 · EL CUMPLIMIENTO\n\nAmbos textos contienen reglas, así que hago la pregunta: ¿se pueden cumplir las dos a la vez?\n\n**No.** Las frases en conflicto son:\n\n- TEXTO 1, 10.5: «El Coordinador de Calidad de cada clínica revisa trimestralmente el cumplimiento de los criterios descritos en este apartado mediante observación directa del área de almacenamiento intermedio».\n- TEXTO 2, 6.2: «Las auditorías internas las realiza siempre personal ajeno al área auditada».\n\nLa revisión del TEXTO 1 verifica el cumplimiento de un protocolo mediante observación directa. Con la tipología del propio TEXTO 2 (6.1), eso es una auditoría de proceso, y el TEXTO 2 exige que la haga personal externo. Solo cabría cumplir ambas si la revisión dejara de contar como auditoría, pero eso vaciaría la regla del TEXTO 2 en su aplicación a esa área, y no es un cumplimiento real de ambas.\n\nEtiqueta: **norma_contra_norma**.\n\nRevisé también las demás frases (10.3 y 10.4 sobre etiquetado y reubicación de contenedores, y 6.1 y 6.3 sobre tipos de auditoría e informe), y no chocan con ninguna regla del otro texto.\n\n**Resultado: hay hallazgo en ambas preguntas.** La pregunta 2 no coincide con la 1 porque las frases chocan en su mandato sobre el cumplimiento, no solo en el dato, y no puede resolverse con una única interpretación compatible."
+    },
+    {
+      "pareja": "NOR-11_gestion-de-residuos-sanitarios.docx · trozo 13 ↔ CLI-12_manual-calidad-clinica.docx · trozo 13",
+      "vez": 15,
+      "respuesta": "## Pregunta 1 · EL DATO\n\n**No.** Los dos textos no dicen cosas distintas sobre el mismo dato.\n\nEl apartado 10.5 de la NOR-11 regula una **revisión periódica de buenas prácticas** que hace el Coordinador de Calidad de cada clínica para alimentar la formación anual del personal. El apartado 6.2 del CLI-12 regula quién es el **auditor** en las **auditorías internas** del calendario anual. Son actos distintos, y el 6.2 sólo restringe el papel de auditor, no cualquier revisión de la propia área.\n\n## Pregunta 2 · EL CUMPLIMIENTO\n\nLos dos textos contienen reglas, así que hay que preguntar si se pueden cumplir a la vez.\n\n**Sí.** No hay ninguna frase de un texto que impida cumplir una frase del otro:\n\n- El Coordinador de Calidad de la clínica puede hacer la revisión trimestral del 10.5, porque lo hace como revisor de buenas prácticas y no como auditor.\n- Las auditorías internas de cada área siguen a cargo de personal ajeno a esa área, como exige el 6.2.\n- Los apartados 10.3 y 10.4 (identificación de contenedores y mezcla de grupos) no tocan la planificación ni el equipo auditor, así que no entran en conflicto con el 6.\n\nNo hay que suponer ningún hecho que no esté en los textos para llegar a esta conclusión. Si alguien quisiera leer la revisión del 10.5 como una auditoría interna, el conflicto aparecería, pero el texto no lo dice: 10.5 habla de «revisar» y «observar», no de «auditar»."
+    },
+    {
+      "pareja": "NOR-11_gestion-de-residuos-sanitarios.docx · trozo 13 ↔ CLI-12_manual-calidad-clinica.docx · trozo 13",
+      "vez": 16,
+      "respuesta": "**PREGUNTA 1 · EL DATO**\n\nNo. Los dos textos tratan asuntos distintos. El trozo de NOR-11 regula cómo se identifican, reubican y revisan los contenedores de residuos sanitarios. El de CLI-12 regula cómo se planifican las auditorías internas y quién puede auditar. No hay ningún dato que uno afirme y el otro contradiga.\n\n**PREGUNTA 2 · EL CUMPLIMIENTO**\n\nSí, se pueden cumplir las dos a la vez.\n\nAmbos son textos normativos, así que aplico la pregunta de cumplimiento a los pares de frases que podrían chocar:\n\n- **NOR-11, 10.5** (\"El Coordinador de Calidad de cada clínica revisa trimestralmente el cumplimiento de los criterios [...] mediante observación directa del área de almacenamiento intermedio y de los gabinetes\") **frente a CLI-12, 6.2** (\"Las auditorías internas las realiza siempre personal ajeno al área auditada [...] El Coordinador de Calidad de la propia clínica [...] no [participa] como auditor de su propia área\").\n  Se pueden cumplir juntas. La revisión de NOR-11 no se llama auditoría interna en ningún lugar, y el texto no dice que el coordinador audite su propia área, sino que revisa un área de residuos. Que esa revisión sea una auditoría interna exigiría suponer un hecho que ningún texto establece. Si se hiciera, el conflicto desaparecería simplemente cambiando quién realiza la revisión, pero ese cambio no lo exige ninguna de las dos reglas tal como están escritas.\n\n- **NOR-11, 10.3 y 10.4** (reglas sobre etiquetado, reubicación y documentación de incidencias) **frente a CLI-12, 6.1 y 6.3**. No regulan los mismos objetos ni se excluyen entre sí. Las reglas de auditoría no imponen ni prohíben nada sobre contenedores, etiquetas ni incidencias.\n\n- **CLI-12, 6.2**, que enuncia el principio de «independencia de criterio», **frente a NOR-11, 10.5**. Este es el par más cercano. El principio solo protege la independencia de las auditorías internas. Si la revisión trimestral no es una auditoría, no lo excluye. Como ya se ha dicho, nada en los textos permite afirmar que lo sea.\n\nPor tanto, no hay hallazgo en esta pregunta."
+    },
+    {
+      "pareja": "NOR-11_gestion-de-residuos-sanitarios.docx · trozo 13 ↔ CLI-12_manual-calidad-clinica.docx · trozo 13",
+      "vez": 17,
+      "respuesta": "## 6.3. Informe de auditoría\n\n**PREGUNTA 1 · EL DATO**\n\nNo. Los dos textos no afirman nada distinto sobre un mismo dato. El texto 1 no emplea el término «auditoría» ni describe un calendario de auditorías, y el texto 2 no regula el seguimiento trimestral de los gabinetes ni del almacenamiento intermedio.\n\n**PREGUNTA 2 · EL CUMPLIMIENTO**\n\nLos dos textos son reglas, así que aplico la pregunta de cumplimiento.\n\n**¿Se pueden cumplir las dos a la vez? No.**\n\n- Texto 1: «El Coordinador de Calidad de cada clínica revisa trimestralmente el cumplimiento de los criterios descritos en este apartado mediante observación directa del área de almacenamiento intermedio y de los gabinetes»\n- Texto 2: «Las auditorías internas las realiza siempre personal ajeno al área auditada» y «El Coordinador de Calidad de la propia clínica participa en la auditoría como interlocutor, pero no como auditor de su propia área»\n\nLa revisión que manda el texto 1 verifica el cumplimiento de un protocolo mediante observación directa, que es la definición de auditoría de proceso dada en 6.1 del texto 2. Si se hace así, la realiza el Coordinador de Calidad de la propia clínica sobre su propia área, lo que el texto 2 excluye de forma expresa. Y si no se hace así, el texto 1 no se cumple. No hay forma de cumplir ambas reglas a la vez sin dejar una sin efecto.\n\nAdemás, el texto 2 enuncia el principio de independencia («para garantizar independencia de criterio»), y el texto 1 manda justo el estado que ese principio excluye: que quien verifica un área sea el responsable de calidad de esa misma clínica.\n\nEtiqueta: **norma_contra_norma**\n\nCita de cada lado:\n- Texto 1: «El Coordinador de Calidad de cada clínica revisa trimestralmente el cumplimiento de los criterios descritos en este apartado mediante observación directa del área de almacenamiento intermedio y de los gabinetes»\n- Texto 2: «El Coordinador de Calidad de la propia clínica participa en la auditoría como interlocutor, pero no como auditor de su propia área»\n\n**Hallazgo: sí.** Cabe una salvedad: el texto 1 no llama «auditoría» a su revisión. Si se considera una revisión de gestión distinta de la auditoría interna, el conflicto desaparece. Pero el texto 2 define la auditoría de proceso por su contenido, y el contenido de la revisión del texto 1 coincide con él."
+    },
+    {
+      "pareja": "NOR-11_gestion-de-residuos-sanitarios.docx · trozo 13 ↔ CLI-12_manual-calidad-clinica.docx · trozo 13",
+      "vez": 18,
+      "respuesta": "**PREGUNTA 1 · EL DATO**\n\nNo. Los dos trozos regulan temas distintos. El NOR-11 trata del tratamiento de contenedores de residuos sanitarios (identificación, mezcla de grupos y revisión de buenas prácticas). El CLI-12 trata de la planificación y el equipo auditor de las auditorías internas. No hay ningún dato que ambos fijen con valores distintos.\n\n**PREGUNTA 2 · EL CUMPLIMIENTO**\n\nSí, se pueden cumplir las dos a la vez.\n\nAmbos textos contienen reglas, así que la pregunta aplica. La única frase candidata a conflicto es la siguiente:\n\n- CLI-12, 6.2: «Las auditorías internas las realiza siempre personal ajeno al área auditada [...]. El Coordinador de Calidad de la propia clínica participa en la auditoría como interlocutor, pero no como auditor de su propia área».\n- NOR-11, 10.5: «El Coordinador de Calidad de cada clínica revisa trimestralmente el cumplimiento de los criterios descritos en este apartado mediante observación directa del área de almacenamiento intermedio y de los gabinetes».\n\nPara que hubiera conflicto habría que tratar la revisión trimestral del 10.5 como una «auditoría interna» en el sentido del 6.2. Ningún texto dice eso. El 10.5 llama a su mecanismo «revisión periódica», no auditoría, y el 6.1 define los tipos de auditoría de un modo que no lo menciona. El 6.2 restringe solo las auditorías internas, no cualquier revisión que haga un coordinador. Suponer esa equivalencia sería introducir un hecho que no está en los textos, así que no lo considero un conflicto.\n\nSi la clínica decidiera tratar la revisión del 10.5 como auditoría interna, sí surgiría una contradicción, porque el coordinador revisaría su propia área. Esa decisión, sin embargo, no la fija ninguno de los dos documentos. Merece aclararse en la redacción de cualquiera de los dos, pero no es un hallazgo de la pregunta 2 tal como están escritos."
+    },
+    {
+      "pareja": "NOR-11_gestion-de-residuos-sanitarios.docx · trozo 13 ↔ CLI-12_manual-calidad-clinica.docx · trozo 13",
+      "vez": 19,
+      "respuesta": "**PREGUNTA 1 · EL DATO: no.**\n\nLos dos textos hablan de cosas distintas. El TEXTO 1 (apartado 10.5) describe una *revisión periódica de buenas prácticas* que hace el Coordinador de Calidad de cada clínica sobre el almacenamiento intermedio y los gabinetes. El TEXTO 2 (apartados 6.1 a 6.3) regula las *auditorías internas* del sistema de calidad, es decir, quién audita, de qué tipo y con qué informe. El TEXTO 1 nunca llama «auditoría» a su revisión, y el TEXTO 2 no menciona la revisión trimestral de buenas prácticas. Si se considerara que esa revisión es una auditoría interna, el texto chocaría con 6.2, pero el texto de NOR-11 no lo dice.\n\n**PREGUNTA 2 · EL CUMPLIMIENTO: sí.**\n\nAmbos textos contienen reglas, así que la pregunta se aplica. Revisando las frases que mandan sobre cosas en juego:\n\n- TEXTO 1, 10.5: «El Coordinador de Calidad de cada clínica revisa trimestralmente el cumplimiento de los criterios descritos en este apartado mediante observación directa…»\n- TEXTO 2, 6.2: «Las auditorías internas las realiza siempre personal ajeno al área auditada… El Coordinador de Calidad de la propia clínica participa en la auditoría como interlocutor, pero no como auditor de su propia área.»\n\nLas dos reglas pueden cumplirse a la vez: el Coordinador hace su revisión trimestral de buenas prácticas (10.5) y las auditorías internas formales las realiza personal externo (6.2). El principio de independencia que enuncia 6.2 se refiere a las auditorías, y 10.5 describe otra actividad. Los demás apartados del TEXTO 1 (10.3 y 10.4) regulan la reubicación y la identificación de contenedores, que no tienen relación con quién audita ni con el TEXTO 2."
+    },
+    {
+      "pareja": "NOR-11_gestion-de-residuos-sanitarios.docx · trozo 13 ↔ CLI-12_manual-calidad-clinica.docx · trozo 13",
+      "vez": 20,
+      "respuesta": "## Pregunta 1 · EL DATO\n\n**Sí.** Ambos textos regulan quién verifica el cumplimiento en el área de almacenamiento intermedio y los gabinetes de la clínica, y dicen cosas distintas:\n\n- NOR-11, 10.5: «El Coordinador de Calidad de cada clínica revisa trimestralmente el cumplimiento de los criterios descritos en este apartado mediante observación directa del área de almacenamiento intermedio y de los gabinetes».\n- CLI-12, 6.2: «El Coordinador de Calidad de la propia clínica participa en la auditoría como interlocutor, pero no como auditor de su propia área».\n\nUno asigna al coordinador de la propia clínica la verificación de su área y el otro se la niega.\n\n## Pregunta 2 · EL CUMPLIMIENTO\n\n**No se pueden cumplir las dos a la vez.** Hay hallazgo de tipo **\"norma_contra_norma\"**.\n\n- NOR-11, 10.5 obliga a que el coordinador de la clínica revise el cumplimiento de su propio almacenamiento mediante observación directa. Según la definición de CLI-12, 6.1, eso es una auditoría de proceso: «verifican el cumplimiento de un protocolo concreto».\n- CLI-12, 6.2 establece que las auditorías internas «las realiza siempre personal ajeno al área auditada» y que el coordinador de la propia clínica no actúa «como auditor de su propia área».\n\nCumplir la primera lleva al coordinador a hacer de auditor de su propia área, lo que prohíbe la segunda. Si no se considera auditoría para no chocar con 6.2, la revisión queda sin el encargo de verificar, que es justo lo que 10.5 manda.\n\nAdemás, CLI-12, 6.2 enuncia un principio, la independencia de criterio («para garantizar independencia de criterio»), y NOR-11, 10.5 permite justo el estado que ese principio excluye: que quien verifica sea el responsable del área verificada."
+    },
+    {
+      "pareja": "NOR-11_gestion-de-residuos-sanitarios.docx · trozo 13 ↔ CLI-12_manual-calidad-clinica.docx · trozo 13",
+      "vez": 21,
+      "respuesta": "## 6.3. Informe de auditoría\n\n### PREGUNTA 1 · EL DATO\n\n**Respuesta: sí.**\n\nLos dos textos dicen cosas distintas sobre quién verifica el cumplimiento de los criterios en el área de almacenamiento intermedio y los gabinetes de la clínica:\n\n- **TEXTO 1:** «El Coordinador de Calidad de cada clínica revisa trimestralmente el cumplimiento de los criterios descritos en este apartado mediante observación directa del área de almacenamiento intermedio y de los gabinetes».\n- **TEXTO 2:** «Las auditorías internas las realiza siempre personal ajeno al área auditada, habitualmente el Coordinador de Calidad de otra clínica de la red». Y: «El Coordinador de Calidad de la propia clínica participa en la auditoría como interlocutor, pero no como auditor de su propia área».\n\nEl TEXTO 2 define las auditorías de proceso como las que «verifican el cumplimiento de un protocolo concreto». La revisión del TEXTO 1 verifica el cumplimiento de los criterios de un apartado concreto, así que cae en esa definición. Por eso ambos textos regulan la misma actividad: un ojo que comprueba el área de la propia clínica. El TEXTO 1 se la encarga al Coordinador de la clínica; el TEXTO 2 se la prohíbe.\n\n### PREGUNTA 2 · EL CUMPLIMIENTO\n\n**Respuesta: no se pueden cumplir las dos a la vez.**\n\n- **Etiqueta: norma_contra_norma.**\n- **Frase del TEXTO 1:** «El Coordinador de Calidad de cada clínica revisa trimestralmente el cumplimiento de los criterios descritos en este apartado mediante observación directa del área de almacenamiento intermedio y de los gabinetes».\n- **Frase del TEXTO 2:** «Las auditorías internas las realiza siempre personal ajeno al área auditada» y «no como auditor de su propia área», con la razón explícita de «garantizar independencia de criterio».\n\nLa regla del TEXTO 1 obliga a que el Coordinador de la clínica verifique su propia área. Si lo hace, la verificación es una auditoría de proceso según la definición del TEXTO 2, y el TEXTO 2 le prohíbe actuar como auditor de su propia área. Si no lo hace, incumple el TEXTO 1. El TEXTO 2 además enuncia el principio de independencia (que quien audita no sea quien vigila su propia área), y la revisión del TEXTO 1 es justo el estado que ese principio excluye.\n\nEsto depende de que la revisión trimestral sea una auditoría en el sentido del TEXTO 2. Si se considerara una actividad distinta, no habría conflicto. Pero el TEXTO 2 define los tipos de auditoría por lo que verifican, y la revisión del TEXTO 1 verifica exactamente eso."
+    }
+  ],
+  "registro": {
+    "peticiones": [
+      {
+        "n": 1,
+        "etapa": "juez",
+        "pareja": "facac5fd-ca7a-4f04-abf9-4926bb955e0a",
+        "modelo": "claude-haiku-5-5",
+        "vuelta": 1,
+        "intento": 1,
+        "resultado": "ok",
+        "estadoHttp": 200,
+        "latenciaMs": 15618,
+        "esperaMs": 0,
+        "comienzoMs": 2,
+        "tokens": {
+          "entrada": 4211,
+          "salida": 3461,
+          "escrituraCache": 0,
+          "lecturaCache": 0
+        },
+        "parametros": {
+          "maxTokens": 16000,
+          "temperatura": "sin_enviar",
+          "esfuerzo": "medium"
+        }
+      },
+      {
+        "n": 2,
+        "etapa": "juez",
+        "pareja": "facac5fd-ca7a-4f04-abf9-4926bb955e0a",
+        "modelo": "claude-haiku-5-5",
+        "vuelta": 1,
+        "intento": 1,
+        "resultado": "ok",
+        "estadoHttp": 200,
+        "latenciaMs": 16898,
+        "esperaMs": 0,
+        "comienzoMs": 0,
+        "tokens": {
+          "entrada": 4211,
+          "salida": 3472,
+          "escrituraCache": 0,
+          "lecturaCache": 0
+        },
+        "parametros": {
+          "maxTokens": 16000,
+          "temperatura": "sin_enviar",
+          "esfuerzo": "medium"
+        }
+      },
+      {
+        "n": 3,
+        "etapa": "juez",
+        "pareja": "facac5fd-ca7a-4f04-abf9-4926bb955e0a",
+        "modelo": "claude-haiku-5-5",
+        "vuelta": 1,
+        "intento": 1,
+        "resultado": "ok",
+        "estadoHttp": 200,
+        "latenciaMs": 20162,
+        "esperaMs": 0,
+        "comienzoMs": 4,
+        "tokens": {
+          "entrada": 4211,
+          "salida": 4375,
+          "escrituraCache": 0,
+          "lecturaCache": 0
+        },
+        "parametros": {
+          "maxTokens": 16000,
+          "temperatura": "sin_enviar",
+          "esfuerzo": "medium"
+        }
+      },
+      {
+        "n": 4,
+        "etapa": "juez",
+        "pareja": "facac5fd-ca7a-4f04-abf9-4926bb955e0a",
+        "modelo": "claude-haiku-5-5",
+        "vuelta": 1,
+        "intento": 1,
+        "resultado": "ok",
+        "estadoHttp": 200,
+        "latenciaMs": 25833,
+        "esperaMs": 0,
+        "comienzoMs": 3,
+        "tokens": {
+          "entrada": 4211,
+          "salida": 5297,
+          "escrituraCache": 0,
+          "lecturaCache": 0
+        },
+        "parametros": {
+          "maxTokens": 16000,
+          "temperatura": "sin_enviar",
+          "esfuerzo": "medium"
+        }
+      },
+      {
+        "n": 5,
+        "etapa": "juez",
+        "pareja": "facac5fd-ca7a-4f04-abf9-4926bb955e0a",
+        "modelo": "claude-haiku-5-5",
+        "vuelta": 1,
+        "intento": 1,
+        "resultado": "ok",
+        "estadoHttp": 200,
+        "latenciaMs": 14935,
+        "esperaMs": 0,
+        "comienzoMs": 25838,
+        "tokens": {
+          "entrada": 4211,
+          "salida": 2846,
+          "escrituraCache": 0,
+          "lecturaCache": 0
+        },
+        "parametros": {
+          "maxTokens": 16000,
+          "temperatura": "sin_enviar",
+          "esfuerzo": "medium"
+        }
+      },
+      {
+        "n": 6,
+        "etapa": "juez",
+        "pareja": "facac5fd-ca7a-4f04-abf9-4926bb955e0a",
+        "modelo": "claude-haiku-5-5",
+        "vuelta": 1,
+        "intento": 1,
+        "resultado": "ok",
+        "estadoHttp": 200,
+        "latenciaMs": 17808,
+        "esperaMs": 0,
+        "comienzoMs": 25836,
+        "tokens": {
+          "entrada": 4211,
+          "salida": 3602,
+          "escrituraCache": 0,
+          "lecturaCache": 0
+        },
+        "parametros": {
+          "maxTokens": 16000,
+          "temperatura": "sin_enviar",
+          "esfuerzo": "medium"
+        }
+      },
+      {
+        "n": 7,
+        "etapa": "juez",
+        "pareja": "facac5fd-ca7a-4f04-abf9-4926bb955e0a",
+        "modelo": "claude-haiku-5-5",
+        "vuelta": 1,
+        "intento": 1,
+        "resultado": "ok",
+        "estadoHttp": 200,
+        "latenciaMs": 20837,
+        "esperaMs": 0,
+        "comienzoMs": 25837,
+        "tokens": {
+          "entrada": 4211,
+          "salida": 4123,
+          "escrituraCache": 0,
+          "lecturaCache": 0
+        },
+        "parametros": {
+          "maxTokens": 16000,
+          "temperatura": "sin_enviar",
+          "esfuerzo": "medium"
+        }
+      },
+      {
+        "n": 8,
+        "etapa": "juez",
+        "pareja": "facac5fd-ca7a-4f04-abf9-4926bb955e0a",
+        "modelo": "claude-haiku-5-5",
+        "vuelta": 1,
+        "intento": 1,
+        "resultado": "ok",
+        "estadoHttp": 200,
+        "latenciaMs": 24736,
+        "esperaMs": 0,
+        "comienzoMs": 25837,
+        "tokens": {
+          "entrada": 4211,
+          "salida": 5041,
+          "escrituraCache": 0,
+          "lecturaCache": 0
+        },
+        "parametros": {
+          "maxTokens": 16000,
+          "temperatura": "sin_enviar",
+          "esfuerzo": "medium"
+        }
+      },
+      {
+        "n": 9,
+        "etapa": "juez",
+        "pareja": "facac5fd-ca7a-4f04-abf9-4926bb955e0a",
+        "modelo": "claude-haiku-5-5",
+        "vuelta": 1,
+        "intento": 1,
+        "resultado": "ok",
+        "estadoHttp": 200,
+        "latenciaMs": 16426,
+        "esperaMs": 0,
+        "comienzoMs": 50574,
+        "tokens": {
+          "entrada": 4211,
+          "salida": 3541,
+          "escrituraCache": 0,
+          "lecturaCache": 0
+        },
+        "parametros": {
+          "maxTokens": 16000,
+          "temperatura": "sin_enviar",
+          "esfuerzo": "medium"
+        }
+      },
+      {
+        "n": 10,
+        "etapa": "juez",
+        "pareja": "facac5fd-ca7a-4f04-abf9-4926bb955e0a",
+        "modelo": "claude-haiku-5-5",
+        "vuelta": 1,
+        "intento": 1,
+        "resultado": "ok",
+        "estadoHttp": 200,
+        "latenciaMs": 17289,
+        "esperaMs": 0,
+        "comienzoMs": 50575,
+        "tokens": {
+          "entrada": 4211,
+          "salida": 3683,
+          "escrituraCache": 0,
+          "lecturaCache": 0
+        },
+        "parametros": {
+          "maxTokens": 16000,
+          "temperatura": "sin_enviar",
+          "esfuerzo": "medium"
+        }
+      },
+      {
+        "n": 11,
+        "etapa": "juez",
+        "pareja": "facac5fd-ca7a-4f04-abf9-4926bb955e0a",
+        "modelo": "claude-haiku-5-5",
+        "vuelta": 1,
+        "intento": 1,
+        "resultado": "ok",
+        "estadoHttp": 200,
+        "latenciaMs": 20919,
+        "esperaMs": 0,
+        "comienzoMs": 50573,
+        "tokens": {
+          "entrada": 4211,
+          "salida": 4318,
+          "escrituraCache": 0,
+          "lecturaCache": 0
+        },
+        "parametros": {
+          "maxTokens": 16000,
+          "temperatura": "sin_enviar",
+          "esfuerzo": "medium"
+        }
+      },
+      {
+        "n": 12,
+        "etapa": "juez",
+        "pareja": "facac5fd-ca7a-4f04-abf9-4926bb955e0a",
+        "modelo": "claude-haiku-5-5",
+        "vuelta": 1,
+        "intento": 1,
+        "resultado": "ok",
+        "estadoHttp": 200,
+        "latenciaMs": 23465,
+        "esperaMs": 0,
+        "comienzoMs": 50575,
+        "tokens": {
+          "entrada": 4211,
+          "salida": 5025,
+          "escrituraCache": 0,
+          "lecturaCache": 0
+        },
+        "parametros": {
+          "maxTokens": 16000,
+          "temperatura": "sin_enviar",
+          "esfuerzo": "medium"
+        }
+      },
+      {
+        "n": 13,
+        "etapa": "juez",
+        "pareja": "facac5fd-ca7a-4f04-abf9-4926bb955e0a",
+        "modelo": "claude-haiku-5-5",
+        "vuelta": 1,
+        "intento": 1,
+        "resultado": "ok",
+        "estadoHttp": 200,
+        "latenciaMs": 16617,
+        "esperaMs": 0,
+        "comienzoMs": 74040,
+        "tokens": {
+          "entrada": 4211,
+          "salida": 3763,
+          "escrituraCache": 0,
+          "lecturaCache": 0
+        },
+        "parametros": {
+          "maxTokens": 16000,
+          "temperatura": "sin_enviar",
+          "esfuerzo": "medium"
+        }
+      },
+      {
+        "n": 14,
+        "etapa": "juez",
+        "pareja": "facac5fd-ca7a-4f04-abf9-4926bb955e0a",
+        "modelo": "claude-haiku-5-5",
+        "vuelta": 1,
+        "intento": 1,
+        "resultado": "ok",
+        "estadoHttp": 200,
+        "latenciaMs": 17049,
+        "esperaMs": 0,
+        "comienzoMs": 74042,
+        "tokens": {
+          "entrada": 4211,
+          "salida": 3469,
+          "escrituraCache": 0,
+          "lecturaCache": 0
+        },
+        "parametros": {
+          "maxTokens": 16000,
+          "temperatura": "sin_enviar",
+          "esfuerzo": "medium"
+        }
+      },
+      {
+        "n": 15,
+        "etapa": "juez",
+        "pareja": "facac5fd-ca7a-4f04-abf9-4926bb955e0a",
+        "modelo": "claude-haiku-5-5",
+        "vuelta": 1,
+        "intento": 1,
+        "resultado": "ok",
+        "estadoHttp": 200,
+        "latenciaMs": 17991,
+        "esperaMs": 0,
+        "comienzoMs": 74041,
+        "tokens": {
+          "entrada": 4211,
+          "salida": 3670,
+          "escrituraCache": 0,
+          "lecturaCache": 0
+        },
+        "parametros": {
+          "maxTokens": 16000,
+          "temperatura": "sin_enviar",
+          "esfuerzo": "medium"
+        }
+      },
+      {
+        "n": 16,
+        "etapa": "juez",
+        "pareja": "facac5fd-ca7a-4f04-abf9-4926bb955e0a",
+        "modelo": "claude-haiku-5-5",
+        "vuelta": 1,
+        "intento": 1,
+        "resultado": "ok",
+        "estadoHttp": 200,
+        "latenciaMs": 26167,
+        "esperaMs": 0,
+        "comienzoMs": 74040,
+        "tokens": {
+          "entrada": 4211,
+          "salida": 5782,
+          "escrituraCache": 0,
+          "lecturaCache": 0
+        },
+        "parametros": {
+          "maxTokens": 16000,
+          "temperatura": "sin_enviar",
+          "esfuerzo": "medium"
+        }
+      },
+      {
+        "n": 17,
+        "etapa": "juez",
+        "pareja": "facac5fd-ca7a-4f04-abf9-4926bb955e0a",
+        "modelo": "claude-haiku-5-5",
+        "vuelta": 1,
+        "intento": 1,
+        "resultado": "ok",
+        "estadoHttp": 200,
+        "latenciaMs": 11644,
+        "esperaMs": 0,
+        "comienzoMs": 100207,
+        "tokens": {
+          "entrada": 4211,
+          "salida": 2297,
+          "escrituraCache": 0,
+          "lecturaCache": 0
+        },
+        "parametros": {
+          "maxTokens": 16000,
+          "temperatura": "sin_enviar",
+          "esfuerzo": "medium"
+        }
+      },
+      {
+        "n": 18,
+        "etapa": "juez",
+        "pareja": "facac5fd-ca7a-4f04-abf9-4926bb955e0a",
+        "modelo": "claude-haiku-5-5",
+        "vuelta": 1,
+        "intento": 1,
+        "resultado": "ok",
+        "estadoHttp": 200,
+        "latenciaMs": 16733,
+        "esperaMs": 0,
+        "comienzoMs": 100207,
+        "tokens": {
+          "entrada": 4211,
+          "salida": 3813,
+          "escrituraCache": 0,
+          "lecturaCache": 0
+        },
+        "parametros": {
+          "maxTokens": 16000,
+          "temperatura": "sin_enviar",
+          "esfuerzo": "medium"
+        }
+      },
+      {
+        "n": 19,
+        "etapa": "juez",
+        "pareja": "facac5fd-ca7a-4f04-abf9-4926bb955e0a",
+        "modelo": "claude-haiku-5-5",
+        "vuelta": 1,
+        "intento": 1,
+        "resultado": "ok",
+        "estadoHttp": 200,
+        "latenciaMs": 19397,
+        "esperaMs": 0,
+        "comienzoMs": 100209,
+        "tokens": {
+          "entrada": 4211,
+          "salida": 4043,
+          "escrituraCache": 0,
+          "lecturaCache": 0
+        },
+        "parametros": {
+          "maxTokens": 16000,
+          "temperatura": "sin_enviar",
+          "esfuerzo": "medium"
+        }
+      },
+      {
+        "n": 20,
+        "etapa": "juez",
+        "pareja": "facac5fd-ca7a-4f04-abf9-4926bb955e0a",
+        "modelo": "claude-haiku-5-5",
+        "vuelta": 1,
+        "intento": 1,
+        "resultado": "ok",
+        "estadoHttp": 200,
+        "latenciaMs": 22408,
+        "esperaMs": 0,
+        "comienzoMs": 100208,
+        "tokens": {
+          "entrada": 4211,
+          "salida": 4672,
+          "escrituraCache": 0,
+          "lecturaCache": 0
+        },
+        "parametros": {
+          "maxTokens": 16000,
+          "temperatura": "sin_enviar",
+          "esfuerzo": "medium"
+        }
+      },
+      {
+        "n": 21,
+        "etapa": "juez",
+        "pareja": "facac5fd-ca7a-4f04-abf9-4926bb955e0a",
+        "modelo": "claude-haiku-5-5",
+        "vuelta": 1,
+        "intento": 1,
+        "resultado": "ok",
+        "estadoHttp": 200,
+        "latenciaMs": 19952,
+        "esperaMs": 0,
+        "comienzoMs": 122617,
+        "tokens": {
+          "entrada": 4211,
+          "salida": 4346,
+          "escrituraCache": 0,
+          "lecturaCache": 0
+        },
+        "parametros": {
+          "maxTokens": 16000,
+          "temperatura": "sin_enviar",
+          "esfuerzo": "medium"
+        }
+      }
+    ],
+    "sinEtapa": 0,
+    "fueraDelDetalle": null
+  }
+}
+```
+
+**Comprobado con script**: HTTP 200; 21 respuestas, veces 1 a 21; 21 peticiones, las 21 «ok»; 4.211 tokens de entrada en las 21
+(el mismo prompt) y 84.639 de salida en total.
+**LO QUE DIJO EL SCRIPT CONGELADO** (huella `2db4208f2d928a8d`, comprobada antes de contar; 23 de 23 pruebas), literal:
+
+```
+1 · LAS FALLIDAS: 0
+2 · EL TERCER CUBO: 15 de 21 — pulsación 1, vez 2: pregunta 2: veredicto sin decidir · pulsación 1, vez 3: pregunta 2: veredicto sin decidir · pulsación 1, vez 4: sin las dos secciones · pulsación 1, vez 6: sin las dos secciones · pulsación 1, vez 7: sin las dos secciones · pulsación 1, vez 9: sin las dos secciones · pulsación 1, vez 10: sin las dos secciones · pulsación 1, vez 11: sin las dos secciones · pulsación 1, vez 12: pregunta 2: veredicto sin decidir · pulsación 1, vez 13: sin las dos secciones · pulsación 1, vez 14: sin las dos secciones · pulsación 1, vez 15: pregunta 2: veredicto sin decidir · pulsación 1, vez 17: pregunta 2: veredicto sin decidir · pulsación 1, vez 18: sin las dos secciones · pulsación 1, vez 20: pregunta 2: hallazgo con una sola de las dos anclas
+ILEGIBLE: el cubo pasa de 4 y la banda A (17 de 21) ya no se puede alcanzar. Se endurece la regla con lo que el cubo ha enseñado y se repite la tanda entera.
+```
+
+**EL NÚMERO NO SE HA CALCULADO**: por el prerregistro 2, con el cubo por encima de 4 las bandas son ilegibles y la tanda se
+repite entera; por el 3, el número no se enseña. Esta tanda no puntúa nada.
