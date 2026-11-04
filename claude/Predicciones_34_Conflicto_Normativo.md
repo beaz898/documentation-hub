@@ -1274,3 +1274,33 @@ if (process.argv[2] === '--pruebas') {
 ```
 
 **CON ESTO, LA TANDA QUEDA APROBADA** (arquitecto, 04/11). El director la pulsa y pega la salida entera A CODE PRIMERO.
+
+### LA TANDA, LIBERADA: LA HUELLA, EL MOTIVO DE LA SUSTITUCIÓN Y EL ALTO (arquitecto, 04/11/2026)
+
+- **LA HUELLA, APROBADA: `2db4208f2d928a8d`**, en lugar de `5125a34d0be5f842`. **El número sólo es válido si lo produce un script
+  con esa huella; si la huella cambia, el número se vuelve a sacar.**
+- **EL MOTIVO DE LA SUSTITUCIÓN, que es lo que la defiende** (arquitecto, literal): «La selección es por POSICIÓN y por ÉXITO,
+  nunca por contenido: se toman las primeras respuestas buenas de la pulsación siguiente, por orden de vez, y la regla está
+  fijada antes de verlas. Y una llamada fallida no puede depender de lo que el juez habría dicho, porque el juez no llegó a
+  contestar: la pérdida es independiente del resultado. Por eso completar con la pulsación siguiente no sesga nada, aunque se
+  descarten las demás respuestas de esa pulsación.»
+- **FALLIDA Y CUBO NO SON LO MISMO**: FALLIDA es que la llamada no se completó; CUBO es que se completó y la regla no la sabe
+  leer. Sólo la segunda podría correlacionar con el contenido (una respuesta larga tiene más sitio para salirse del formato), y
+  para eso está el tope de 4.
+- **LA REGLA SE EXTIENDE**: «y así sucesivamente, siempre las primeras buenas de la pulsación siguiente, por orden de vez». *El
+  script ya lo hace (recorre todas las pulsaciones que se le den, en orden), así que la huella no cambia.*
+- **EL ALTO** (arquitecto, literal): «Si una sola pulsación trae 3 o más llamadas fallidas de 21, se PARA y se diagnostica antes
+  de seguir pulsando. No es ruido: SQL_34_10 midió 0 peticiones fallidas de 225 en las dos tandas nuevas, lo que deja la tasa
+  de fallo en 0 – 1,68 % (Wilson 95 %). Incluso con la cota ALTA de ese intervalo, P(≥3 fallos de 21) = 0,50 %. Tres fallos en
+  una pulsación es una avería de la ruta o de la API, no mala suerte, y se mira en vez de volver a pulsar.» *Code: cuentas
+  comprobadas. Las 225 son peticiones de la tubería del producto (otras formas de llamada que la pregunta cerrada), así que la
+  tasa es aproximada para esta ruta. El alto lo aplica Code leyendo la línea 1 del script, que lista las fallidas por
+  pulsación, antes de pedir otra.*
+- **Lo que hace creíble a `SQL_34_11`** (arquitecto): el «desde» del marcador 3, el 02/11 a las 17:54, cae en la primera pasada
+  de la tanda de NOR-10 (17:54:03). La consulta encuentra el contador justo donde otra medición ya sabía que estaba: **es una
+  corroboración desde fuera, no un control que la consulta se da a sí misma**. Y la purga **es una deducción, no una suposición
+  confirmada**: dos códigos que entraron en fechas distintas (29/09 y 21/10) no pueden aparecer en el mismo instante salvo que
+  la ventana empiece después de los dos.
+
+**LA TANDA ESTÁ LIBERADA.** El director pulsa y pega la salida entera a Code primero. Code informa en el orden fijado: las
+fallidas, el cubo con sus motivos, y el número sólo si el cubo cabe en 4.
