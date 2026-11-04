@@ -3188,3 +3188,18 @@ No se pueden cumplir. ${ND} ${CP} norma_contra_norma`), CASOS.D), { quinto: null
   console.log(resumen(pulsaciones, caso).join('\n'));
 }
 ```
+
+**LA HUELLA `e21387a1ff2e7305`, APROBADA** (arquitecto, 04/11/2026). **Y las dos lecturas de Code, confirmadas** (arquitecto):
+1. **«Literal» tal cual**: «norma contra norma» con espacios o «norma_contra_práctica» con tilde cuentan como «sin etiqueta». El
+   prompt usa las cadenas exactas, así que un modelo que etiqueta las escribe así, y uno que lo dice en prosa está describiendo,
+   no etiquetando.
+2. **El texto entero, no sólo la pregunta 2**: la predicción es sobre la etiqueta, no sobre dónde la pone. Si clasifica el caso
+   como norma_contra_norma, lo ha clasificado, esté la palabra donde esté.
+
+⚠️ **LA OBSERVACIÓN, que va al archivo porque es honesta y no es neutral** (arquitecto): **las dos lecturas NO tiran en el mismo
+sentido.** La 1 es CONSERVADORA CONTRA su predicción: al exigir la cadena literal, infracuenta la etiqueta, y P-D-3 predice que la
+etiqueta aparece. La 2 es PERMISIVA A FAVOR: al mirar el texto entero, cuenta etiquetas que el prompt sólo pedía en la pregunta
+2. **Se compensan en parte y no se sabe en cuánto.** Que conste así, y no como dos decisiones neutras.
+
+**EL ORDEN, sin cambios**: cuando el director suba y Vercel despliegue, el ensayo de D; Code comprueba las dos frases guardadas y
+se las pasa al arquitecto; el arquitecto confirma la pareja; y las dos tandas de 21.
