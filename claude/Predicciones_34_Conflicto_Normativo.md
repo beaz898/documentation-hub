@@ -310,7 +310,8 @@ principal (estado vivo).
 - **La línea base**: «NOR-10 ← CLI-12, D, 3 de 21» (o 4 con la cota sin texto). El control positivo, en verde: reproduce
   el 2 de 7.
 - **Frente a la pregunta cerrada** (36 de 40), **p = 5,58 × 10⁻⁹**. Pero son condiciones distintas: producto entero frente a
-  herramienta sin puerta ni verificador. El 90 % es un techo.
+  herramienta sin puerta ni verificador. El 90 % es un techo. *(04/11: y otra regla de cuenta, y es §2.4 ↔ §3.1, no la D
+  sembrada: «EL 90 % NO ES LA D SEMBRADA», al final de este fichero.)*
 - **La justificación, reescrita**: «hay un hueco grande y medido entre lo que la pregunta cerrada encuentra y lo que el
   producto publica, y la única manera de saber cuánto sobrevive al camino es construirlo en sombra y medirlo».
 - Medido para un hallazgo, una pareja y un corpus. El plan rehecho lo escribe el arquitecto, y no se construye todavía.
@@ -342,7 +343,8 @@ director). Que la primera cayó por la cuenta del arquitecto, 0,9³ = 73 %, lo d
   3. sin puente y siendo nivel_1, se firma, y P-F130-14 admite hasta 6 de 20 sin el §4.
   Así que 13a depende de P-F130-14 y de qué frase cite el juez, salvo que se cambie la regla (pendiente, en el estado).
 - **P-F130-13b**: «acuerdo ≥ 2 de 3 en 12 de 20 o menos». **Supone que el quinto está cerca del 50 % con la pregunta
-  cerrada, y eso NO ESTÁ MEDIDO**: lo mide el paso 3 del plan. Si estuviera al 90 % como D, el acuerdo saldría 19 de 20 y
+  cerrada, y eso NO ESTÁ MEDIDO**: lo mide el paso 3 del plan. Si estuviera al 90 % como D *(04/11: como §2.4 ↔ §3.1, no
+  como la D sembrada)*, el acuerdo saldría 19 de 20 y
   la predicción fallaría con el mecanismo funcionando bien (arquitecto, 02/11).
 
 **P-F130-14.** «P-F130-14: el puente citado en el quinto, cuando se pide, es el §4 en 14 de 20 o más.»
@@ -2278,4 +2280,448 @@ if (process.argv[2] === '--pruebas') {
   console.log(`caso: ${caso.nombre} · anclas: «${caso.anclaA}» / ${caso.anclasB.map(a => `«${a}»`).join(' o ')} · n = ${caso.n} · tope = ${caso.tope}`);
   console.log(resumen(pulsaciones, caso).join('\n'));
 }
+```
+
+## ⚠️⚠️ EL 90 % NO ES LA D SEMBRADA (arquitecto y Code, 04/11/2026)
+
+**SUSTITUYE a las dos secciones del 04/11 de arriba** («NO SON COMPARABLES TAL COMO ESTÁN» y «EL RECUENTO DE D… PROPUESTAS»):
+allí se llamaba «D» a la pareja del §3.1 y se proponían sus anclas, y las dos cosas quedan retiradas. Las del commit `42e8742b`,
+también.
+
+**1 · LO QUE MIDIÓ EL 36 DE 40.** La pareja NOR-10·4 (§2.4) ↔ CLI-12·3 (§3.1): **el permiso contra el principio**, contado con
+una regla laxa (un ancla sola y sin leer el veredicto). **No es la D de la siembra**, que es §2.4 ↔ **§3.5**
+(`corpus-pruebas/SIEMBRA_corpus_ampliado.md:90-120`; el §3.5 va en CLI-12·6, el §3.1 en CLI-12·3). **La D sembrada se midió UNA
+VEZ: 6 de 7, el 28/10, con el prompt de la «línea ancha», y no se repitió** (`Medida_F130_E3_Y_Vecindad_29-10-2026.md:31, 91`).
+**«La pregunta cerrada saca D cerca del 90 %» es FALSO tal como está escrito, y se corrige en todos los sitios** (las marcas del
+04/11 en el estado, la medida, este fichero y el protocolo). **El 36 de 40 no se vuelve a llamar D**: se llama «§2.4 ↔ §3.1, el
+permiso contra el principio». Su recuento con el script congelado va DESPUÉS, como corrección del archivo, no como respuesta.
+
+**2 · Y LOS 3 DE 21 TAMPOCO SON LA D DEL §3.5** (Code, 04/11). Las tres D de la línea base (`SQL_34_06`, 31/10; pasadas 12, 17 y
+21) citan «el principio de §3.1» (`Medida_F130_E3_Y_Vecindad_29-10-2026.md:1051, 1072, 1089`; y `Estado…`: «Las tres D citan el
+permiso contra el principio de §3.1»). **Los dos números se citaron por el §3.1.** Lo que los separa es producto-publicado frente
+a herramienta-sólo-el-juez, MÁS la regla de cuenta. El primer cruce ya estaba corregido el 31/10; el segundo, no («la regla de
+puntuación es la misma», escrito el 31/10, era falso).
+
+**3 · LA SEMANA 0 DEL ARQUITECTO REINTRODUJO EL CRUCE: UNA REGRESIÓN, NO UN ERROR NUEVO** (arquitecto, con su nombre). Su frase,
+literal, de `claude/Semana_0_F130_Linea_Base_Cerrada_02-11-2026.md`, sección 2, que vive en el PROYECTO DE CLAUDE y NO EN EL
+REPOSITORIO (pegada por él el 04/11; Code no la ha visto en su sitio):
+> «**Consecuencia: el fallo no está en buscar ni en entregar. Está en preguntar.** Y lo apoya lo único medido del otro lado: la
+> pregunta cerrada sobre la pareja saca D cerca del 90 %, contra el 14 % de la pasada abierta. Mismo modelo, mismo texto, otra
+> pregunta.»
+
+**LA MARCA, con la redacción del arquitecto, que va al lado de la frase** (la pone él en el proyecto, donde vive; Code no llega):
+> «APOYO RETIRADO, PENDIENTE DE MEDIR (04/11). El 90 % y el 14 % se citaron los dos por el §3.1, y lo que los separa es
+> producto-publicado frente a herramienta-sólo-juez, más la regla de cuenta — un cruce de condiciones ya corregido el 31/10 y
+> reintroducido aquí. La conclusión "está en preguntar" puede ser cierta y hoy NO está demostrada para la D sembrada
+> (§2.4 ↔ §3.5), que sólo se midió una vez: 6 de 7, el 28/10, con otro prompt.»
+
+La conclusión no se borra: se marca.
+
+**4 · LAS CORRECCIONES DEL ARQUITECTO, con sus números** (la cuenta es suya):
+- **Su cita de la tabla**: la dio como «Medida_F313, del 22/10», y es `claude/Medida_34_Conflicto_Normativo_26-10-2026.md:57`, del
+  26/10. Fichero mal y fecha mal.
+- **La undécima de la familia: su regla de anclas, RETIRADA.** El suelo de 30 caracteres lo derivó de «personal ajeno al área
+  auditada» creyendo que medía 30, y mide **31**: un umbral derivado de una cadena mal medida. Code le puso además otras tres
+  objeciones, que aceptó: la regla no fija un ancla única (de 3 a 9 tramos empatados por lado), elige tramos que no son el
+  conflicto («experiencia diaria del centro.»), y movería las tres anclas del quinto.
+- **La duodécima: citó una frase que Code no puede abrir**, la de la semana 0 (arriba), y contra una regla ya escrita.
+- **La decimotercera, que cazó él solo**: al calcular el umbral de la tanda de D su bucle tomó el primer k en vez del límite, y le
+  dio 21 en vez de 19. Lo vio al releer la tabla.
+
+**5 · EL CONTROL QUE SOSTIENE LO ANTERIOR SIN EJECUTAR UNA CONSULTA** (Code, 04/11; el arquitecto pide que quede escrito).
+NOR-10, NOR-11 y CLI-12 troceados en local con el código de la indexación (`extractSegments` + `chunkSegments`, por posición en
+el array): **los trozos NOR-11·13 y CLI-12·13 son IDÉNTICOS, byte a byte, al texto GUARDADO en la base** que devolvió el ensayo del
+paso 3 (el mismo día). Con eso, lo que dice el troceado local de los demás trozos vale para la base:
+- **CLI-12·3** (914 caracteres): el §3 y el §3.1 (la frase de A y la del principio). **Sin el §3.5.**
+- **CLI-12·6** (969): el §3.5 y el §3.6. **«nunca por el Director Clínico del propio centro» sale UNA vez**, y ninguna en CLI-12·3.
+- **NOR-10·4** (1.148): el §2.4 y el §2.5. **«puede recaer en el propio Director Clínico» sale UNA vez.**
+- **El troceado no cambió** entre el 20/10 y el 29/10 (`git log` de `lib/chunking.ts`, vacío), y los tres tamaños coinciden con la
+  tabla del 26/10.
+
+**6 · LA TANDA QUE SÍ CONTESTA: LA D SEMBRADA, NOR-10·4 (§2.4) ↔ CLI-12·6 (§3.5)** (arquitecto, 04/11). Con el prompt de hoy sin
+tocar, la misma `preguntarAlJuez`, el mismo script congelado y el mismo criterio.
+- **La referencia es EL QUINTO, 12 de 21**: misma ruta, mismo prompt, misma regla congelada. La pregunta es «¿se distingue D del
+  quinto en condiciones idénticas?». **NO los 3 de 21 ni el «0 de 21» del §3.5 en la línea base**: son PUBLICADO por el pipeline
+  entero, y la tanda es sólo el juez con la pareja delante; compararlos sería el mismo cruce otra vez (Code avisó; el
+  arquitecto lo acepta).
+- **n = 42, en DOS PULSACIONES DE 21**: 42 llamadas seguidas serían unos 274 s contra el `maxDuration` de 300.
+  **LA REGLA DE AGRUPACIÓN, fijada antes**: se juntan LAS 42 respuestas, en orden de pulsación y luego de vez, sin selección; si
+  alguna falla, la regla de sustitución ya aprobada (las que falten, de las primeras buenas de la pulsación siguiente).
+- **Las cifras, del arquitecto, comprobadas por Code con script** (Fisher exacto bilateral contra 12 de 21; el umbral, buscado
+  POR ENCIMA de la proporción del quinto, porque el bilateral también rechaza por abajo; controles: reproduce el 0,0247 de 17
+  frente a 9 de 21 y el 0,538 de 12 frente a 9):
+  | | afirmable desde | p en el umbral (y uno por debajo) | potencia si D = 90 % | error si D = 12/21 |
+  |---|---|---|---|---|
+  | n = 21 | 19 de 21 | 0,0325 (0,0855) | **64,8 %** | 0,106 % |
+  | n = 42 | **35 de 42** | 0,0337 (0,0699) | **94,6 %** | **0,030 %** |
+  Coinciden con las del arquitecto. *Una precisión de Code*: su «D al 76 % → 18,4 %» es con D = 16/21 (76,19 %); con 0,76
+  exacto sale 17,7 %. No cambia nada de lo que decide.
+- **LA LIMITACIÓN, PRERREGISTRADA** (arquitecto): incluso con 42, una diferencia MODERADA (D en torno al 76 %) sólo se detectaría
+  el 18,4 % de las veces. **Esta prueba contesta «¿es D MUCHO más fácil que el quinto?» y NO contesta «¿es algo más fácil?».**
+  Basta para lo que decide, porque la afirmación en juego es grande (90 % contra 57 %). **Si D sale en la zona muda, la conclusión
+  conservadora —no construir— se mantiene: LA ZONA MUDA CAE DEL LADO SEGURO.**
+- **Las predicciones, con nombre, tasa de error y potencia, las escribe el arquitecto ANTES de que el director pulse.** Nada se
+  lanza hasta entonces.
+
+**7 · LAS ANCLAS DE D, APROBADAS** (arquitecto, 04/11): las dos que el registro de siembra pone en negrita en la tabla de la D.
+- NOR-10 §2.4: **«puede recaer en el propio Director Clínico»**, 42 caracteres (`SIEMBRA_corpus_ampliado.md:99`, y en el pasaje
+  literal, la 105).
+- CLI-12 §3.5: **«nunca por el Director Clínico del propio centro»**, 47 caracteres (`:100`, y en el pasaje, 115-116).
+- **LA ASIMETRÍA CON EL QUINTO ES FORZADA, NO DESCUIDO** (arquitecto, para que nadie lo lea mañana como dejadez): el quinto NO
+  ESTÁ SEMBRADO, así que sus anclas sólo podían salir de las citas observadas en la pasada abierta (`FRASES_DEL_QUINTO`, las 7 y 2
+  de 9); D sí está sembrada, y las suyas salen del registro. **Las fuentes difieren porque los dos casos difieren en especie.**
+  (Code, de paso: dos de las tres del quinto coinciden con la negrita de su registro, `:500`; la de NOR-11 está en la fila sin
+  negrita, `:499`.)
+
+**8 · LA HERRAMIENTA, aprobada** (el diff, en el mismo commit que esto): `PAREJA_DE_D` (NOR-10·4 ↔ CLI-12·6), `VECES_DE_D = 21`
+por pulsación, `FRASES_DE_D` con las dos anclas; la ruta `d/route.ts`, que es la del quinto con la otra pareja, DUPLICADA a
+propósito (factorizar habría tocado un instrumento ya usado, y la carpeta caduca el 15/12); dos botones; y las pruebas (la pareja,
+y la negativa dura sobre las dos rutas). `TROZOS.cli12_6` ya existía, con la frase del §3.5.
+
+**9 · EL SCRIPT, HUELLA `866ab31ef2dbd794`, PARA APROBAR** (sustituye a la propuesta `df23ac646e9a4089` y a la intermedia
+`8a4c69346650cd10`, que nadie aprobó):
+- **El caso D**: las dos anclas de arriba; **n = 42**; **tope 7, derivado como el del quinto**: con 8 ilegibles, los 35 de 42 ya no
+  se pueden alcanzar. La salida lo compara con los 12 de 21 del quinto.
+- **El caso del §3.1 ya no está en el script**: entrará con su propio nombre cuando toque su recuento, nunca como «D».
+- **El quinto sale IDÉNTICO**: sobre la segunda tanda, su salida es igual línea a línea a la de `cea980ddc9356e68`, la aprobada.
+- **55 de 55 pruebas**, entre ellas: el principio del §3.1 NO cuenta como D (va al cubo como «una sola de las dos anclas»); 7
+  ilegibles de 42 se leen y 8 no; con una pulsación de 21 no se puntúa; las dos pulsaciones se juntan en orden y una fallida se
+  repone con la primera buena de la tercera. **Mutantes**: tope 6 y tope 8 rompen 2 pruebas cada uno; n = 41 rompe 4.
+- Se cuenta con `CASO=D node contar_quinto.mjs <pulsación 1> <pulsación 2> [<pulsación 3>]`.
+
+```js
+// LA REGLA DE CUENTA DEL PASO 3 DE F-130, EN CÓDIGO (Code, 04/11/2026), escrita ANTES de la tanda y congelada por su huella.
+// Implementa el criterio del arquitecto (03/11, 21:20) y la regla de reconocimiento que él aprueba antes de pulsar.
+// Uso: node contar_quinto.mjs <salida-de-la-tanda.json> …   ·   CASO=D node contar_quinto.mjs <a.json> <b.json>   ·   --pruebas
+import { readFileSync } from 'node:fs';
+
+export const ANCLA_NOR11 = 'revisa trimestralmente el cumplimiento';
+export const ANCLAS_CLI12 = ['personal ajeno al área auditada', 'no como auditor de su propia área'];
+
+// LOS CASOS (04/11/2026, el recuento de D): LA MISMA REGLA, CON LAS ANCLAS COMO PARÁMETRO. Lo único que cambia de un caso a otro
+// son las anclas de cada lado, el tamaño de la tanda, el tope de lo ilegible y los textos de la salida; R1', R2', R3 y R4 son el
+// mismo código. Así la comparabilidad entre el quinto y D es ESTRUCTURAL, no una afirmación (arquitecto).
+// · quinto: las anclas de FRASES_DEL_QUINTO; 21 respuestas; tope 4 (derivado: la banda A pide 17 de 21).
+// · D (corregido el 04/11): LA D DE LA SIEMBRA, NOR-10·4 (§2.4) ↔ CLI-12·6 (§3.5), con las dos anclas que el registro pone en
+//   negrita (corpus-pruebas/SIEMBRA_corpus_ampliado.md:99-100). NO la pareja del 36 de 40, que es el permiso contra el principio
+//   del §3.1 y no se llama D. 42 respuestas, en DOS PULSACIONES DE 21 (arquitecto, 04/11: 42 llamadas seguidas, unos 274 s contra
+//   un maxDuration de 300), juntas en orden de pulsación y luego de vez, sin selección; las fallidas, por la regla de sustitución.
+//   Se compara con los 12 de 21 del quinto (Fisher bilateral): afirmable desde 35 de 42. TOPE 7, derivado como el del quinto:
+//   con 8 ilegibles, los 35 ya no se pueden alcanzar.
+export const CASOS = {
+  quinto: {
+    nombre: 'el quinto', anclaA: ANCLA_NOR11, anclasB: ANCLAS_CLI12, n: 21, tope: 4,
+    ilegible: 'ILEGIBLE POR LA COLUMNA 1: pasa de 4 y la banda A (17 de 21) ya no se puede alcanzar. Se repite la tanda entera, o se aplica el alto si ya es la segunda.',
+    referencia: 'se compara con los 9 de 21', col2: 'P-P3-2', col2Puntua: 'puntúa P-P3-2, no afecta a la 1',
+    deCaso: 'del quinto', col2NoAfecta: 'No afecta a la columna 1 ni a las bandas.',
+  },
+  D: {
+    nombre: 'D', anclaA: 'puede recaer en el propio Director Clínico', anclasB: ['nunca por el Director Clínico del propio centro'], n: 42, tope: 7,
+    ilegible: 'ILEGIBLE POR LA COLUMNA 1: pasa de 7 y los 35 de 42 ya no se pueden alcanzar. El número no se enseña.',
+    referencia: 'se compara con los 12 de 21 del quinto', col2: 'LA COLUMNA 2 DE D', col2Puntua: 'no afecta a la 1',
+    deCaso: 'de D', col2NoAfecta: 'No afecta a la columna 1.',
+  },
+};
+
+const plano = s => s.normalize('NFC').replace(/\s+/g, ' ').trim().toLowerCase();
+const sinMarcas = s => s.replace(/[*_#>`]/g, '');
+
+// R1' · LAS DOS SECCIONES (endurecida el 04/11 tras la primera tanda, ILEGIBLE). Una cabecera es una LÍNEA que, quitadas las
+// marcas y los espacios, EMPIEZA por «PREGUNTA 1» o «PREGUNTA 2» (mayúsculas o no, con o sin espacio). Las menciones en la
+// prosa («ya está contada en la pregunta 1») no cuentan. Tiene que haber una de cada, en orden; si no, se prueba la forma
+// numerada a principio de línea («1.» o «1)» y «2.» o «2)»). Si tampoco: al tercer cubo, «sin las dos secciones».
+export function secciones(texto) {
+  const t = sinMarcas(texto);
+  const probar = (re1, re2) => {
+    const a = [...t.matchAll(re1)], b = [...t.matchAll(re2)];
+    if (a.length !== 1 || b.length !== 1 || a[0].index >= b[0].index) return null;
+    return { p1: t.slice(a[0].index + a[0][0].length, b[0].index), p2: t.slice(b[0].index + b[0][0].length) };
+  };
+  return probar(/^[ \t]*pregunta\s*1\b/gim, /^[ \t]*pregunta\s*2\b/gim) ?? probar(/^[ \t]*1[.)]/gm, /^[ \t]*2[.)]/gm);
+}
+
+// R2' · EL VEREDICTO de cada sección (endurecida el 04/11). Se recorren sus líneas EN ORDEN hasta la primera que traiga una
+// cita (« “ ") o sea una viñeta («- », «• »), y gana la PRIMERA que EMPIECE por una forma de veredicto. En cada línea:
+//   · lo que queda de la línea de la cabecera («· EL DATO:») se quita; si la línea trae una pregunta, cuenta lo que va
+//     DESPUÉS del último «?» («¿Se pueden cumplir las dos a la vez? No.» → «No.»); y se quitan las etiquetas del principio
+//     («Respuesta:», «HAY HALLAZGO:», «Hallazgo:»);
+//   · las formas: la primera palabra «sí» o «no» («si» SIN TILDE sólo si va sola o con puntuación: «Si.», «Si,»; suelto es
+//     el condicional); y, SÓLO EN LA PREGUNTA 2, la línea que empieza por «no se pueden cumplir» («no») o por «se pueden
+//     cumplir» («sí»), que es como el propio prompt invita a contestar;
+//   · las líneas sin forma de veredicto (los preámbulos: «Ambos textos son reglas, así que aplica la pregunta…») se saltan.
+// La línea elegida va al cubo, en vez de dar veredicto, si su PRIMERA FRASE trae a la vez las palabras «sí» y «no» (salvo
+// dentro de la forma «no se pueden cumplir»), o si, EN LA PREGUNTA 2, su veredicto es «sí» y esa primera frase dice
+// «hallazgo» («Sí, hay hallazgo»: la polaridad al revés; el seguro va en la dirección conservadora). Sin ninguna línea así antes de la primera cita o viñeta: «veredicto sin
+// decidir». NO CAMBIA QUÉ CUENTA COMO HALLAZGO (la 1 en «sí», la 2 en «no»): sólo reconoce las formas de decirlo.
+const SI = /(^|[^\p{L}])sí([^\p{L}]|$)/iu, NO = /(^|[^\p{L}])no([^\p{L}]|$)/iu;
+export function veredicto(seccion, pregunta = 1) {
+  const lineas = seccion.split('\n');
+  for (let i = 0; i < lineas.length; i++) {
+    const cruda = lineas[i];
+    if (/^\s*([-•]\s)/.test(cruda)) return null;
+    let l = (i === 0 ? cruda.replace(/^[\s·:.\-–—]*(el dato|el cumplimiento)?[\s·:.\-–—]*/i, '') : cruda).trim();
+    if (l.includes('?')) l = l.slice(l.lastIndexOf('?') + 1).trim();
+    l = l.replace(/^((respuesta|hay hallazgo|hallazgo)\s*:\s*)+/i, '').trim();
+    if (l === '') { if (/[«“"]/.test(cruda)) return null; continue; }
+    let v = null, frase = false;
+    if (pregunta === 2 && /^no se pueden cumplir/i.test(l)) { v = 'no'; frase = true; }
+    else if (pregunta === 2 && /^(s[ií][,\s]+)?se pueden cumplir/i.test(l)) { v = 'sí'; frase = true; }
+    else if (/^sí([^\p{L}]|$)/iu.test(l) || /^si([.,;:!]|$)/i.test(l)) v = 'sí';
+    else if (/^no([^\p{L}]|$)/iu.test(l)) v = 'no';
+    if (v === null) { if (/[«“"]/.test(cruda)) return null; continue; }
+    // las dos comprobaciones, sobre la PRIMERA FRASE de la línea (hasta el primer «.», «:» o «;» seguido de espacio): el
+    // veredicto es esa frase, y lo que venga detrás en la misma línea («Sí. No hay ninguna frase…») ya es razonamiento
+    const primera = l.split(/(?<=[.:;])\s/)[0];
+    const resto = frase && v === 'no' ? primera.replace(/^no se pueden cumplir/i, '') : primera;
+    if (SI.test(resto) && NO.test(resto)) return null;
+    if (pregunta === 2 && v === 'sí' && /hallazgo/i.test(primera)) return null;
+    return v;
+  }
+  return null;
+}
+
+// R3 · LAS CITAS: los tramos entre «…», “…” o "…" de la sección. Se contrastan con las anclas en minúsculas y con los espacios
+// colapsados; una cita casa con un ancla si la contiene entera.
+export function citas(seccion) {
+  return [...seccion.matchAll(/«([^»]*)»|“([^”]*)”|"([^"]*)"/g)].map(m => plano(m[1] ?? m[2] ?? m[3] ?? ''));
+}
+function anclasDe(seccion, caso = CASOS.quinto) {
+  const c = citas(seccion), p = plano(seccion), A = plano(caso.anclaA), B = caso.anclasB.map(plano);
+  const nor = c.some(x => x.includes(A)), cli = c.some(x => B.some(a => x.includes(a)));
+  const fueraNor = !nor && p.includes(A), fueraCli = !cli && B.some(a => p.includes(a));
+  return { nor, cli, fueraNor, fueraCli };
+}
+
+// R4 · LA CUENTA (columna 1 y columna 2, con el tope corregido por el arquitecto el 04/11). «Hallazgo afirmado» = la 1 en
+// «sí», o la 2 en «no»; da EL QUINTO si su sección trae, ENTRE COMILLAS, una cita con el ancla de NOR-11 y otra con una de las
+// dos de CLI-12. LA COLUMNA 1 ES LEGIBLE cuando se da una de estas tres:
+//   (a) la pregunta 1 decide «sí» y trae las dos anclas → el quinto salió;
+//   (b) la pregunta 2 decide «no se pueden cumplir» y trae las dos anclas → el quinto salió;
+//   (c) la pregunta 1 decide «no» Y la pregunta 2 decide «sí se pueden cumplir» → el quinto no salió.
+// Es ILEGIBLE en cualquier otro caso, y SÓLO las ilegibles van a `cubo1`, que es lo que cuenta para el tope de 4. Su motivo, por
+// pregunta: veredicto sin decidir; hallazgo con una sola de las dos anclas; con un ancla fuera de comillas; o sin las anclas
+// del quinto. Las anclas colgando de un «no hay hallazgo» no cuentan: eso es (c).
+// LA COLUMNA 2, ¿por qué pregunta salió el quinto?: la 1, la 2, las dos, o «sin decidir» si la otra pregunta no se puede leer.
+// Y `cubo2` es la lista de las respuestas con la PREGUNTA 2 SIN DECIDIR, con su propio tope (resumen, abajo).
+export function contar(respuesta, caso = CASOS.quinto) {
+  if (!respuesta || typeof respuesta.respuesta !== 'string' || respuesta.respuesta.trim() === '') return { quinto: null, cubo1: ['sin respuesta'], cubo2: ['sin respuesta'] };
+  const s = secciones(respuesta.respuesta);
+  if (!s) return { quinto: null, cubo1: ['sin las dos secciones'], cubo2: ['sin las dos secciones'] };
+  const v1 = veredicto(s.p1, 1), v2 = veredicto(s.p2, 2);
+  const an1 = anclasDe(s.p1, caso), an2 = anclasDe(s.p2, caso);
+  const a = v1 === 'sí' && an1.nor && an1.cli, b = v2 === 'no' && an2.nor && an2.cli, c = v1 === 'no' && v2 === 'sí';
+  const cubo2 = v2 === null ? ['pregunta 2: veredicto sin decidir'] : [];
+  if (a || b) {
+    const porPregunta = a && b ? 'las dos' : a ? (v2 === null ? 'sin decidir' : 'la 1') : (v1 === null ? 'sin decidir' : 'la 2');
+    return { quinto: true, porPregunta, cubo1: [], cubo2 };
+  }
+  if (c) return { quinto: false, cubo1: [], cubo2 };
+  const cubo1 = [];
+  for (const [n, v, an, afirma] of [[1, v1, an1, 'sí'], [2, v2, an2, 'no']]) {
+    if (v === null) { cubo1.push(`pregunta ${n}: veredicto sin decidir`); continue; }
+    if (v !== afirma) continue;
+    if (an.fueraNor || an.fueraCli) cubo1.push(`pregunta ${n}: hallazgo con un ancla fuera de comillas`);
+    else if (an.nor || an.cli) cubo1.push(`pregunta ${n}: hallazgo con una sola de las dos anclas`);
+    else cubo1.push(`pregunta ${n}: hallazgo sin las anclas ${caso.deCaso}`);
+  }
+  return { quinto: null, cubo1, cubo2 };
+}
+
+// LOS TRES PRERREGISTROS DEL ARQUITECTO (04/11), antes de la tanda, Y EL TOPE CORREGIDO:
+// P1 · UNA LLAMADA FALLIDA NO ES UN «NO»: no es un veredicto y no va a ningún cubo. La tanda es puntuable SÓLO con 21
+//      respuestas buenas; las que falten se completan con las primeras buenas de la pulsación siguiente, y así sucesivamente,
+//      por orden de vez. Se escribe cuántas fallaron.
+// P2 · EL TOPE DE 4 ES DE LA COLUMNA 1: la banda A pide 17 de 21. CORREGIDO (arquitecto, 04/11): cuenta sólo las respuestas cuya
+//      COLUMNA 1 es ilegible, no cualquier cosa que no se sepa leer. Por encima, las bandas son ILEGIBLES y se repite la tanda.
+// P2b · LA COLUMNA 2 TIENE SU PROPIO TOPE: las respuestas con la pregunta 2 sin decidir van a una lista nombrada; si pasan de 4,
+//      P-P3-2 se informa como NO PUNTUABLE con su cuenta. No afecta a la columna 1 ni a las bandas.
+// P3 · LO ILEGIBLE SE ENSEÑA ANTES DEL NÚMERO: primero las fallidas, luego la columna 1 ilegible con su motivo, y el número sólo
+//      si cabe en 4; después, la lista de la pregunta 2 y la columna 2.
+export const N_TANDA = 21;
+export const CUBO_MAXIMO = 4;
+const fallida = r => !r || typeof r.respuesta !== 'string' || r.respuesta.trim() === '';
+
+export function resumen(pulsaciones, caso = CASOS.quinto) {
+  const N = caso.n, TOPE = caso.tope;
+  const buenas = [], fallidas = [];
+  pulsaciones.forEach((respuestas, p) => respuestas.forEach(r => {
+    const id = `pulsación ${p + 1}, vez ${r?.vez}`;
+    if (fallida(r)) { if (buenas.length < N) fallidas.push(`${id}: ${r?.error ?? 'texto vacío'}`); }
+    else if (buenas.length < N) buenas.push({ id, ...contar(r, caso) });
+  }));
+  const salida = [`1 · LAS FALLIDAS: ${fallidas.length}${fallidas.length ? ' — ' + fallidas.join(' · ') : ''}`];
+  if (buenas.length < N) {
+    salida.push(`NO PUNTUABLE TODAVÍA: ${buenas.length} respuestas buenas de ${N}. Se pulsa otra vez y las que faltan salen de la siguiente.`);
+    return salida;
+  }
+  const ilegibles = buenas.filter(f => f.cubo1.length > 0);
+  salida.push(`2 · LA COLUMNA 1 ILEGIBLE (cuenta para el tope de ${TOPE}): ${ilegibles.length} de ${N}${ilegibles.length ? ' — ' + ilegibles.map(f => `${f.id}: ${f.cubo1.join('; ')}`).join(' · ') : ''}`);
+  if (ilegibles.length > TOPE) {
+    salida.push(caso.ilegible);
+    return salida;
+  }
+  const limpias = buenas.filter(f => f.quinto === true);
+  salida.push(`3 · COLUMNA 1, ¿salió ${caso.nombre}?: ${limpias.length} de ${N} (${caso.referencia})`);
+  const sinLa2 = buenas.filter(f => f.cubo2.length > 0);
+  salida.push(`4 · LA PREGUNTA 2 SIN DECIDIR (su tope, ${TOPE}): ${sinLa2.length} de ${N}${sinLa2.length ? ' — ' + sinLa2.map(f => `${f.id}: ${f.cubo2.join('; ')}`).join(' · ') : ''}`);
+  if (sinLa2.length > TOPE) salida.push(`5 · ${caso.col2}: NO PUNTUABLE (${sinLa2.length} de ${N} con la pregunta 2 sin decidir). ${caso.col2NoAfecta}`);
+  else salida.push(`5 · COLUMNA 2, ¿por qué pregunta? (${caso.col2Puntua}): ` +
+    ['la 1', 'la 2', 'las dos', 'sin decidir'].map(k => `${k}: ${limpias.filter(f => f.porPregunta === k).length}`).join(' · '));
+  return salida;
+}
+
+// LAS PRUEBAS, sobre respuestas INVENTADAS antes de la tanda: los casos que la regla tiene que decidir, y las trampas
+const R = (vez, respuesta) => ({ vez, respuesta });
+const N = '«El Coordinador de Calidad de cada clínica revisa trimestralmente el cumplimiento de los criterios descritos»';
+const C1 = '«Las auditorías internas las realiza siempre personal ajeno al área auditada»';
+const C2 = '«participa en la auditoría como interlocutor, pero no como auditor de su propia área»';
+const PRUEBAS = [
+  ['(a) el quinto por la 1', R(1, `PREGUNTA 1 · EL DATO\nSí.\nTexto 1: ${N}\nTexto 2: ${C1}\n\nPREGUNTA 2 · EL CUMPLIMIENTO\nSí, se pueden cumplir.`), { quinto: true, porPregunta: 'la 1', cubo1: [], cubo2: [] }],
+  ['(a) con la otra frase de CLI-12 y la cabecera en negrita', R(2, `**Pregunta 1:** Sí\n${N} / ${C2}\n**Pregunta 2:** Sí.`), { quinto: true, porPregunta: 'la 1', cubo1: [], cubo2: [] }],
+  ['(b) el quinto por la 2 (hace fallar P-P3-2)', R(3, `PREGUNTA 1\nNo.\nPREGUNTA 2\nNo. ${N} ${C1} norma_contra_norma`), { quinto: true, porPregunta: 'la 2', cubo1: [], cubo2: [] }],
+  ['(a) y (b): el quinto por las dos', R(4, `PREGUNTA 1\nSí. ${N} ${C1}\nPREGUNTA 2\nNo. ${N} ${C2} norma_contra_norma`), { quinto: true, porPregunta: 'las dos', cubo1: [], cubo2: [] }],
+  ['(c) no salió: sin hallazgo en ninguna', R(5, 'PREGUNTA 1\nNo.\nPREGUNTA 2\nSí.'), { quinto: false, cubo1: [], cubo2: [] }],
+  ['TRAMPA: las anclas colgando de un «no» son (c)', R(6, `PREGUNTA 1\nNo, ${N} y ${C1} no hablan del mismo dato.\nPREGUNTA 2\nSí.`), { quinto: false, cubo1: [], cubo2: [] }],
+  ['TRAMPA: el «no» de «no como auditor» dentro de una cita, en la segunda línea', R(7, `PREGUNTA 1\nSí.\n${N}\n${C2}\nPREGUNTA 2\nSí.`), { quinto: true, porPregunta: 'la 1', cubo1: [], cubo2: [] }],
+  ['ilegible: «sí» y «no» en la misma primera frase', R(8, 'PREGUNTA 1\nNo es exactamente el mismo dato, pero sí hay diferencia.\nPREGUNTA 2\nSí.'), { quinto: null, cubo1: ['pregunta 1: veredicto sin decidir'], cubo2: [] }],
+  ['ilegible: una sola de las dos anclas', R(9, `PREGUNTA 1\nSí. ${N} «El sistema de calidad se apoya en un calendario anual»\nPREGUNTA 2\nSí.`), { quinto: null, cubo1: ['pregunta 1: hallazgo con una sola de las dos anclas'], cubo2: [] }],
+  ['ilegible: un ancla fuera de comillas', R(10, `PREGUNTA 1\nSí.\nNOR-11 dice que el Coordinador revisa trimestralmente el cumplimiento; CLI-12: ${C1}\nPREGUNTA 2\nSí.`), { quinto: null, cubo1: ['pregunta 1: hallazgo con un ancla fuera de comillas'], cubo2: [] }],
+  ['ilegible: otro hallazgo, sin las anclas', R(11, 'PREGUNTA 1\nSí. «Se distinguen auditorías de proceso» «contenedor de los grupos III o IV»\nPREGUNTA 2\nSí.'), { quinto: null, cubo1: ['pregunta 1: hallazgo sin las anclas del quinto'], cubo2: [] }],
+  ['ilegible en las dos: sin las dos secciones', R(12, `Sí, hay contradicción: ${N} ${C1}`), { quinto: null, cubo1: ['sin las dos secciones'], cubo2: ['sin las dos secciones'] }],
+  ['sin respuesta (no llega al resumen: es una fallida)', { vez: 13, error: 'HTTP 529' }, { quinto: null, cubo1: ['sin respuesta'], cubo2: ['sin respuesta'] }],
+  ['EL TOPE CORREGIDO: (a) con la 2 sin decidir es LEGIBLE en la columna 1, y va sólo a la lista de la 2', R(14, `PREGUNTA 1\nSí. ${N} ${C1}\nPREGUNTA 2\nDepende de cómo se lea.`), { quinto: true, porPregunta: 'sin decidir', cubo1: [], cubo2: ['pregunta 2: veredicto sin decidir'] }],
+  ['la forma numerada, si no hay cabeceras', R(15, `1. Sí. ${N} ${C1}\n2. Sí.`), { quinto: true, porPregunta: 'la 1', cubo1: [], cubo2: [] }],
+  ['«si» sin tilde cuenta como «sí»', R(16, `PREGUNTA 1\nSi.\n${N} ${C1}\nPREGUNTA 2\nSi.`), { quinto: true, porPregunta: 'la 1', cubo1: [], cubo2: [] }],
+  ['«No obstante, sí»: ilegible', R(17, 'PREGUNTA 1\nNo obstante, sí.\nPREGUNTA 2\nSí.'), { quinto: null, cubo1: ['pregunta 1: veredicto sin decidir'], cubo2: [] }],
+  ['TRAMPA: «Si» condicional no es un «sí»; con la 1 en «no», la columna 1 es ilegible', R(18, 'PREGUNTA 1\nNo.\nPREGUNTA 2\nSi se hace lo que una permite, la otra se cumple igual.'), { quinto: null, cubo1: ['pregunta 2: veredicto sin decidir'], cubo2: ['pregunta 2: veredicto sin decidir'] }],
+  ['TRAMPA: el modelo repite la pregunta antes de contestar', R(19, `PREGUNTA 1 · EL DATO\n¿Dicen los dos textos cosas DISTINTAS sobre el MISMO dato?\nSí.\n${N} ${C1}\nPREGUNTA 2 · EL CUMPLIMIENTO\n¿SE PUEDEN CUMPLIR LAS DOS A LA VEZ?\nSí.`), { quinto: true, porPregunta: 'la 1', cubo1: [], cubo2: [] }],
+  ['EL SEGURO DE POLARIDAD: la 1 en «no» y la 2 en «Sí, hay hallazgo» → ilegible en las dos', R(20, `PREGUNTA 1\nNo.\nPREGUNTA 2\nSí, hay hallazgo. ${N} ${C1} No se pueden cumplir.`), { quinto: null, cubo1: ['pregunta 2: veredicto sin decidir'], cubo2: ['pregunta 2: veredicto sin decidir'] }],
+];
+
+// LAS PRUEBAS DEL RESUMEN: los prerregistros y los dos topes
+const bien = v => R(v, `PREGUNTA 1\nSí. ${N} ${C1}\nPREGUNTA 2\nSí.`);
+const nada = v => R(v, 'PREGUNTA 1\nNo.\nPREGUNTA 2\nSí.');
+const raro = v => R(v, 'PREGUNTA 1\nNo obstante, sí.\nPREGUNTA 2\nSí.');
+const sinLa2 = v => R(v, `PREGUNTA 1\nSí. ${N} ${C1}\nPREGUNTA 2\nDepende de cómo se lea.`);
+const caida = v => ({ vez: v, error: 'HTTP 529' });
+const veces = (n, f) => Array.from({ length: n }, (_, i) => f(i + 1));
+const COL2 = (a, b, c, d) => `5 · COLUMNA 2, ¿por qué pregunta? (puntúa P-P3-2, no afecta a la 1): la 1: ${a} · la 2: ${b} · las dos: ${c} · sin decidir: ${d}`;
+const ILEG = (desde, n) => veces(n, v => `pulsación 1, vez ${desde + v}: pregunta 1: veredicto sin decidir`).join(' · ');
+const SIN2 = (desde, n) => veces(n, v => `pulsación 1, vez ${desde + v}: pregunta 2: veredicto sin decidir`).join(' · ');
+const PRUEBAS_DEL_RESUMEN = [
+  ['P1: dos fallidas y sin segunda pulsación → no puntuable', [[...veces(19, bien), caida(20), caida(21)]],
+    ['1 · LAS FALLIDAS: 2 — pulsación 1, vez 20: HTTP 529 · pulsación 1, vez 21: HTTP 529', 'NO PUNTUABLE TODAVÍA: 19 respuestas buenas de 21. Se pulsa otra vez y las que faltan salen de la siguiente.']],
+  ['P1: las que faltan, de las PRIMERAS buenas de la pulsación siguiente (la vez 1 cae y se salta)', [[...veces(19, bien), caida(20), caida(21)], [caida(1), nada(2), nada(3), bien(4)]],
+    ['1 · LAS FALLIDAS: 3 — pulsación 1, vez 20: HTTP 529 · pulsación 1, vez 21: HTTP 529 · pulsación 2, vez 1: HTTP 529', '2 · LA COLUMNA 1 ILEGIBLE (cuenta para el tope de 4): 0 de 21', '3 · COLUMNA 1, ¿salió el quinto?: 19 de 21 (se compara con los 9 de 21)', '4 · LA PREGUNTA 2 SIN DECIDIR (su tope, 4): 0 de 21', COL2(19, 0, 0, 0)]],
+  ['P2 y P3: la columna 1 ilegible en 4 → se lee, y lo ilegible va antes del número', [[...veces(17, bien), ...veces(4, v => raro(17 + v))]],
+    ['1 · LAS FALLIDAS: 0', `2 · LA COLUMNA 1 ILEGIBLE (cuenta para el tope de 4): 4 de 21 — ${ILEG(17, 4)}`, '3 · COLUMNA 1, ¿salió el quinto?: 17 de 21 (se compara con los 9 de 21)', '4 · LA PREGUNTA 2 SIN DECIDIR (su tope, 4): 0 de 21', COL2(17, 0, 0, 0)]],
+  ['P2: la columna 1 ilegible en 5 → ILEGIBLE, y el número NO se enseña', [[...veces(16, bien), ...veces(5, v => raro(16 + v))]],
+    ['1 · LAS FALLIDAS: 0', `2 · LA COLUMNA 1 ILEGIBLE (cuenta para el tope de 4): 5 de 21 — ${ILEG(16, 5)}`, 'ILEGIBLE POR LA COLUMNA 1: pasa de 4 y la banda A (17 de 21) ya no se puede alcanzar. Se repite la tanda entera, o se aplica el alto si ya es la segunda.']],
+  ['EL TOPE CORREGIDO: 5 con la 2 sin decidir y la 1 en (a) → la columna 1 se lee; P-P3-2, NO PUNTUABLE', [[...veces(16, bien), ...veces(5, v => sinLa2(16 + v))]],
+    ['1 · LAS FALLIDAS: 0', '2 · LA COLUMNA 1 ILEGIBLE (cuenta para el tope de 4): 0 de 21', '3 · COLUMNA 1, ¿salió el quinto?: 21 de 21 (se compara con los 9 de 21)', `4 · LA PREGUNTA 2 SIN DECIDIR (su tope, 4): 5 de 21 — ${SIN2(16, 5)}`, '5 · P-P3-2: NO PUNTUABLE (5 de 21 con la pregunta 2 sin decidir). No afecta a la columna 1 ni a las bandas.']],
+  ['la lista de la 2 en 4 → la columna 2 se puntúa, con las 4 como «sin decidir»', [[...veces(17, bien), ...veces(4, v => sinLa2(17 + v))]],
+    ['1 · LAS FALLIDAS: 0', '2 · LA COLUMNA 1 ILEGIBLE (cuenta para el tope de 4): 0 de 21', '3 · COLUMNA 1, ¿salió el quinto?: 21 de 21 (se compara con los 9 de 21)', `4 · LA PREGUNTA 2 SIN DECIDIR (su tope, 4): 4 de 21 — ${SIN2(17, 4)}`, COL2(17, 0, 0, 4)]],
+];
+
+if (process.argv[2] === '--pruebas') {
+  let mal = 0;
+  for (const [nombre, r, esperado] of PRUEBAS) {
+    const sale = contar(r);
+    const ok = JSON.stringify(sale) === JSON.stringify(esperado);
+    if (!ok) mal++;
+    console.log(`${ok ? 'ok ' : 'MAL'} · ${nombre}${ok ? '' : `\n      sale ${JSON.stringify(sale)}\n      debía ${JSON.stringify(esperado)}`}`);
+  }
+  for (const [nombre, pulsaciones, esperado] of PRUEBAS_DEL_RESUMEN) {
+    const sale = resumen(pulsaciones);
+    const ok = JSON.stringify(sale) === JSON.stringify(esperado);
+    if (!ok) mal++;
+    console.log(`${ok ? 'ok ' : 'MAL'} · ${nombre}${ok ? '' : `\n      sale ${JSON.stringify(sale, null, 1)}\n      debía ${JSON.stringify(esperado, null, 1)}`}`);
+  }
+  // LAS PRUEBAS DEL CASO D, sobre respuestas INVENTADAS (no se ha leído ninguna de las 40 de D): sus anclas cuentan, las del
+  // quinto no, ni el principio del §3.1; el tope es 7 de 42, y las dos pulsaciones se juntan en orden
+  const ND = '«figura que puede recaer en el propio Director Clínico o en otro profesional designado por él»';
+  const CD = '«sus funciones son asumidas temporalmente por el Coordinador de Calidad de otra clínica de la red, nunca por el Director Clínico del propio centro»';
+  const CP = '«separar la responsabilidad de un proceso crítico de seguridad del paciente de la persona que gestiona la agenda»';
+  const dBien = v => R(v, `PREGUNTA 1\nNo.\nPREGUNTA 2\nNo se pueden cumplir. ${ND} ${CD} norma_contra_norma`);
+  const dRaro = v => R(v, 'PREGUNTA 1\nNo obstante, sí.\nPREGUNTA 2\nSí.');
+  const PRUEBAS_DE_D = [
+    ['D por la 2, con sus dos anclas', () => contar(dBien(1), CASOS.D), { quinto: true, porPregunta: 'la 2', cubo1: [], cubo2: [] }],
+    ['las anclas del QUINTO no cuentan como D', () => contar(R(2, `PREGUNTA 1\nSí. ${N} ${C1}\nPREGUNTA 2\nSí.`), CASOS.D), { quinto: null, cubo1: ['pregunta 1: hallazgo sin las anclas de D'], cubo2: [] }],
+    ['y las de D no cuentan como el quinto', () => contar(dBien(3)), { quinto: null, cubo1: ['pregunta 2: hallazgo sin las anclas del quinto'], cubo2: [] }],
+    ['TRAMPA: el principio del §3.1 (la pareja del 36 de 40) NO cuenta como D', () => contar(R(4, `PREGUNTA 1
+No.
+PREGUNTA 2
+No se pueden cumplir. ${ND} ${CP} norma_contra_norma`), CASOS.D), { quinto: null, cubo1: ['pregunta 2: hallazgo con una sola de las dos anclas'], cubo2: [] }],
+    ['D: 7 ilegibles de 42 → se lee', () => resumen([[...veces(21, dBien)], [...veces(14, dBien), ...veces(7, v => dRaro(14 + v))]], CASOS.D).slice(2, 3),
+      ['3 · COLUMNA 1, ¿salió D?: 35 de 42 (se compara con los 12 de 21 del quinto)']],
+    ['D: 8 ilegibles de 42 → ILEGIBLE, sin número', () => resumen([[...veces(21, dBien)], [...veces(13, dBien), ...veces(8, v => dRaro(13 + v))]], CASOS.D).slice(2),
+      ['ILEGIBLE POR LA COLUMNA 1: pasa de 7 y los 35 de 42 ya no se pueden alcanzar. El número no se enseña.']],
+    ['D: con UNA pulsación de 21 no se puntúa', () => resumen([[...veces(21, dBien)]], CASOS.D),
+      ['1 · LAS FALLIDAS: 0', 'NO PUNTUABLE TODAVÍA: 21 respuestas buenas de 42. Se pulsa otra vez y las que faltan salen de la siguiente.']],
+    ['D: las dos pulsaciones se juntan en orden, y una fallida se repone con la primera buena de la tercera', () => resumen([[...veces(20, dBien), caida(21)], [...veces(21, v => dRaro(v))], [nada(1), bien(2)]], CASOS.D).slice(0, 2),
+      ['1 · LAS FALLIDAS: 1 — pulsación 1, vez 21: HTTP 529', `2 · LA COLUMNA 1 ILEGIBLE (cuenta para el tope de 7): 21 de 42 — ${veces(21, v => `pulsación 2, vez ${v}: pregunta 1: veredicto sin decidir`).join(' · ')}`]],
+  ];
+  for (const [nombre, f, esperado] of PRUEBAS_DE_D) {
+    const sale = f();
+    const ok = JSON.stringify(sale) === JSON.stringify(esperado);
+    if (!ok) mal++;
+    console.log(`${ok ? 'ok ' : 'MAL'} · ${nombre}${ok ? '' : `\n      sale ${JSON.stringify(sale)}\n      debía ${JSON.stringify(esperado)}`}`);
+  }
+  // LAS PRUEBAS DE FORMATO sobre las 21 respuestas de la PRIMERA TANDA (ILEGIBLE, 04/11), condición 1 del arquitecto:
+  // PARSEAR SÍ, CONTAR NO. Sólo se comprueba SI la regla encuentra las dos secciones y SI decide un veredicto en cada
+  // pregunta, nunca CUÁL, ni las anclas, ni el quinto; y no se imprime nada de eso. Lo esperado, escrito por formato antes de
+  // pasar la regla: las 21 con sus dos secciones y la pregunta 1 decidida; la 2 sin decidir sólo en la 3 y la 9 («Sí, hay
+  // hallazgo»: la polaridad al revés, al cubo a propósito), la 11 («sin hallazgo independiente») y la 13 (el veredicto, al
+  // final y detrás de las viñetas).
+  const vieja = JSON.parse(readFileSync(new URL('./tanda_quinto_1.json', import.meta.url), 'utf8')).respuestas;
+  const sinDecidirLa2 = [3, 9, 11, 13];
+  let malFormato = 0;
+  for (const r of vieja) {
+    const s = secciones(r.respuesta);
+    const esperado = { secciones: true, decideLa1: true, decideLa2: !sinDecidirLa2.includes(r.vez) };
+    const sale = { secciones: !!s, decideLa1: !!s && veredicto(s.p1, 1) !== null, decideLa2: !!s && veredicto(s.p2, 2) !== null };
+    const ok = JSON.stringify(sale) === JSON.stringify(esperado);
+    if (!ok) { mal++; malFormato++; }
+    if (!ok) console.log(`MAL · formato de la vez ${r.vez}: sale ${JSON.stringify(sale)}, se esperaba ${JSON.stringify(esperado)}`);
+  }
+  console.log(`formato de la primera tanda: ${vieja.length - malFormato} de ${vieja.length} como se esperaba`);
+  const total = PRUEBAS.length + PRUEBAS_DEL_RESUMEN.length + PRUEBAS_DE_D.length + vieja.length;
+  console.log(`${total - mal} de ${total}`);
+  process.exit(mal ? 1 : 0);
+} else if (process.argv[2]) {
+  // una o varias pulsaciones, en orden: node contar_quinto.mjs pulsacion1.json [pulsacion2.json …]
+  const pulsaciones = process.argv.slice(2).map(f => JSON.parse(readFileSync(f, 'utf8')).respuestas);
+  // el caso, por la variable CASO (quinto, por defecto, o D); uno que no exista se niega en vez de contar con el del quinto
+  const caso = CASOS[process.env.CASO ?? 'quinto'];
+  if (!caso) { console.log(`NO SE CUENTA: el caso «${process.env.CASO}» no existe (hay: ${Object.keys(CASOS).join(', ')})`); process.exit(1); }
+  console.log(`caso: ${caso.nombre} · anclas: «${caso.anclaA}» / ${caso.anclasB.map(a => `«${a}»`).join(' o ')} · n = ${caso.n} · tope = ${caso.tope}`);
+  console.log(resumen(pulsaciones, caso).join('\n'));
+}
+```
+
+El cálculo de las cifras del punto 6, para que se pueda repetir:
+
+```js
+// Herramienta de un solo uso (04/11): comprueba las cifras del arquitecto para la tanda de D contra los 12 de 21 del quinto.
+// El umbral se busca POR ENCIMA de la proporción del quinto (el bilateral también rechaza por abajo). Fisher exacto, bilateral (suma de las tablas con probabilidad <= la observada) y unilateral (D mayor), con los márgenes fijos.
+const lf = (() => { const t = [0]; for (let i = 1; i <= 200; i++) t[i] = t[i - 1] + Math.log(i); return n => t[n]; })();
+const hip = (a, r1, c1, n) => Math.exp(lf(r1) + lf(n - r1) + lf(c1) + lf(n - c1) - lf(n) - lf(a) - lf(r1 - a) - lf(c1 - a) - lf(n - r1 - c1 + a));
+function fisher(a, n1, b, n2) { // a de n1 (D) frente a b de n2 (quinto)
+  const c1 = a + b, n = n1 + n2, lo = Math.max(0, c1 - n2), hi = Math.min(n1, c1), p0 = hip(a, n1, c1, n);
+  let dos = 0, una = 0;
+  for (let x = lo; x <= hi; x++) { const p = hip(x, n1, c1, n); if (p <= p0 * (1 + 1e-7)) dos += p; if (x >= a) una += p; }
+  return { dos, una };
+}
+const binom = (k, n, p) => Math.exp(lf(n) - lf(k) - lf(n - k) + k * Math.log(p) + (n - k) * Math.log(1 - p));
+for (const n of [21, 42]) for (const lado of ['dos', 'una']) {
+  let k0 = null; for (let k = Math.ceil(n * 12 / 21); k <= n; k++) { if (fisher(k, n, 12, 21)[lado] < 0.05) { k0 = k; break; } }
+  // ¿es un umbral (todos los k >= k0 significativos)?
+  let todos = true; for (let k = k0; k <= n; k++) if (fisher(k, n, 12, 21)[lado] >= 0.05) todos = false;
+  const pot = p => { let s = 0; for (let k = k0; k <= n; k++) s += binom(k, n, p); return s; };
+  console.log(`n=${n} · ${lado === 'dos' ? 'bilateral' : 'unilateral'}: afirmable desde ${k0}/${n} (umbral monótono: ${todos}) · p en el umbral ${fisher(k0, n, 12, 21)[lado].toFixed(4)} y uno por debajo ${fisher(k0 - 1, n, 12, 21)[lado].toFixed(4)} · potencia si D=90 %: ${(100 * pot(0.9)).toFixed(1)} % · si D=76 %: ${(100 * pot(0.76)).toFixed(1)} % · error si D=12/21: ${(100 * pot(12 / 21)).toFixed(3)} %`);
+}
+console.log('control: 17 de 21 frente a 9 de 21, bilateral', fisher(17, 21, 9, 21).dos.toFixed(4), '(archivado 0,0247)');
+console.log('control: 12 de 21 frente a 9 de 21, bilateral', fisher(12, 21, 9, 21).dos.toFixed(3), '(archivado 0,538)');
+// el 18,4 % del arquitecto para «D al 76 %»: ¿con 0,76 o con 16/21 = 0,7619?
+{ let s = 0; for (let k = 35; k <= 42; k++) s += binom(k, 42, 16 / 21); console.log('n=42 bilateral, D = 16/21:', (100 * s).toFixed(1), '%'); }
 ```

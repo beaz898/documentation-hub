@@ -1365,7 +1365,9 @@ delante.
 tasas plausibles y se escribe. **Un umbral sin esa cuenta no es una puerta: es una moneda al aire.**
 **El caso.** La puerta de E3 era «6 de 7 o más». Con una tasa real del 90 %, suspende en falso el 15 % de las veces
 (binomial, n = 7: P(X ≤ 5) = 0,1497); con el 85 %, el 28 %; con el 80 %, el 42 %. La tercera tanda dio 4 de 7 y se decidió
-«no se construye». Por la mañana, el mismo texto dio 20 de 20 y luego 16 de 20, 36 de 40 en total. **El veredicto quedó
+«no se construye». Por la mañana, el mismo texto dio 20 de 20 y luego 16 de 20, 36 de 40 en total *(04/11: pareja §2.4 ↔
+§3.1, no la D sembrada, y contado con un ancla sola; ver `Predicciones_34_Conflicto_Normativo.md`, «EL 90 % NO ES LA D
+SEMBRADA»)*. **El veredicto quedó
 anulado** porque la regla de decisión era inválida. La cuenta se podía haber hecho el 28/10, antes de fijar el umbral.
 **Y SU HERMANA, que es la misma cuenta mirada desde el otro lado**: el número que define un problema también lleva su
 intervalo. El «2 de 7» de D era de siete tiradas, compatible con cualquier tasa entre el 8 % y el 64 %, y se trató como
@@ -1783,6 +1785,8 @@ construir. El 14 % es el producto entero (los 6.000 caracteres de NOR-10, fragme
 verificador), y el 90 % es la herramienta de E3 (dos trozos enteros, texto libre, sin puerta ni verificador). La regla de
 puntuación es la misma, y la condición, distinta. El Fisher demuestra que la pregunta cerrada ENCUENTRA D mucho más de
 lo que el producto la PUBLICA; no que una pasada 2 la publique. Lo cazó Code y el arquitecto lo aceptó.
+*(04/11: «la regla de puntuación es la misma» era falso, y el arquitecto REINTRODUJO este mismo cruce en su semana 0 del
+02/11: una REGRESIÓN, no un error nuevo. Ver `Predicciones_34_Conflicto_Normativo.md`, «EL 90 % NO ES LA D SEMBRADA».)*
 
 ---
 

@@ -264,6 +264,8 @@ a ojo. El procedimiento, el coste y la consulta se plantean ANTES de pedírselo 
     - Que A se cite por §2.1 la separa de D EN LA PASADA 1, no en la 2. El enumerador empareja trozos por su texto, y
       NOR-10·4 lleva dentro la segunda frase de §2.4, que expresa A.
     - **Por eso la medición del 90 % conserva su sentido**: midió la pareja tal como la entregará el enumerador.
+      *(04/11: esa pareja es §2.4 ↔ §3.1, el permiso contra el principio, NO la D sembrada (§2.4 ↔ §3.5), y el 36 de 40 se
+      contó con una regla laxa. Ver `Predicciones_34_Conflicto_Normativo.md`, «EL 90 % NO ES LA D SEMBRADA».)*
     - Lo que cambia es qué significa «A dentro»: no es la A que el producto publica, sino la A que vive en ese trozo.
   - **La línea base del quinto, siguiente y gratis**: 13 pasadas de NOR-11 el 28/10, de 08:33:20 a 08:55:12. **La ventana
     está COMPROBADA contra la lista sin ventana**, archivada en la medida: de 08:30 a 09:00 del 28/10, esperado 13,
@@ -464,6 +466,9 @@ a ojo. El procedimiento, el coste y la consulta se plantean ANTES de pedírselo 
     Fisher (p = 5,58 × 10⁻⁹) demuestra que la pregunta cerrada ENCUENTRA D mucho más de lo que el producto la PUBLICA,
     no que una pasada 2 la publique: el 90 % es un techo. El arquitecto, con su nombre: es la regla que escribió ayer,
     incumplida en el mismo mensaje en que la daba por aprendida; cuarta vez en dos días.
+    *(04/11: y la regla de cuenta TAMPOCO era la misma: el 36 de 40 se contó con un ancla sola y sin veredicto, y los 3 de
+    21 con `SQL_34_06`. Los dos números se citaron por el §3.1; ninguno es la D sembrada, §2.4 ↔ §3.5. Ver
+    `Predicciones_34_Conflicto_Normativo.md`, «EL 90 % NO ES LA D SEMBRADA».)*
   - Medido para un hallazgo, una pareja y un corpus.
 - **LA JUSTIFICACIÓN PARA CONSTRUIR, al lado de la anulación**: hay un hueco grande y medido entre lo que la pregunta
   cerrada encuentra y lo que el producto publica, y la única manera de saber cuánto sobrevive al camino es construirlo

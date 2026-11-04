@@ -631,6 +631,8 @@ organización leída,organización leída: 68bf28c3-8352-4052-8eb4-3a7e31b74b53 
 **1 · NO HACE FALTA HABLAR DEL MODELO, y el arquitecto retira esa hipótesis como explicación principal.** Si la tasa real
 de este caso es el 90 % (hoy, 36 de 40 con A, exactamente el 90 %), **sacar 4 de 7 ocurre el 2,5 % de las veces**: una
 entre cuarenta. El 4 de 7 de anoche es compatible con una tirada desafortunada, sin que cambiara nada fuera.
+*(04/11: «este caso» es la pareja §2.4 ↔ §3.1, el permiso contra el principio, no la D sembrada (§2.4 ↔ §3.5); y el 36 de 40
+se contó con un ancla sola, sin leer el veredicto. Ver `Predicciones_34_Conflicto_Normativo.md`, «EL 90 % NO ES LA D SEMBRADA».)*
 - **Las dos posibilidades, escritas.** La PARSIMONIOSA: la varianza; con siete tiradas no se veía. La NO NECESARIA: que
   algo cambiara fuera, en el modelo que sirve la API.
 - *Comprobado por Code (binomial, n = 7, p = 0,9)*: P(X ≤ 4) = **0,0257**. Cuadra.
@@ -855,6 +857,9 @@ AYER, INCUMPLIDA EN EL MISMO MENSAJE EN QUE LA DABA POR APRENDIDA. Cuarta vez en
 - **Lo que demuestra el Fisher** (3 de 21 frente a 36 de 40, **p = 5,58 × 10⁻⁹**; con 4 de 21, p = 4,60 × 10⁻⁸): la
   pregunta cerrada ENCUENTRA D muchísimo más de lo que el producto la PUBLICA.
 - **Lo que NO demuestra**: que una pasada 2 dentro del producto la publique. **El 90 % es un techo.**
+- *(04/11: «La regla de puntuación es la misma» resultó FALSA: el 36 de 40 se contó con un ancla sola y sin veredicto, y
+  los 3 de 21 con `SQL_34_06`. Los dos números se citaron por el §3.1, y ninguno es la D sembrada, §2.4 ↔ §3.5. Ver
+  `Predicciones_34_Conflicto_Normativo.md`, «EL 90 % NO ES LA D SEMBRADA».)*
 
 **3 · LA ESPECIE: 0 de 3 en la línea base; sin medir.** No «casi no aparece en el producto real»: son tres casos, y frente al
 1 de 2 de la segunda tanda da p = 0,400. Queda como pendiente propio.
@@ -1133,6 +1138,8 @@ siendo «0 de 3», el de D, y no «0 de 66».** Contarlo como 66 habría sido el
   tendrá A delante, que es exactamente la condición en que se midió el 90 %. **La medición conserva su sentido para la
   pasada 2, porque midió la pareja tal como el enumerador la entregará.** Lo que cambia es el sentido de «A dentro»: no es la
   A que el producto publica, es la A que vive en ese trozo.
+  *(04/11: la medición es de §2.4 ↔ §3.1, no de la D sembrada. Ver `Predicciones_34_Conflicto_Normativo.md`, «EL 90 % NO ES
+  LA D SEMBRADA».)*
 - **⚠️ Y UNA CONSECUENCIA NUEVA PARA EL PLAN, que antes no se veía**: si la pasada 2 encuentra A en NOR-10·4 ↔ CLI-12·3, la
   encontrará con la cita de la segunda frase de §2.4, y la pasada 1 la publicó con la de §2.1.
   - Con «desduplicación por posición de cita», tal como está en el plan, **serían dos hallazgos distintos, y el usuario
