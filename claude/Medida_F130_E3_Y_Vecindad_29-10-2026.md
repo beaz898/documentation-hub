@@ -2013,3 +2013,24 @@ siembra **son los de la base**, y la negativa dura los comprobó por su frase.
   `corpus-pruebas/`).
 - **CLI-12·13 trae el encabezado del §6, el 6.1 y el 6.2 enteros, y ACABA EN EL ENCABEZADO «## 6.3. Informe de auditoría», SIN
   SU TEXTO**, que va en el trozo siguiente. Al quinto no le afecta; queda anotado por si otro caso cae en esa frontera.
+
+## CON QUÉ CÓDIGO CORRE EL EXHAUSTIVO: SQL_34_11, LA SALIDA LITERAL (ejecutada por el director, 04/11/2026)
+
+Llegó en un mensaje aparte, sin texto alrededor; Code la sacó del registro de la conversación con un script:
+
+```
+bloque,a,b,c
+organización leída,organización leída: 68bf28c3-8352-4052-8eb4-3a7e31b74b53 · «Mi workspace» · 45 documentos,null,null
+0 · control,"CONTROL POSITIVO · marcador 1, lecturaDeLasParejas: el primer rápido que lo lleva: 26/10 12:45",OK,null
+0 · control,"CONTROL POSITIVO · marcador 2, llamadasAlModelo: el primer rápido que lo lleva: 26/10 12:45",OK,null
+0 · control,"CONTROL POSITIVO · marcador 3, el contador del verificador nuevo: el primer rápido que lo lleva: 02/11 17:54",OK,null
+2 · el total,exhaustivos desde el 20/09: 0 · con código viejo: 0 · posteriores al primer rápido con el contador nuevo: 0,"CASO 3 · ningún exhaustivo posterior al contador nuevo: no concluye nada, hace falta Railway",null
+```
+
+**Comprobado con script** (04/11): los tres controles positivos OK; **cero exhaustivos**; el caso 3.
+- **Los marcadores 1 y 2 tienen el MISMO «desde», el 26/10 a las 12:45**, aunque entraron en el código el 29/09 y el 21/10. Dos
+  códigos de fechas distintas aparecen a la vez en el primer análisis de la organización: **es la purga del 25/10, no un
+  despliegue**. La organización actual no tiene nada antes del 26/10.
+- **El «desde» del marcador 3, el 02/11 a las 17:54, es la primera pasada de la tanda del verificador nuevo en NOR-10**
+  (17:54:03, la lista de `SQL_34_09`, archivada arriba): la consulta encuentra el contador justo donde se sabe que está, y eso
+  es un control positivo independiente del suyo.

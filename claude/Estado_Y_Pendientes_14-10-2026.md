@@ -740,8 +740,9 @@ a ojo. El procedimiento, el coste y la consulta se plantean ANTES de pedírselo 
         aceptado por el arquitecto el 04/11). La purga del 25/10 se llevó lo que hubiera de antes, y desde el 26/10 no hay
         ningún exhaustivo. No hay nada que reparar hacia atrás porque no hay nada guardado de ese tiempo, no porque se sepa
         que el exhaustivo funcionaba.
-      - ⚠️ **La salida de `SQL_34_11` no ha llegado a Code**: el caso 3 y la fecha del 26/10 son la lectura del arquitecto, sin
-        comprobar hasta que llegue.
+      - ~~**La salida de `SQL_34_11` no ha llegado a Code**~~ ✅ **Llegó el 04/11 y está comprobada** (literal en la medida): caso 3,
+        cero exhaustivos; los marcadores 1 y 2 con el MISMO «desde», el 26/10 a las 12:45, que confirma que es la purga; y el 3,
+        el 02/11 a las 17:54, la primera pasada de la tanda de NOR-10.
       - **LA VENTANA DE VERDAD NO SON 44 DÍAS (Code)**: `SQL_34_11` lee sólo la organización ACTUAL, y la del piloto se purgó el
         25/10, con sus análisis y sus trabajos del exhaustivo (arriba, «Lo que borra `purgeOrganization`»); la de hoy es nueva
         desde el 26/10. Así que «cero exhaustivos desde el 20/09» son, en realidad, **cero exhaustivos desde el 26/10, unos 9

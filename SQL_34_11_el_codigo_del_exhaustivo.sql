@@ -1,8 +1,8 @@
 -- ============================================================================
 -- SQL_34_11 · ¿CON QUÉ CÓDIGO CORRE EL EXHAUSTIVO? LOS MARCADORES DE CADA ANÁLISIS EXHAUSTIVO FRENTE A LA FECHA EN QUE
 -- CADA MARCADOR YA ESTABA EN LOS RÁPIDOS — SÓLO LECTURA (03/11/2026)
--- ⏳ PENDIENTE DE EJECUTAR. Sólo SELECT: no escribe, no borra, no cambia nada. La ejecuta el director; Code no
--- ejecuta consultas.
+-- ✅ EJECUTADO por el director el 04/11/2026: caso 3, cero exhaustivos en la organización actual (que existe desde el 26/10).
+-- Salida literal en claude/Medida_F130_E3_Y_Vecindad_29-10-2026.md. Sólo SELECT: no escribe, no borra, no cambia nada.
 --
 -- PARA QUÉ (arquitecto, 03/11): el typecheck del worker está en rojo desde el 25/09 (2b6d7002), y desde entonces 68
 -- commits han tocado su grafo de tipos, entre ellos el verificador nuevo (f1d94cbc, 02/11). Si el despliegue del worker
