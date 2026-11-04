@@ -3203,3 +3203,51 @@ etiqueta aparece. La 2 es PERMISIVA A FAVOR: al mirar el texto entero, cuenta et
 
 **EL ORDEN, sin cambios**: cuando el director suba y Vercel despliegue, el ensayo de D; Code comprueba las dos frases guardadas y
 se las pasa al arquitecto; el arquitecto confirma la pareja; y las dos tandas de 21.
+
+## ⚠️ LA TANDA DE D, PARADA ANTES DE PULSAR: LA DECIMOCUARTA Y CUATRO DATOS (arquitecto y Code, 04/11/2026)
+
+**NADA LANZADO; EL DIRECTOR NO PULSA** (arquitecto) hasta que él reescriba qué mide la tanda, o la cambie.
+
+**LA DECIMOCUARTA, una corrección de su propia corrección** (arquitecto, con su nombre): dijo «el 90 % no es D», y es más fuerte
+de lo que Code encontró. El §3.5 CITA al §3.1 («precisamente para mantener la separación de funciones descrita en el apartado
+3.1»), y la consulta del producto no exige mitad de CLI-12 (dato 2, abajo). Así que §2.4 ↔ §3.1 y §2.4 ↔ §3.5 pueden ser la misma
+contradicción por dos frases. **Lo cierto es sólo: condiciones de herramienta y recuento laxo, y no es la pareja sembrada.** El
+título «EL 90 % NO ES LA D SEMBRADA», de arriba, se lee con esta corrección.
+
+**DATO 1 · CÓMO DEFINE D EL REGISTRO DE SIEMBRA** (`corpus-pruebas/SIEMBRA_corpus_ampliado.md`, añadida el 27/08/2026, `d51a68b4`):
+- La tabla (líneas 97-100) da DOS versiones: NOR-10 **2.4** («puede recaer en el propio Director Clínico») y CLI-12 **3.5**
+  («nunca por el Director Clínico del propio centro, precisamente para mantener la separación de funciones»). **El §3.1 no
+  figura como versión.**
+- El §3.1 aparece sólo como el sitio al que remite el pasaje del §3.5 («descrita en el apartado 3.1», línea 117) y en la tabla
+  de localización como «siembra A» (línea 133). La naturaleza del conflicto (120-122) habla del §3.5: «CLI-12 lo prohíbe
+  expresamente y da el motivo». **Refuerzo nombrado: el §3.4** (124-127), no el §3.1.
+
+**DATO 2 · SQL_34_06 NO EXIGE NINGUNA MITAD DE CLI-12 PARA CONTAR D** (corrige lo que dijo Code: «acepta cualquiera de las dos
+mitades» era impreciso). Su regla (cabecera, líneas 19-31): hay D si se PUBLICÓ una contradicción con CLI-12 cuya cita del lado
+de NOR-10 toca la PRIMERA frase del §2.4, el permiso (línea 100). Las líneas 138-142 no filtran: sólo ETIQUETAN qué citó el lado
+de CLI-12 —«el principio de §3.1», «§3.5», «§3.1, fuera del principio» o «fuera de §3.1 y §3.5»—, y las cuatro cuentan. **Así que,
+a efectos de medir el producto, §2.4 ↔ §3.1 ES una ruta de D, y cualquier otra cita de CLI-12 también.**
+
+**DATO 3 · LA HIPÓTESIS DE A** («la presencia de A en la pareja impide que salga D»):
+- **Condición 1** (NOR-10·4 ↔ CLI-12·3 enteros, con A dentro; 30/10): **20 de 20** a las 08:03 UTC y **16 de 20** en la
+  repetición, 08:17 UTC. **Condición 2** (las dos frases solas, el permiso y el principio del §3.1, sin A; 08:04 UTC): **20 de 20**
+  por la regla escrita, **16 de 20** con la comprobación literal. `Medida_F130_E3_Y_Vecindad_29-10-2026.md:490-511`.
+- **Lo que se concluyó, literal** (arquitecto, 30/10; `Medida…:557-560`, y en `Estado…:1051` y aquí, línea 290): «LAS DOS
+  CONDICIONES NO SE SEPARAN (20 frente a 20, p = 1; con la cuenta literal de la condición 2, 20 frente a 16, p = 0,106). LA
+  HIPÓTESIS DE QUE LA PRESENCIA DE A IMPIDE QUE SALGA D QUEDA REFUTADA, no "no demostrada": era la hipótesis del arquitecto y
+  la medición la tumba.»
+- **Su estado: CERRADA como refutada, y nadie la reabrió** (no hay otra mención en el repositorio). ⚠️ **Pero con dos límites que
+  la cierran menos de lo que dice**: (a) las dos condiciones se contaron con la regla LAXA (el ancla de NOR-10 en la pregunta 2,
+  sin veredicto ni cita de CLI-12); (b) las dos son de la pareja del §3.1. **Sobre la pareja del §3.5 no se ha medido nunca.**
+
+**DATO 4 · A EN LA PAREJA NUEVA: SÍ, SÓLO MEDIO PRESENTE** (Code, sobre el texto guardado que devolvió el ensayo):
+- **NOR-10·4 lleva una mitad**: la segunda frase del §2.4, «no sustituye al Director Clínico en la responsabilidad última
+  descrita en el apartado 2.1» (`SQL_34_06` la cuenta como A, línea 23).
+- **CLI-12·6 no lleva la otra**: ni «responsable último», ni «responsabilidad última», ni ninguna forma de «responsab». La frase
+  de A en CLI-12 es la del §3.1 (registro, línea 62), y está en CLI-12·3. CLI-12·6 sólo REMITE al §3.1, sin su texto.
+- **Así que la contradicción A, tal como está sembrada, no se puede citar en esta pareja.** Lo que el modelo haga con la media
+  A que queda no está medido.
+- **La consecuencia** (es lo que el arquitecto pregunta): la tanda no es la condición 1 (las dos mitades de A dentro) ni la
+  condición 2 (sólo las dos frases de D). **Son los dos trozos enteros con A a medias.** Si la pregunta es «¿tapa A a D?», esta
+  pareja no la contesta. La comparación con el quinto tampoco está igualada en eso: qué otros conflictos llevan NOR-11·13 y
+  CLI-12·13 no se ha medido.
