@@ -2725,3 +2725,70 @@ console.log('control: 12 de 21 frente a 9 de 21, bilateral', fisher(12, 21, 9, 2
 // el 18,4 % del arquitecto para «D al 76 %»: ¿con 0,76 o con 16/21 = 0,7619?
 { let s = 0; for (let k = 35; k <= 42; k++) s += binom(k, 42, 16 / 21); console.log('n=42 bilateral, D = 16/21:', (100 * s).toFixed(1), '%'); }
 ```
+
+## LAS PREDICCIONES DE D, LA D SEMBRADA (arquitecto, escritas el 04/11/2026 a las 19:05, ANTES de lanzar)
+
+**La huella `866ab31ef2dbd794`, APROBADA** (arquitecto, 04/11). Y la precisión del 17,7 %, anotada por él: había usado 16/21 = 76,19 %.
+**En el proyecto de Claude (no en el repositorio; Code no lo ha visto)**, el arquitecto dice haber marcado la frase de la semana 0
+con la redacción de arriba, y haber añadido: la definición del E5 en el paso 5, la nota de que la D sembrada tiene 0 de 21 en esa
+línea base, el afilado del glosario con el §6.1, y una sección 7 con las trece retiradas de estos dos días y la regla que sale de ellas.
+
+Literal, como lo pegó el director (a Code primero):
+
+> CONDICIONES: 42 pasadas en dos pulsaciones de 21, pareja NOR-10·4 (§2.4) ↔ CLI-12·6 (§3.5), los dos trozos enteros, prompt sin tocar, script de huella 866ab31ef2dbd794, tope del cubo 7.
+> REFERENCIA: el quinto, 12 de 21, congelado. Mismas condiciones. NO la base del producto (0 de 21): eso es publicado por el pipeline entero y repetiría el cruce.
+>
+> LAS BANDAS, derivadas de Fisher contra 12/21 y no elegidas:
+>   ALTA  · D >= 35 de 42 (>=83,3 %) · afirmable que D es MÁS FÁCIL que el quinto
+>   MUDA  · D de 12 a 34             · no se distingue del quinto
+>   BAJA  · D <= 11 de 42 (<=26,2 %) · afirmable que D es MÁS DIFÍCIL
+>
+>   banda      D igual al quinto    D al 90 %    D al 85,7 %    D al 70 %
+>   ALTA              0,0 %           94,6 %         75,5 %        3,8 %
+>   MUDA            100,0 %            5,4 %         24,5 %       96,2 %
+>   BAJA              0,0 %            0,0 %          0,0 %        0,0 %
+>
+> P-D-1 · EL NÚMERO: banda ALTA, 35 o más de 42.
+> Tasa de error 0,0 % · potencia 94,6 % si D está al 90 %, 75,5 % si está al 85,7 %.
+> EL MECANISMO, y es DISTINTO del que me falló con el quinto: el escape de D es más estrecho. El §3.5 dice «nunca por el Director Clínico del propio centro» —categórico, nombrando a la persona— y da su razón, «para mantener la separación de funciones». Su único escape es leer el §3.5 como si hablara sólo de sustituciones temporales, y eso exige ignorar el principio que él mismo enuncia. El escape del quinto es mucho más ancho: los textos NUNCA dicen que una revisión sea una auditoría, y el §6.1 sólo lo decide a medias.
+> Y lo digo con el antecedente delante: predije la banda alta para el quinto y FALLÉ. Vuelvo a predecirla para D por otro motivo. SI FALLO DOS VECES, ESO ES EL HALLAZGO, y va escrito abajo.
+>
+> P-D-2 · LA PREGUNTA: el hallazgo sale predominantemente por la PREGUNTA 2. D es un caso de cumplimiento —una permisión contra un principio—, así que la 2 es su ruta. Si sale predominantemente por la 1, la taxonomía de la casa está mal.
+> LIMITACIÓN: no hay contrapartida medida en el quinto, porque su columna 2 salió NO PUNTUABLE. Esta predicción se puntúa sola.
+>
+> P-D-3 · LA ETIQUETA: cuando D salga, lleva `norma_contra_norma`. Es lo correcto: D ES un conflicto normativo, al contrario que el quinto, donde no poner etiqueta era el acierto.
+>
+> P-D-4 · EL CUBO: cabe en 7 de 42. Motivo: la regla endurecida ya cubre los formatos que rompieron la primera tanda del quinto.
+>
+> LA LECTURA SI P-D-1 FALLA, prerregistrada para que nadie la reinterprete después:
+> «Si D cae en la banda MUDA, entonces D y el quinto NO SE DISTINGUEN en condiciones idénticas, con una potencia del 94,6 % para haber visto la diferencia si D estuviera al 90 %. Eso significa: (1) la afirmación "son dos fronteras y no una clase" de la semana 0 §3 hay que reescribirla; (2) LA PASADA 2 NO TIENE BENEFICIARIO MEDIDO, porque sus dos únicos candidatos serían la misma enfermedad y la decisión del 01/11 los cubre a los dos; (3) y la conclusión "está en preguntar" se queda sin apoyo para D, no sólo sin demostrar.»
+>
+> Y LA LIMITACIÓN DEL DISEÑO, también prerregistrada: con 42 pasadas, una diferencia MODERADA (D al 76 %) sólo se detectaría el 17,7 % de las veces. Esta prueba contesta «¿es D MUCHO más fácil?» y no «¿es algo más fácil?». LA ZONA MUDA CAE DEL LADO SEGURO: si no se ve la diferencia, no se construye.
+
+**COMPROBADO POR CODE, con script, antes de archivar** (Fisher exacto bilateral contra 12 de 21; el cálculo, abajo):
+- **Las tres bandas, exactas**: significativo de 35 a 42 y de 0 a 11 (p = 0,0258 en 11; en 12, p = 0,0525, ya no). La MUDA es de 12 a 34.
+- **La tabla, exacta tras redondear**, con dos ceros que no lo son: con D igual al quinto, la ALTA sale el **0,030 %** (la tasa de
+  error de P-D-1; «0,0 %» es el redondeo) y la BAJA el **0,0047 %**. El resto: al 90 %, 94,608 / 5,392 / 0,0000; al 85,7 % (18/21),
+  75,528 / 24,472 / 0,0000; al 70 %, 3,784 / 96,216 / 0,0000. Y con D al 76 % exacto, la ALTA sale el 17,659 %.
+- **Lo que la tabla no lleva, y no hace falta**: con D por debajo del quinto, la BAJA tendría potencia; ninguna de las cuatro
+  columnas mira ahí, y ninguna predicción tampoco.
+- **Para puntuar**: el número, la columna 2 y el cubo los da el script de huella `866ab31ef2dbd794`. La ETIQUETA (P-D-3) no la
+  cuenta el script: se cuenta aparte, sobre las respuestas que el script dé como D, y con la regla escrita antes de leerlas.
+
+**EL ORDEN** (arquitecto): primero el ENSAYO de D (`d?ensayo=1`, sin modelo); el director pega la salida a Code, y Code comprueba las
+dos frases guardadas antes de pasársela al arquitecto; después, las dos tandas de 21.
+
+```js
+// Herramienta de un solo uso (04/11): comprueba la tabla de bandas de las predicciones de D (Fisher bilateral contra 12 de 21).
+import { readFileSync } from 'node:fs';
+const src = readFileSync(new URL('./potencia_d.mjs', import.meta.url), 'utf8').split('\nfor (const n')[0];
+const { fisher, binom } = await import('data:text/javascript,' + encodeURIComponent(src + '\nexport { fisher, binom };'));
+const n = 42, sig = k => fisher(k, n, 12, 21).dos < 0.05;
+const alta = []; const baja = [];
+for (let k = 0; k <= n; k++) if (sig(k)) (k > n * 12 / 21 ? alta : baja).push(k);
+console.log('ALTA:', alta[0], '..', alta.at(-1), '· BAJA:', baja[0], '..', baja.at(-1), '· p en 11:', fisher(11, n, 12, 21).dos.toFixed(4), '· p en 12:', fisher(12, n, 12, 21).dos.toFixed(4));
+const P = (p, ks) => ks.reduce((s, k) => s + binom(k, n, p), 0);
+const muda = Array.from({ length: n + 1 }, (_, k) => k).filter(k => !sig(k));
+for (const [nom, p] of [['igual al quinto (12/21)', 12 / 21], ['90 %', 0.9], ['85,7 % (18/21)', 18 / 21], ['70 %', 0.7], ['76 % exacto', 0.76]])
+  console.log(`D ${nom}: ALTA ${(100 * P(p, alta)).toFixed(3)} % · MUDA ${(100 * P(p, muda)).toFixed(3)} % · BAJA ${(100 * P(p, baja)).toFixed(4)} %`);
+```
