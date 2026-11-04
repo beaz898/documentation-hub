@@ -1910,3 +1910,48 @@ dice la tanda, con el límite de la enmienda 2 delante**: con la pareja entregad
 ni el verificador (que sólo podrían bajar el número), el juez saca el quinto en 12 a 16 de 21. Eso no se distingue de los 9 de
 21 de la pasada abierta: la comparación iba sesgada a favor de la pregunta cerrada, y aun así no gana de forma convincente.
 **La lectura de lo que eso significa para el plan es del arquitecto.**
+
+## ⚠️ EL «CERCA DEL 90 %» DE D Y EL 57,1 % DEL QUINTO NO SON COMPARABLES TAL COMO ESTÁN (Code, 04/11/2026; hallazgo)
+
+**COMPARARLOS MEZCLARÍA «EL JUEZ LO VE» CON «LA REGLA LO RECONOCE»** (Code; el arquitecto pide archivarla así).
+
+**Las cuatro preguntas del arquitecto, con su cita y su fecha:**
+1. **De dónde sale el «cerca del 90 %»**: de la CONDICIÓN 1, los trozos enteros con A dentro, NO de la variante limpia. **36 de
+   40, el 90,0 % exacto**, en dos tandas del 30/10 sobre NOR-10·4 ↔ CLI-12·3: **20 de 20** a las 08:03:13 UTC
+   (`claude/Medida_F130_Veinte_Condicion_1_30-10-2026.json`) y **16 de 20** en la repetición, a las 08:17:19 UTC
+   (`claude/Medida_F130_Veinte_Condicion_1_Repetida_30-10-2026.json`). Escrito en `claude/Medida_F130_E3_Y_Vecindad_29-10-2026.md`,
+   líneas 632 y 853. La variante limpia (las dos frases sin A) fue la condición 2, a las 08:04:58 UTC, y no entra.
+2. **La ruta**: otro fichero (`pregunta/route.ts` entonces, `quinto/route.ts` hoy) y **la misma función, `preguntarAlJuez`**, con la
+   configuración del juez, sin puerta de citas ni verificador, y el mismo modelo (`claude-haiku-5-5`, en los dos JSON).
+3. **El prompt**: la misma plantilla (su último cambio, `b3b4e9da`, el 29/10 a las 19:16, antes de las dos tandas) y el mismo
+   criterio del cumplimiento, que sale de `lib/analysis/excepcion-de-las-reglas.ts`, sin cambios desde `5c2d50c9` (27/10). Cambian
+   sólo los dos textos, porque la pareja es otra (4.126 tokens de entrada entonces, 4.211 hoy).
+4. **Trozos enteros**, como hoy.
+
+**LO QUE LOS SEPARA ES LA REGLA DE CUENTA, NO LA CONDICIÓN**:
+- **el 36 de 40 de D** se contó buscando UNA sola ancla, la del lado de NOR-10 («puede recaer en el propio Director Clínico»), y
+  SÓLO en la pregunta 2; sin leer el veredicto (una «Sí, hay hallazgo» con la polaridad al revés contaba igual: la vuelta 11 de
+  la condición 1) y sin exigir la cita de CLI-12; lo comprobó Code leyendo el JSON, sin script congelado y sin cubo;
+- **el 12 de 21 del quinto** se contó con el script congelado: un veredicto leído, por la 1 O por la 2, y las DOS anclas entre
+  comillas, una de cada lado, con 4 ilegibles fuera del número.
+Y D es un caso del cumplimiento y el quinto uno del dato: cada uno puede salir por su propia pregunta.
+
+**LO QUE EL ARQUITECTO RETIRA, con su nombre**: «D es alcance y el quinto es lectura, dos enfermedades distintas». Lo apoyó
+comparando un recuento laxo con uno estricto: **el noveno error de la misma familia en tres días, y éste iba camino del plan.**
+**Y SU CORRECCIÓN DE PASO**: citó el comentario de `PAREJAS_DE_E3` como «dos parejas, siete veces», y era una configuración
+superada (una sola pareja desde el 29/10, y 20 veces desde el 30/10). Citó una versión vieja como si fuera la vigente.
+
+**LO QUE DECIDE: SE RECUENTA D** (cuesta 0 de API). Porque el «cerca del 90 %» no sostiene sólo la comparación de hoy: sostiene la
+frase de la semana 0 de que «el fallo está en preguntar», cuyo único apoyo medido del otro lado es ese número. **Cómo:**
+1. **El mismo script, no uno nuevo**: las anclas pasan a ser un parámetro, y la comparabilidad es ESTRUCTURAL. Huella nueva,
+   aprobada antes de contar.
+2. **Las anclas de D las propone Code, del archivo**, con su texto literal y su fuente, y el arquitecto las aprueba antes de que
+   se mire nada.
+3. **El «O» sobre las dos preguntas se queda**: es la misma regla que en el quinto. Aparte, la columna 2: por qué pregunta salió
+   cada uno, medido en vez de supuesto.
+4. **El tope de lo ilegible, derivado**: el cubo del quinto fue 4 de 21, el 19,0 %, y el límite para la comparación es el 20 % de
+   cada n, 8 de 40 en D. Si cualquiera de los dos lo pasa, LA COMPARACIÓN SE DECLARA NO HACEDERA. **Y el quinto pasó justo al
+   borde.**
+5. **El Fisher, sólo después de aprobar la huella y las anclas**, y en el orden de siempre: lo ilegible primero, los números después.
+6. **Si el recuento baja D de forma apreciable**, se avisa ANTES de archivar la comparación: entonces hay que corregir el «cerca del
+   90 %» en todos los sitios, la semana 0 incluida, y eso se hace con el arquitecto y el director, no lo hace Code solo.
