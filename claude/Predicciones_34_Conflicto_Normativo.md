@@ -1890,3 +1890,23 @@ if (process.argv[2] === '--pruebas') {
 dos archivadas arriba con su historia. **El número sólo vale si sale de un script con esta huella.** La segunda tanda queda
 liberada. No se mueven, pase lo que pase: las bandas (A ≥17, B 13-16, C 10-12, D ≤9, n = 21), el criterio de qué cuenta como
 hallazgo y el alto (si sale ILEGIBLE por la columna 1, no hay tercer endurecimiento y la decisión vuelve al arquitecto).
+
+### PASO 3 · LA SEGUNDA TANDA: LEGIBLE, Y SU NÚMERO (Code, 04/11/2026)
+
+Contada con el script de huella `cea980ddc9356e68`, comprobada antes de contar. Salida literal en la medida.
+- **a · Fallidas: 0.**
+- **b · La columna 1 ilegible: 4 de 21**, justo en el tope: las veces 4, 5, 11 y 12, las cuatro con la pregunta 2 sin decidir y la
+  pregunta 1 sin dar el quinto (no se sabe si salió por la 2).
+- **c · LA COLUMNA 1: EL QUINTO, EN 12 DE 21** (57,1 %, Wilson del 36,5 al 75,5 %). **Fisher contra los 9 de 21 de la pasada
+  abierta: p = 0,538.** En las bandas prerregistradas, **12 cae en C («no mejora convincentemente», 10-12)**.
+  ⚠️ **Y la cota que dejan las 4 ilegibles, sin reinterpretar nada**: si las cuatro fueran el quinto, serían 16, en B (13-16). Así
+  que la columna 1 está entre 12 y 16, **en C o en B; NUNCA en A, y nunca en D**. Con 16, Fisher daría p = 0,058, tampoco
+  significativo. Las bandas y los umbrales no se han tocado.
+- **d · La pregunta 2 sin decidir: 5 de 21** (las veces 3, 4, 5, 11 y 12).
+- **e · P-P3-2: NO PUNTUABLE**, con 5 de 21 por encima de su tope de 4 (que es por analogía, no derivado). No afecta a la columna 1.
+
+**P-P3-1** («el quinto sale en banda A, 17 o más de 21») **FALLA**: ni con las cuatro ilegibles a favor llegaría a 17. **Lo que
+dice la tanda, con el límite de la enmienda 2 delante**: con la pareja entregada y la pregunta cerrada, y SIN la puerta de citas
+ni el verificador (que sólo podrían bajar el número), el juez saca el quinto en 12 a 16 de 21. Eso no se distingue de los 9 de
+21 de la pasada abierta: la comparación iba sesgada a favor de la pregunta cerrada, y aun así no gana de forma convincente.
+**La lectura de lo que eso significa para el plan es del arquitecto.**
