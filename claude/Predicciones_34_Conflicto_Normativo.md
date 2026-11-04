@@ -1878,3 +1878,10 @@ if (process.argv[2] === '--pruebas') {
   console.log(resumen(pulsaciones).join('\n'));
 }
 ```
+
+### PASO 3 · LOS DOS TOPES NO PESAN LO MISMO (arquitecto, 04/11/2026)
+
+- **El tope de 4 de la COLUMNA 1 está DERIVADO**: la banda A pide 17 de 21, así que con más de 4 ilegibles no se podría alcanzar.
+- **El tope de 4 de la COLUMNA 2 está puesto POR ANALOGÍA, no derivado**: P-P3-2 no tiene bandas, así que no hay nada de donde
+  sacarlo. Su función real es impedir que P-P3-2 se puntúe sobre un denominador tan pequeño que no diga nada. **Que nadie le dé
+  mañana el mismo peso que al de la columna 1.**
