@@ -1,8 +1,8 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import {
-  CADUCA_EL, FRASES_DEL_QUINTO, MARCAS_DE_A, PAREJAS_DE_E3, PAREJA_DE_LA_VARIANTE_LIMPIA, PAREJA_DEL_QUINTO, PREGUNTA_CERRADA, TROZOS,
-  VECES_DE_E3, VECES_DE_LA_VARIANTE_LIMPIA, VECES_DEL_QUINTO,
+  CADUCA_EL, FRASES_DE_D, FRASES_DEL_QUINTO, MARCAS_DE_A, PAREJAS_DE_E3, PAREJA_DE_D, PAREJA_DE_LA_VARIANTE_LIMPIA, PAREJA_DEL_QUINTO,
+  PREGUNTA_CERRADA, TROZOS, VECES_DE_D, VECES_DE_E3, VECES_DE_LA_VARIANTE_LIMPIA, VECES_DEL_QUINTO,
   construirPrompt, contarFiguras, correspondencia, coseno, estaCaducada, fraseQueContiene, puestos, trozoConSuFrase,
 } from './medida-f130';
 
@@ -98,6 +98,15 @@ describe('las medidas temporales de F-130', () => {
     expect(FRASES_DEL_QUINTO).toEqual({ analizado: ['revisa trimestralmente el cumplimiento'], candidato: ['personal ajeno al área auditada', 'no como auditor de su propia área'] });
   });
 
+  it('LA D DE VERDAD: NOR-10·4 (§2.4) ↔ CLI-12·6 (§3.5), veintiuna veces, con las dos anclas de la siembra; NO es la pareja de E3', () => {
+    expect([TROZOS[PAREJA_DE_D.analizado], TROZOS[PAREJA_DE_D.candidato]].map(t => `${t.codigo}·${t.trozo}`)).toEqual(['NOR-10·4', 'CLI-12·6']);
+    expect(TROZOS.cli12_6.frase).toBe('nunca por el Director Clínico del propio centro');
+    expect(VECES_DE_D).toBe(21);
+    expect(FRASES_DE_D).toEqual({ analizado: ['puede recaer en el propio Director Clínico'], candidato: ['nunca por el Director Clínico del propio centro'] });
+    // la del 36 de 40 es otra pareja (el principio del §3.1), y no se vuelve a llamar D
+    expect(PAREJAS_DE_E3.map(p => p.candidato)).not.toContain(PAREJA_DE_D.candidato);
+  });
+
   it('⚠️ LA NEGATIVA DURA: sin trozos, sin el número pedido o sin su frase, NO hay trozo; y con todo, sí', () => {
     const pedido = TROZOS.cli12_13;
     const bueno = { chunkIndex: 13, text: 'Las auditorías internas las realiza siempre personal ajeno al área auditada.' };
@@ -108,11 +117,11 @@ describe('las medidas temporales de F-130', () => {
     expect(trozoConSuFrase([{ chunkIndex: 12, text: 'otro' }, bueno], pedido)).toEqual({ ok: true, trozo: bueno });
   });
 
-  it('⚠️ LA NEGATIVA DURA ES DURA: en la ruta del quinto, el 409 de los trozos va ANTES del ensayo y antes de llamar al modelo', () => {
+  it.each(['quinto', 'd'])('⚠️ LA NEGATIVA DURA ES DURA: en la ruta %s, el 409 de los trozos va ANTES del ensayo y antes de llamar al modelo', nombre => {
     // los finales de línea, normalizados: con core.autocrlf el disco tiene CRLF y el repositorio LF (03/11, el commit de
     // esta prueba la puso en rojo al reescribir el fichero en CRLF)
     const leer = (f: string) => readFileSync(f, 'utf8').replace(/\r\n/g, '\n');
-    const ruta = leer('app/api/admin/medida-f130/quinto/route.ts');
+    const ruta = leer(`app/api/admin/medida-f130/${nombre}/route.ts`);
     const negativa = ruta.indexOf("if (!leidos.ok) return NextResponse.json({ error: leidos.error }, { status: 409 });");
     const ensayo = ruta.indexOf("if (req.nextUrl.searchParams.get('ensayo') === '1')");
     const modelo = ruta.indexOf('await preguntarAlJuez(');

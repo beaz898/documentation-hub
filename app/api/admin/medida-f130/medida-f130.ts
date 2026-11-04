@@ -156,6 +156,20 @@ export const FRASES_DEL_QUINTO = {
   candidato: ['personal ajeno al área auditada', 'no como auditor de su propia área'],
 } as const;
 
+/**
+ * LA D DE VERDAD (arquitecto, 04/11): la pregunta cerrada, SIN TOCAR, sobre la pareja de la siembra, NOR-10·4 (§2.4) ↔
+ * CLI-12·6 (§3.5), con los dos trozos ENTEROS. 21 veces, como el quinto, para que sea comparable con sus 12 de 21.
+ * ⚠️ NO ES LA PAREJA DE E3: aquélla es NOR-10·4 ↔ CLI-12·3, el permiso contra el principio del §3.1, y su 36 de 40 NO es la
+ * tasa de D. La D sembrada (`corpus-pruebas/SIEMBRA_corpus_ampliado.md:99-100`) sólo se midió una vez: 6 de 7, el 28/10.
+ * Las anclas son las dos que el registro de siembra pone en negrita, y el ensayo (`?ensayo=1`) enseña su frase cortada.
+ */
+export const PAREJA_DE_D: { analizado: ClaveDeTrozo; candidato: ClaveDeTrozo } = { analizado: 'nor10_4', candidato: 'cli12_6' };
+export const VECES_DE_D = 21;
+export const FRASES_DE_D = {
+  analizado: ['puede recaer en el propio Director Clínico'],
+  candidato: ['nunca por el Director Clínico del propio centro'],
+} as const;
+
 /** Lo que delata a A (quién es el responsable último): si la frase cortada lo lleva, A va delante y no se mide. */
 export const MARCAS_DE_A = ['responsabilidad última', 'responsable último'] as const;
 
