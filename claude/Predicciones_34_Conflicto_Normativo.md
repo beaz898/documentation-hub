@@ -5895,3 +5895,21 @@ Con una herramienta que recorre EXACTAMENTE como cada prueba (`censo_corpus_exam
 El worker arranca con `tsx` (`worker/package.json`), que no comprueba tipos, y no hay script de build ni configuración de Railway en el
 repositorio: **si el panel no tiene su propio comando de construcción, los 41 días de `tsc` en rojo nunca impidieron un despliegue.** Se
 confirma en el panel, con las otras tres.
+
+### LA SESIÓN, ANTES DE MEDIR: LO QUE EL ARQUITECTO ESPERABA, CORREGIDO (arquitecto, 05/11/2026)
+- **El bloque de PROSA va a ser PEQUEÑO**: tres documentos, 74 trozos (CLI-12, 55; CLI-13, 11; CLI-20, 8). Lo que salga de ahí tendrá
+  intervalos anchos y no se podrá afirmar gran cosa.
+- **El bloque de TABLAS puede ser el principal**: 183 trozos de tabla frente a 83 de prosa en lo indexado. Si dos tercios de lo que el
+  corpus contiene son tablas, dos tercios de lo que el producto publica son hallazgos de tabla, **y nadie ha comprobado nunca si son
+  reales**: un punto ciego más grande que D, y en la salida que un cliente ve de verdad.
+- **Se corren los OCHO**: estrecharlo a la prosa haría que la respuesta no represente el producto; los dos bloques van separados por
+  hallazgo. **Y no se indexa nada para agrandar la prosa**: subir NOR-10 y NOR-11 cambia el corpus y es otra decisión de otro día.
+
+### `corpus-del-examen`: LA CURA, HECHA (arquitecto decide, Code ejecuta; 05/11/2026)
+- **La cura: `withFileTypes`**, como el censo de PGlite. **Quita un mecanismo en vez de mover un número**, y es portar una pieza que ya
+  funciona (arquitecto). El `stat` sólo servía para distinguir fichero de carpeta: ni tamaño ni fecha.
+- **La validación, NO por el tiempo** (el frío no se reproduce), sino por las dos cosas que pidió el arquitecto, con una herramienta que
+  copia el recorrido viejo del commit anterior (`validar_censo.mjs`, scratchpad): **`stat`, 613 antes y 0 después; ficheros, 453 antes y
+  453 después, la MISMA lista en el MISMO orden.** (Habría diferencia con un enlace simbólico a una carpeta, que `stat` sigue y la
+  entrada no; no hay ninguno: la lista es idéntica.)
+- La suite completa y el typecheck de raíz y worker, en verde. El tiempo en frío se verá cuando se vea.
