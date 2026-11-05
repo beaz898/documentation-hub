@@ -2291,7 +2291,7 @@ también.
 **1 · LO QUE MIDIÓ EL 36 DE 40.** La pareja NOR-10·4 (§2.4) ↔ CLI-12·3 (§3.1): **el permiso contra el principio**, contado con
 una regla laxa (un ancla sola y sin leer el veredicto). **No es la D de la siembra**, que es §2.4 ↔ **§3.5**
 (`corpus-pruebas/SIEMBRA_corpus_ampliado.md:90-120`; el §3.5 va en CLI-12·6, el §3.1 en CLI-12·3). **La D sembrada se midió UNA
-VEZ: 6 de 7, el 28/10, con el prompt de la «línea ancha», y no se repitió** (`Medida_F130_E3_Y_Vecindad_29-10-2026.md:31, 91`).
+VEZ: 6 de 7, el 29/10 *(Code escribió «28/10»; corregido el 05/11)*, con el prompt de la «línea ancha», y no se repitió** (`Medida_F130_E3_Y_Vecindad_29-10-2026.md:31, 91`).
 **«La pregunta cerrada saca D cerca del 90 %» es FALSO tal como está escrito, y se corrige en todos los sitios** (las marcas del
 04/11 en el estado, la medida, este fichero y el protocolo). **El 36 de 40 no se vuelve a llamar D**: se llama «§2.4 ↔ §3.1, el
 permiso contra el principio». Su recuento con el script congelado va DESPUÉS, como corrección del archivo, no como respuesta.
@@ -2314,6 +2314,10 @@ REPOSITORIO (pegada por él el 04/11; Code no la ha visto en su sitio):
 > producto-publicado frente a herramienta-sólo-juez, más la regla de cuenta — un cruce de condiciones ya corregido el 31/10 y
 > reintroducido aquí. La conclusión "está en preguntar" puede ser cierta y hoy NO está demostrada para la D sembrada
 > (§2.4 ↔ §3.5), que sólo se midió una vez: 6 de 7, el 28/10, con otro prompt.»
+
+*(Code, 05/11: la marca se deja literal, pero su «28/10» viene de Code y está mal: el 6 de 7 del §3.5 es del **29/10 a las 12:05
+UTC** («cuando» de `Medida_F130_E3_Primera_Tanda_29-10-2026.json`). Y su «otro prompt» ya llevaba el bloque del principio: corrió
+con `a58deaf8`, del 29/10 a las 00:33.)*
 
 La conclusión no se borra: se marca.
 
@@ -3279,3 +3283,40 @@ se quiere, no un atajo**. La pregunta honesta es más estrecha: ¿el bloque cubr
 el caso reservado, no esto.** *(La decimoquinta y la decimosexta no le han llegado a Code.)*
 
 **LO SIGUIENTE, sin cambios** (arquitecto): el recuento estricto de las 40 (§2.4 ↔ §3.1, con su nombre), después de esto.
+
+## LA ADENDA DE FABLE DEL 04/11, CONTRA EL REPOSITORIO (Code, 05/11/2026)
+
+La adenda, literal, en `claude/consultas-fable/F-130_2026-10-28_que-decide-lo-que-un-juez-escribe.md`. Aquí sólo lo que choca con
+lo escrito o no se puede comprobar desde el repositorio. **Sin puntuar**: la puntuación es del arquitecto.
+
+**CHOCA:**
+1. **«20 de 20 con A dentro y 16 de 20 sin ella, p = 1»** mezcla dos comparaciones. Lo archivado (`Medida_F130_E3_Y_Vecindad…:490-511,
+   557`): con A, 20 de 20 (y 16 de 20 en la repetición); sin A, 20 de 20 por la regla escrita o 16 de 20 por la literal. p = 1 es 20
+   frente a 20; 20 frente a 16 da p = 0,106. La conclusión (no se separan) se sostiene igual; las cifras, como están, no. Y las dos
+   condiciones se contaron con la regla laxa, sobre la pareja del §3.1.
+2. **«Nadie ha probado la pregunta cerrada sin él [el bloque]»: CIERTO, y más de lo que parece.** El único 6 de 7 del §3.5 corrió el
+   **29/10 a las 12:05 UTC**, con `a58deaf8` (29/10, 00:33), que ya metía el bloque recortado en E3. **Code lo había fechado el
+   28/10** en este fichero y se lo dio así al arquitecto, que lo copió en su marca de la semana 0 (en el proyecto de Claude):
+   corregido aquí; la del proyecto la corrige él.
+3. **D1 describe la pasada 2 en indicativo** («el código arma parejas…», «las tiradas se repiten tres veces y se firma con dos»,
+   «queda un contador»). **En el repositorio no existe**: ni enumerador ni pasada 2 en `lib/`, `app/` ni `worker/` (las únicas
+   menciones son de la herramienta de medida), y no hay ningún `escape.marcado`. Lo último escrito aquí es «no se construye
+   todavía» (línea 317), con el veredicto anterior anulado (301). Si la especificación que lo describe vive en el proyecto, Code no
+   la ha visto.
+4. **«El quinto entra por la primera pregunta, y ahí el juez se parte»**: no está medido. La columna 2 de la segunda tanda (por qué
+   pregunta salió) dio **NO PUNTUABLE**, con 5 de 21 sin decidir en la pregunta 2.
+5. **«D tiene dos mitades posibles en CLI-12»**: el registro de siembra define D sólo por §2.4 ↔ §3.5 (líneas 97-100). Lo que admite
+   cualquier cita de CLI-12 es la consulta del producto, `SQL_34_06`, que ni siquiera exige una de las dos (sección de ayer).
+
+**NO SE PUEDE COMPROBAR DESDE EL REPOSITORIO:**
+- **«42 pasadas y 186 veredictos»** del verificador de dos preguntas: las 42 pasadas sí constan (aquí, líneas 811 y 861; estado,
+  691); el **186** no aparece en ningún fichero de `claude/`.
+
+**CUADRA, comprobado:**
+- La base de coste, **0,031 $** (`Estado…:770`; 0,0315 $ en la línea 648), y el 0,015 $ como cifra inventada (`Estado…:652`).
+- **El puente del quinto, §6.1, estaba delante**: CLI-12·13 trae el §6.1, el §6.2 y el §6.3 (ensayo del paso 3), y **17 de las 21**
+  respuestas de la segunda tanda contienen literal su frase «verifica el cumplimiento de un protocolo concreto».
+- **El bloque es anterior a F-130 y se escribió mirando a D**: entró en el juez el 26/10 (`5ca99f12`, el taller) y el 27/10
+  (`1912469a`, el principio, que según la cabecera de su módulo nació porque la cláusula anterior «excluía §3.1 de CLI-12, la mitad
+  que el juez escogía para D»). Fable dice «añadido en F-129 y F-130»: el frente fue el 3.4, entre las dos.
+- **«12 de 21 lo alcanzan»**: el número legible del quinto (con las 4 ilegibles, entre 12 y 16).

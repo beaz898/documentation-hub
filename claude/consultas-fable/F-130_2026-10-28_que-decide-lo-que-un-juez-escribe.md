@@ -654,3 +654,117 @@ NOTAS A LA ADENDA (g), FUERA DEL TEXTO DE FABLE (arquitecto y Code, 02/11/2026):
 - **Los «pasos» 2, 3, 5, 6 y 7 de la especificación no son los del plan de cinco pasos de la casa**, que tiene el
   verificador en el 2 y la pregunta cerrada del quinto en el 3. Toda la especificación cae dentro del paso 4 del plan
   (la pasada 2), salvo su «paso 6», que va detrás.
+
+---
+
+## ADENDA DE FABLE DEL 04/11/2026, LITERAL (archivada por Code el 05/11/2026)
+
+*Respuesta de Fable a la adenda del arquitecto del 04/11 a esta consulta; no es una consulta nueva. Pegada por el director a Code,
+y sacada aquí del registro de la conversación con un script, sin copiarla a mano. ⚠️ La sección 4 de la adenda del arquitecto
+(lo que AFIRMÓ la casa) NO está aquí y NO se archiva como medido (arquitecto). «El quinto no es alcanzable» es del arquitecto, es
+errónea, y queda corregida dentro del texto de Fable («Sobre vuestra lectura, lo que está de más»). Lo que Code encontró al
+contrastarla con el repositorio va en `claude/Predicciones_34_Conflicto_Normativo.md`, «LA ADENDA DE FABLE DEL 04/11, CONTRA EL
+REPOSITORIO».*
+
+ADENDA DE FABLE A F-130 · QUÉ SOSTIENE CINCO FRASES EN UN CORPUS
+Versión consolidada, 04/11/2026. Contiene la respuesta a la adenda del arquitecto del 04/11 y, al final, la sección con las preguntas del director hechas en conversación después, marcada como tal, que añade una medición pendiente sobre el bloque del principio.
+
+Cuentas, por delante
+
+P-F130-17 cae: se apoyaba en 0,015 $ y la base medida es 0,031 $. Reescrita en P6.
+Mi “hipótesis principal: A suprime a D” de F-130 cae: 20 de 20 con A dentro y 16 de 20 sin ella, p = 1. Lo que sobrevive del mecanismo es la forma de la pregunta y el foco, no la cobertura por lo ya escrito. Contada como fallada.
+El 97,2 % de la regla “dos de tres” no es una medida: es aritmética sobre un 90 % que viene de la herramienta, contado con regla laxa, sin puerta ni verificador. La regla se mantiene; sus números no existen hasta que se midan en producto.
+Mi heurística “si el juez no cita el puente es nivel 3” se queda corta: en el quinto el juez citó el puente, §6.1, y aun así se partió. Citar el puente es necesario, no suficiente. P5.
+
+P1 · Qué puede y qué no puede sostener esta evidencia
+
+Sobre un producto, casi ninguna cifra. Sobre el mecanismo, varias cosas, y son las que importan.
+
+Lo que no viaja, con nombre:
+
+Ninguna tasa. 14 %, 29 %, 90 %, 57 %, 97 %: todas son de una frase en una pareja de un corpus. No dicen nada de cuántas contradicciones encuentra el producto en el corpus de un cliente.
+La comparación “14 % contra 90 %” tal como se presentó: producto entero contra herramienta sin puerta ni verificador, poblaciones distintas. No debió hacerse como comparación; sí como dos mediciones separadas.
+La lista de palabras de escape: sale de un caso y es una hipótesis, no un resultado.
+Las predicciones mías numeradas sobre D y el quinto en cantidades de veinte: son de caso, no de producto, y así se cuentan.
+
+Lo que sí viaja, porque es de existencia o de dirección, no de tasa:
+
+Un caso puede estar entero delante del juez, con el bloque del principio en el prompt, y no salir en la lista abierta, mientras sale en una pregunta cerrada sobre dos trozos con el mismo bloque. Prueba de existencia: la forma de la pregunta pesa más que el contenido del prompt.
+Un caso con dos lecturas produce respuestas partidas que nombran el escape por los dos lados. Prueba de existencia: el desacuerdo entre tiradas detecta lo discutible. El 57 % no viaja; que se parta y nombre el escape, sí.
+El verificador con dos preguntas obligatorias no mata a ciegas y contesta siempre, 42 pasadas y 186 veredictos. Es mecanismo, y es lo mejor medido de esta adenda.
+El coste por análisis, 0,031 $, viaja solo como orden de magnitud para documentos de este tamaño.
+Y lo que viaja más que todo: el método. Predicción escrita, banda prerregistrada, criterio congelado con huella, recuento repetido cuando el primero salió ilegible.
+
+Lo que permiten las preguntas P4 a P7: no son de tasa, son de diseño: qué hacer cuando el juez discrepa consigo mismo. Para eso basta un caso que lo demuestre, porque es de existencia. No son las preguntas equivocadas. Lo equivocado sería contestarlas con números.
+
+P2 · Qué medir para hablar de un producto, de más barato a más caro
+
+La curva de acumulación (E5) sobre las tres parejas con siembra, veinte pasadas cada una. Dice cuántos hallazgos distintos puede llegar a emitir el juez y cuántas pasadas los capturan. El método viaja aunque los números no.
+La tasa de “sí” por error en parejas sin conflicto, cien parejas, tres tiradas. El único parámetro de la pasada 2 que es del producto y no de un caso. Decide la regla de tiradas con dato propio.
+Etiquetado humano de todo lo publicado en veinte análisis reales, verdadero o falso, por el director. Precisión sobre una población de producto.
+Un segundo corpus, de otro dominio, con diez conflictos sembrados de cinco clases: directo, con puente escrito, aritmético, con excepción de alcance, y mediado por definición lejana. Separa “funciona aquí” de “funciona”. Sintético o público; que no se haya escrito mirando al juez.
+El corpus de un cliente, con acuerdo de confidencialidad. Lo único que mide el producto.
+
+P3 · Mecanismo o caso
+
+Como vosotros, con tres matices:
+
+Mecanismo: el cambio del verificador; el coste como orden de magnitud; la prueba de existencia “forma de la pregunta sobre contenido”; la prueba de existencia “desacuerdo detecta disputa”; la monotonía del reparto de F-127, que es matemática.
+Caso: todas las tasas; la refutación de “A tapa a D”, verdadera aquí y muda sobre otras parejas; la lista de escapes.
+Doctrina, ni mecanismo ni caso: “la prelación nunca filtra”, “nada se borra solo”, “el sello lo pone quien verifica”. No se miden; se eligen.
+
+P4 · Qué hacer cuando el juez discrepa consigo mismo con argumentos por los dos lados
+
+No afirmar. Misma respuesta del 02/11, ahora con prueba: el quinto, con el §6.1 delante, produce respuestas que lo usan para afirmar y respuestas que lo usan para negar. Eso es la definición operativa de “discutible”. Un producto que firme lo que su propio juez no decide está firmando una tirada.
+
+Callar, tampoco, por la asimetría de vuestro argumento: el falso negativo no se ve nunca. Entre afirmar y callar está registrar: contar cuántos hay y, si un día se decide, enseñarlos sin firma. Si se enseñan no lo deciden las mediciones; lo decide el producto, y lo decidió el director el 01/11.
+
+P5 · La pieza estaba, el juez la usó, y no decidió
+
+Cambia: la pregunta “¿cuál es la unidad cuando la pieza no está?” se disuelve, porque la unidad era correcta: pareja más puente, y el puente estaba. Lo incorrecto era suponer que un puente presente decide. Un puente puede ser él mismo ambiguo: “verifica el cumplimiento de un protocolo concreto” no lleva ninguna palabra de la lista de escapes y abarca más de lo que su autor quiso. Consecuencia: la lista de escapes baja de “regla que decide” a “señal que marca”. Decide el acuerdo entre tiradas; y por esta vía también, “dos de tres” era la regla correcta frente a “una de tres”: con una sola tirada, un puente ambiguo se firma la mitad de las veces.
+
+Confirma: el eje es el escape, no “escrito o deducido”. El §6.1 está escrito, es una definición, se citó, y tiene escape por amplitud. Nivel 3 con puente escrito.
+
+P6 · Qué le pasa a la especificación
+
+El acuerdo entre tiradas sube a único criterio de firma. La lista de escapes queda como señal con contador propio, escape.marcado; no baja un hallazgo por sí sola hasta que se mida que acierta.
+“Sin puente citado” se mantiene como señal, no como regla.
+La jerarquía no se toca.
+P-F130-17, reescrita: de 0,031 $ a entre 0,045 y 0,06 $ por análisis, medido con el registro por llamada.
+Las predicciones 12 y 13 se reescriben como de producto: D firmada por la pasada 2 en el producto entero, 19 de 20 o más; el quinto, nunca firmada, 20 de 20. Recuento estricto, huella antes de contar.
+Vuestros cuatro defectos: pasadlos. La dirección no ha cambiado; ha cambiado el peso de una pieza.
+
+P7 · Visible o no afirmado
+
+No son dos direcciones; son dos preguntas. La mía era de mecanismo: cómo se separa lo discutible de lo apretado antes de publicar. La respuesta es el acuerdo, y las mediciones la sostienen. La del director es de producto: qué se hace con lo separado. La respuesta del 01/11 es no afirmarlo y no construir nada cuyo objetivo sea cazarlo. Las mediciones no deciden eso.
+
+Son compatibles tal como está escrito: la pasada 2 se construye para los niveles 1 y 2; los discutibles aparecen como subproducto de hacer preguntas cerradas, y el acuerdo los aparta de la lista firmada. El interruptor de pantalla está apagado. Queda un contador, que no es un mecanismo de caza: es saber cuántos hay. Si el director prefiere que ni el contador exista, se quita; yo lo dejaría, porque es gratis y “no sabemos cuántos” es peor que “sabemos y no los enseñamos”.
+
+Sobre vuestra lectura, lo que está de más
+
+“El quinto no es alcanzable”: de más. Es alcanzable, 12 de 21 lo alcanzan. Lo no alcanzable es firmarlo: el caso no admite respuesta estable porque la pieza que decide es ambigua. No es que el sistema no vea el conflicto; es que el conflicto no tiene una verdad que ver.
+“La diferencia 3 de 21 contra 36 de 40 es de foco y no de alcance”: de acuerdo, con la corrección de que las dos cifras no son comparables entre sí. Se sostiene la prueba de existencia, no la magnitud.
+La decisión del 01/11: coherente, y ahora con prueba de que el caso que la motivó es discutible.
+
+PREGUNTAS DEL DIRECTOR, HECHAS EN CONVERSACIÓN (04/11, 21:49–21:55)
+
+D1 · “¿La pasada 2 sigue siendo comparar una parte concreta con otra y hacer dos preguntas genéricas? ¿Ha cambiado?”
+
+No ha cambiado. El código arma parejas de párrafos que hablan de lo mismo, y a cada pareja se le hacen dos preguntas obligatorias: la del dato, “¿dicen cosas distintas sobre el mismo dato?”, que caza “72 horas” contra “7 días”; y la del cumplimiento, “si son reglas, ¿se pueden cumplir las dos a la vez, y si una permite algo, se puede cumplir la otra usando el permiso?”, que caza D. Son genéricas porque son las dos únicas formas en que dos textos pueden chocar. No saben nada de D en concreto.
+Lo que cambió hoy va alrededor, no dentro: las tiradas se repiten tres veces y se firma con dos; la lista de escapes pasa de decidir a marcar; y todos los porcentajes son de estas cinco frases, no del producto.
+El quinto entra por la primera pregunta, “¿es el mismo dato?”, y ahí el juez se parte, porque “revisar” y “auditar” pueden ser lo mismo o no. Ese partirse lo manda a “posible”. No hace falta una tercera pregunta; hacen falta las tres tiradas.
+
+D2 · “¿Eso es lo que determina que D salga? ¿No hace falta el ejemplo ad hoc?”
+
+Lo que hace que D salga es la segunda pregunta. Pero el prompt lleva un bloque, añadido en F-129 y F-130, que dice que una razón que enuncia un principio cuenta como regla aunque no diga “nunca” ni “debe”, con el ejemplo del taller. Ese bloque está en las dos condiciones medidas, herramienta y producto, y nadie ha probado la pregunta cerrada sin él. Hoy no se sabe si D sale por las dos preguntas solas o por las dos preguntas más el bloque.
+Lo que se puede razonar: D tiene dos mitades posibles en CLI-12. La de §3.5 lleva “nunca” y es regla a la vista: la segunda pregunta la coge sin ayuda. La de §3.1 es una explicación, “responde a un criterio de separar”: para tratarla como regla el juez necesita que se le haya dicho que un principio enunciado cuenta. Ahí trabaja el bloque.
+¿Es ad hoc? El bloque no habla de D ni de clínicas; dice una cosa general, “un principio enunciado como razón es una regla”, que es una clase: cualquier manual que explique “esto se hace así para mantener X separado de Y” cae ahí. Está escrito mirando a D, como casi todas las aclaraciones. Sería ad hoc si solo funcionara con la frase de D, y eso se mide.
+Medición pendiente, veinte tiradas, gratis: la pregunta cerrada sin el bloque del principio, sobre las dos parejas de D. P-F130-23: con §3.5, D sale 16 de 20 o más sin el bloque; con §3.1, cae a 10 de 20 o menos sin él, y vuelve a subir con él. Si sale así, el bloque se queda, porque cubre una clase real. Si D sale igual sin él en las dos parejas, el bloque sobra y se quita: un prompt más corto se desvía menos.
+
+Predicciones, de producto
+
+P-F130-20: la tasa de “sí” por error en cien parejas sin conflicto está entre 2 y 5 % por tirada.
+P-F130-21: la curva de acumulación sobre NOR-10 ↔ CLI-12 se aplana entre 7 y 9 distintos antes de la décima pasada.
+P-F130-22: en el segundo corpus, con cinco clases sembradas, la pasada 2 encuentra las de nivel 1 y puente escrito en 18 de 20 o más cada una, y la mediada por definición lejana en 6 de 20 o menos.
+P-F130-23: la del bloque del principio, arriba.
+
