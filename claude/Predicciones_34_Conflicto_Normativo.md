@@ -5794,3 +5794,45 @@ dato es del 28/09 y no cambia; espera en esa puerta, probado.
   entra en el prompt del juez antes de medir; **(f)** los dos pendientes del medidor del 02-03/11 (la latencia de `usage_logs` y lo que
   el juez emite por pareja antes de la puerta, que no se guarda), parados; **(g)** los 17 guiones SQL con cabecera «PENDIENTE» sin
   constancia de ejecución, esperando a que el director diga cuáles ejecutó.
+
+### EL ORDEN DEL RÁPIDO, FIJADO (arquitecto, 05/11/2026)
+**El `tsc` del worker NO estaba parado**: su disparador incluye cualquier commit que toque el grafo de tipos del worker, y ahí entra
+`lib/analysis/`; el campo `forma` lo dispara, y `forma` está en el alcance. **El `tsc` se arregla ANTES del campo `forma`**: con el `tsc` en
+rojo no se distingue lo que se rompa de lo que ya estaba roto (la regla del director para errores encadenados: de uno en uno, con
+verde entre medias).
+```
+1. La sesión de lectura (20 análisis). No toca código.
+2. El `tsc` del worker, en verde.
+3. El campo `forma` del verificador, con su tanda de regresión de 42 pasadas.
+```
+**La única fecha del calendario es el 10/11**, y llegan a ella el `tsc` y `corpus-del-examen`: los dos de Code, con un push del director.
+
+### DEUDA, NO PENDIENTE: LO QUE EL JUEZ EMITE POR PAREJA ANTES DE LA PUERTA NO SE GUARDA (arquitecto, 05/11/2026)
+Las columnas guardan los SUPERVIVIENTES, no lo crudo (`Estado…`, pendiente del medidor del 03/11). **Es la que impide medir cualquier
+etapa por separado.** Consta como DEUDA y no como pendiente: no tiene disparador, tiene consecuencia.
+**Y de su misma familia** (un dato que existe y nadie mira, como el 9999 y las cabeceras): **la latencia que `usage_logs.latency_ms`
+guarda y que ninguna consulta lee** (`Estado…`, pendiente del medidor del 02/11).
+
+### LOS 17 GUIONES CON CABECERA «PENDIENTE» Y SIN CONSTANCIA: CERRADO (arquitecto, 05/11/2026)
+El director no recuerda si los ejecutó, y eso es la respuesta. **Se quedan como están, de estado desconocido, y el pendiente se cierra.**
+Ninguna cifra archivada depende de ellos (comprobado por Code el mismo día). Si alguien ejecuta uno, se marca entonces.
+
+### LA LÍNEA DE LA PRELACIÓN, LITERAL (el arquitecto la pidió; Code, 05/11/2026)
+- `Estado…:783`, punto D: «la línea de la prelación NO entra en el prompt del juez antes de volver a medir: confundiría la medición».
+- **De dónde viene**: es una pieza de la ESPECIFICACIÓN DE FABLE de la pasada 2 (`Estado…:586-591`): «la línea sobre la prelación en el prompt
+  del juez CAMBIA LA PASADA 1. NO ENTRA HASTA DESPUÉS DE LA MEDICIÓN de las 20 pasadas con el verificador nuevo»; y «va en commit aparte
+  DESPUÉS de volver a medir con el verificador nuevo», junto a `jerarquia` y `puente`, campos nuevos de la misma especificación.
+- **La medición que pedía ya se hizo** (la tanda del verificador nuevo, 02/11). **Lo que la tiene parada hoy es otra cosa: es de la
+  especificación de Fable, que no se construye** (punto C) mientras no vuelvan sus siete defectos. Las cláusulas de prelación del corpus,
+  buscadas el 02/11, están en `Estado…:402-411` (ninguna etapa del pipeline las busca).
+
+### EL `tsc` DEL WORKER, EN VERDE (Code, 05/11/2026; el paso 2 del orden, adelantado porque no toca nada en tiempo de ejecución)
+- **El error**: `lib/analysis/normalize.ts(42,63): TS7016`, sin declaración para `./normalize-core.mjs`; el worker no tiene `allowJs` y la raíz
+  sí. **El arreglo**: `lib/analysis/normalize-core.d.mts`, los tipos de las tres funciones copiados de su propio JSDoc. **Sin efecto en
+  tiempo de ejecución**: sólo lo lee `tsc`.
+- **Comprobado**: `npm run typecheck` (raíz y worker) a cero; y el fichero SE LEE: con la firma de `normalize` cambiada a `number`, el `tsc`
+  de la raíz da 23 errores (control positivo), y restaurado, cero.
+- ⚠️ **Lo que dice el repositorio sobre Railway, sin afirmar lo que no ve**: `worker/package.json` arranca con `tsx` (`"start": "tsx …"`), que
+  NO comprueba tipos, y no hay script `build` ni configuración de Railway en el repositorio. **Si el panel de Railway no tiene un comando
+  de construcción propio, el despliegue nunca pasó por `tsc`** y el rojo no le impedía desplegar. Lo confirma el director mirando el
+  panel (la puerta del exhaustivo).
