@@ -1,4 +1,4 @@
-import { readdirSync, readFileSync, statSync } from 'node:fs';
+import { readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 import { describe, expect, it } from 'vitest';
@@ -215,12 +215,16 @@ function arbolDeCodigo(): Array<{ ruta: string; texto: string }> {
   if (arbolLeido) return arbolLeido;
   const raices = ['app', 'lib', 'components', 'worker'];
   const salida: Array<{ ruta: string; texto: string }> = [];
+  // ⚠️ 05/11/2026 (arquitecto): con `withFileTypes`, como el censo de PGlite (`claude/arneses/pglite-fuera-del-producto.test.ts`).
+  // Antes hacía un `statSync` por cada entrada (613) sólo para saber si era carpeta; el tipo ya viene en la entrada. Medido:
+  // este censo lee MENOS que el de PGlite (453 ficheros y 3,55 MB frente a 606 y 4,48) y tardaba más; la única diferencia de
+  // forma eran esos `stat`. Validado por la misma lista de ficheros antes y después, no por el tiempo (el frío no se reproduce).
   const recorrer = (dir: string) => {
-    for (const entrada of readdirSync(dir)) {
-      if (entrada === 'node_modules' || entrada.startsWith('.')) continue;
-      const ruta = join(dir, entrada);
-      if (statSync(ruta).isDirectory()) recorrer(ruta);
-      else if (/\.tsx?$/.test(entrada)) salida.push({ ruta: ruta.replace(/\\/g, '/'), texto: readFileSync(ruta, 'utf8') });
+    for (const e of readdirSync(dir, { withFileTypes: true })) {
+      if (e.name === 'node_modules' || e.name.startsWith('.')) continue;
+      const ruta = join(dir, e.name);
+      if (e.isDirectory()) recorrer(ruta);
+      else if (/\.tsx?$/.test(e.name)) salida.push({ ruta: ruta.replace(/\\/g, '/'), texto: readFileSync(ruta, 'utf8') });
     }
   };
   for (const r of raices) recorrer(r);
