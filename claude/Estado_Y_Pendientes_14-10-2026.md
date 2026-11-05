@@ -597,7 +597,9 @@ a ojo. El procedimiento, el coste y la consulta se plantean ANTES de pedírselo 
   - **SE PARTE POR DOCUMENTO** (decisión del arquitecto): 20 de NOR-10 un día y 20 de NOR-11 el siguiente, después de la
     01:00 de Madrid. **No se toca ninguna variable de Vercel.** Dos motivos:
     - **el tope**: 30 análisis rápidos al día por usuario (`lib/rate-limiter.ts:23`), y el día empieza a las 00:00 UTC, la
-      01:00 de Madrid; 40 no caben;
+      01:00 de Madrid; 40 no caben; *(⚠️ 05/11: FALSO. El 30 es sólo el respaldo del código cuando la variable no está
+      puesta; `RATE_LIMIT_ANALYZE` está puesta en Vercel y vale **9999** —lo miró el director el 05/11—. El límite de 30 no
+      existía. Ver `Predicciones_34_Conflicto_Normativo.md`, «RATE_LIMIT_ANALYZE VALE 9999».)*
     - **la comparación**: la línea base también se midió en días distintos (D el 30-31/10, el quinto el 28/10), así que
       partir por documento CONSERVA su estructura. Con las 40 el mismo día se compararía contra una base construida de
       otra forma.
@@ -606,7 +608,8 @@ a ojo. El procedimiento, el coste y la consulta se plantean ANTES de pedírselo 
     cambia los candidatos, y una subida además bloquea el análisis con el cerrojo de subida, HTTP 423); sólo análisis
     rápidos, de uno en uno (el semáforo de concurrencia admite uno activo por organización); y apuntar la hora de
     comienzo y de fin de cada día.
-  - **Los topes, revisados en el código (02/11)**: 30 rápidos por usuario y día; un análisis activo por organización; el
+  - **Los topes, revisados en el código (02/11)**: 30 rápidos por usuario y día *(⚠️ 05/11: falso; el código sólo da el
+    respaldo, y Vercel tiene 9999)*; un análisis activo por organización; el
     cerrojo de subida; 5 créditos por análisis rápido (`lib/credits.ts:9`): 100 por día y 200 en total, descontados antes
     de cada análisis y devueltos si alguna etapa cae. El saldo de la organización no lo ve Code: lo comprueba el director
     antes de empezar. Por hora o por documento no hay ninguno. Cada análisis tiene 120 s como máximo
@@ -661,6 +664,9 @@ a ojo. El procedimiento, el coste y la consulta se plantean ANTES de pedírselo 
     suma de Code, no una medición; la del 22/10 ya daba de 0,0294 a 0,0352 $ (`:1652-1654`, más abajo).
   - ⚠️ **EL LÍMITE DE 30 ANÁLISIS RÁPIDOS AL DÍA (decisión del director y del arquitecto, 02/11): SE SUBE, PERO NO MAÑANA Y NO A
     LO LOCO.** Mañana no se toca: 21 pasadas caben en 30.
+    *(⚠️ 05/11: **ESE LÍMITE NO EXISTÍA.** `RATE_LIMIT_ANALYZE` vale 9999 en Vercel (lo miró el director el 05/11); el 30 es
+    sólo el respaldo del código. Se subió en algún momento, no se bajó y no se escribió, que es justo lo que esta regla
+    prohíbe. El ledger y el valor nuevo, en `Predicciones_34_Conflicto_Normativo.md`, «RATE_LIMIT_ANALYZE VALE 9999».)*
     - **¿Se puede subir SÓLO para el usuario del director? HOY NO, sin cambiar código** (Code, leído el 02/11):
       `getLimit(endpoint, isExhaustive)` (`lib/rate-limiter.ts:130-139`) lee `RATE_LIMIT_ANALYZE` de las variables de entorno y
       **no recibe el usuario**; el usuario sólo se usa para CONTAR sus llamadas del día (`:90`). Un tope por usuario sería un

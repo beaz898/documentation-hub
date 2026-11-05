@@ -5424,6 +5424,7 @@ con el lector aprobado: la 1: 3 · la 2: 4 · las dos: 4 · sin decidir: 1. **Se
 prerregistró**, y con las dos lecturas al lado (con el anterior, NO PUNTUABLE por 5 de 21 sin decidir).
 
 ### EL TOPE DIARIO DE ANÁLISIS RÁPIDOS, A 50: LO QUE DICE EL CÓDIGO (Code, 05/11/2026; NO SE HA TOCADO NADA)
+*(⚠️ CORREGIDA EL MISMO DÍA: su «pasa de unos 0,93 $» y todo lo que da por vigente un tope de 30 son FALSOS. El valor real era 9999: ver «RATE_LIMIT_ANALYZE VALE 9999», más abajo.)*
 - **El valor no está en el código: está en Vercel.** `getLimit` (`lib/rate-limiter.ts:130-140`) lee `RATE_LIMIT_ANALYZE` de las
   variables de entorno, y **sólo si no existe** usa el 30 del código (`:23`). Subir el número del código no cambiaría nada si la
   variable está puesta; el cambio es del director, en Vercel, y entra con el siguiente despliegue.
@@ -5497,3 +5498,82 @@ Después de la regla inventada de esta mañana, no se inventa un criterio de equ
   resultados del examen son del 27/09 (`examen/resultados/`), y ninguna medición posterior al 26/10 nombra esos documentos.
 - **Y la purga del 25/10 borró los análisis de agosto y la indexación**: si esos siete documentos están subidos HOY en la
   organización nueva es algo que el repositorio no sabe; lo sabe el director.
+
+## ⚠️⚠️ RATE_LIMIT_ANALYZE VALE 9999: EL LÍMITE DE 30 AL DÍA NO EXISTÍA (director, 05/11/2026; archivado como hallazgo)
+
+**El hecho**: el director miró Vercel el 05/11 y **`RATE_LIMIT_ANALYZE` vale 9999**. El 30 de `lib/rate-limiter.ts:23` es sólo el
+respaldo para cuando la variable no está puesta (`getLimit`, `:130-140`), y está puesta. **El límite de 30 rápidos por usuario y día
+no ha existido mientras la variable tenga ese valor**, y todo lo escrito sobre él lo daba por vigente: el estado (líneas del 02/11,
+corregidas hoy al lado), la sección de esta mañana de este fichero (marcada), y las instrucciones de trabajo del arquitecto (en el
+proyecto; las corrige él). **El director pidió esta mañana subir el tope para hacer más de 30 al día: ya podía hacer 9999.**
+**LO QUE SE INCUMPLIÓ, y vale más que el número** (arquitecto): la regla escrita el 02/11 —si se sube, se vuelve a bajar, con el
+valor viejo, el nuevo y las dos fechas escritos— existía exactamente para esto. **Se subió, no se bajó y no se escribió.** El mismo
+mecanismo que las cabeceras «PENDIENTE DE EJECUTAR»: **un estado declarado que nadie comprueba**, aquí un guardia cuyo valor vive en
+una variable que nadie lee.
+
+### EL LEDGER (PENDIENTE: el cambio lo hace el director en Vercel; esto se completa cuando lo confirme)
+| | |
+|---|---|
+| Variable | `RATE_LIMIT_ANALYZE` (Vercel), análisis rápidos por usuario y día |
+| **Valor viejo, REAL** | **9999** (leído por el director el 05/11/2026; no se sabe desde cuándo) |
+| **Valor nuevo** | **100**, derivado (arquitecto): lo mayor previsto es la curva E5, 60 rápidos, y el etiquetado, 20; un desboque de 100 son 500 créditos y unos 3 $ |
+| Fecha del cambio | — PENDIENTE (la pone el director al hacerlo) |
+| Fecha de la revisión | — PENDIENTE (la fija el arquitecto) |
+| Lo que protege de verdad hoy | el saldo de créditos (5 por rápido) y el cerrojo de un análisis activo por organización (`checkAndAcquireAnalysisLock`, 409) |
+- **¿Hace falta redesplegar? Sí**: en Vercel un cambio de variable de entorno no entra en el despliegue que ya está sirviendo; entra
+  en el siguiente (se redespliega desde el panel o con el próximo push). **Así que es un despliegue y va con sus reglas: no durante
+  una tanda.** *(Es lo que dice la documentación de Vercel; Code no puede verlo desde el repositorio.)*
+- *Una precisión de Code al «unos 3.400 al día por puro reloj» del arquitecto*: es 86.400 s entre unos 25 s por análisis. El rápido
+  medido de NOR-11 tardaba unos 40 s (línea 811), lo que da unos 2.160 al día por organización. El orden de magnitud no cambia: el
+  reloj no es el guardia.
+
+### EL CENSO: LAS VARIABLES DE ENTORNO QUE GOBIERNAN UN GUARDIA, UN LÍMITE O UN CORTE (Code, 05/11/2026)
+Por capacidad: todo `process.env` de `lib/`, `app/`, `worker/` y `scripts/`, directo o a través de una constante con el nombre. Se
+quitan las que son credenciales o direcciones (claves de API, de Supabase, Stripe, Pinecone, Google, Microsoft, URLs). Quedan:
+
+| Variable | Qué gobierna | Defecto del código | Dónde se lee | Valor real escrito en algún sitio |
+|---|---|---|---|---|
+| `RATE_LIMIT_ANALYZE` | rápidos por usuario y día | 30 | Vercel (`lib/rate-limiter.ts:23`) | **9999** (director, 05/11) |
+| `RATE_LIMIT_EXHAUSTIVE` | exhaustivos por usuario y día | 10 | Vercel (`:29-30`) | ninguno |
+| `RATE_LIMIT_ASK` | consultas del chat por usuario y día | 100 | Vercel (`:22`) | ninguno |
+| `RATE_LIMIT_STYLE` | análisis de estilo por usuario y día | 20 | Vercel (`:24`) | ninguno (`Tandas_Harness.md:1864` da el 20 del código) |
+| `RATE_LIMIT_IMPROVE` | chat de mejora por usuario y día | 50 | Vercel (`:25`) | ninguno |
+| `ANALYSIS_EXHAUSTIVE_BUDGET_CHARS` | presupuesto por candidato en el exhaustivo | el del rápido, 3.000 | **Railway** (el exhaustivo corre en el worker) | ninguno |
+| `ANALYSIS_JUDGE_MODEL` | el modelo del juez (Haiku 4.5 o 5.5) | Haiku 4.5 | Vercel **y** Railway | Haiku 5.5 en las tandas (los JSON lo registran por llamada) |
+| `ANALYSIS_PAREJA_ENTERA` | interruptor del presupuesto por pareja (sólo el rápido) | apagado (sólo «1» lo enciende) | Vercel | ninguno |
+- **Y una trampa común a los cinco `RATE_LIMIT_*`**: un valor **0** significa SIN LÍMITE (`lib/rate-limiter.ts:17, 77-80`). Un 0 en
+  Vercel no se distingue a simple vista de «muy restrictivo».
+- **Los valores reales los da el director, de una vez**: los cinco de Vercel, y los dos de Railway (`ANALYSIS_EXHAUSTIVE_BUDGET_CHARS` y
+  `ANALYSIS_JUDGE_MODEL`), que **no** están en Vercel porque el exhaustivo corre en el worker.
+
+### LA TABLA DE LAS MEDICIONES DE FABLE, RECALCULADA SIN EL TOPE INEXISTENTE
+- **E5, 60 rápidos**: no son dos días. Con 9999 (o con 100) caben **en una sesión**: el cerrojo los pone de uno en uno, a unos 40 s
+  cada uno, unos 40 minutos de máquina más lo que tarde el director en pulsar. 300 créditos, unos 1,9 $. **Y sigue bloqueada por otra
+  cosa**: el criterio de cuándo dos hallazgos de pasadas distintas son el mismo, que no está escrito (pendiente del arquitecto).
+- **El etiquetado de 20**: una sesión; 100 créditos, unos 0,6 $; el cuello de botella es el tiempo del director.
+- **La tasa de «sí» falso** y **el segundo corpus**: no cambian (no pasan por el tope).
+
+### ¿PUEDE EL RECUENTO DISTINGUIR UN HALLAZGO «CON FORMA DE PRINCIPIO»? NO, NO DESDE LO QUE SE GUARDA (Code, 05/11/2026)
+- **La etiqueta no lleva la forma**: `conflictoNormativo` sólo vale `norma_contra_norma` o `norma_contra_practica`. Un permiso contra una
+  prohibición expresa (el taller de `5ca99f12`: «nunca la misma persona») y un permiso contra un principio (el «principio SOLO» de
+  `1912469a`) llevan la MISMA etiqueta.
+- **El verificador tampoco la guarda**: su pregunta del cumplimiento distingue cuatro formas en el prompt (`lib/analysis/rama-de-las-
+  reglas.ts:28-43`: un permiso, dos obligaciones, una práctica, un principio), pero su respuesta sólo tiene tres valores
+  (`no_cumplibles`, `cumplibles`, `no_mandan`, `:47-63`) y no dice por cuál de las cuatro llegó.
+- **«La etiqueta más la cita de una frase que enuncia un principio» no es mecánico**: decidir si una frase ENUNCIA un principio es
+  justo la lectura que hace el bloque, y no hay ninguna lista de esas frases para ningún documento salvo el principio del §3.1. Hacerlo
+  con código sería un clasificador nuevo; hacerlo con una persona es leer las dos citas de cada hallazgo con la etiqueta.
+- **Lo que sí se podría, y es una propuesta que decide el arquitecto**: en vez de certificar parejas, que el director marque HALLAZGO
+  A HALLAZGO, sobre los que salgan con `norma_contra_norma`, si su par de citas es «un permiso contra un principio». Es lectura humana,
+  pero por hallazgo y no por pareja, y el autoclave no inhabilita nada.
+
+### P-P3-2 · LAS CORRECCIONES DEL ARQUITECTO A SU LECTURA (05/11/2026)
+- **Retira «sale SOBRE TODO por la vía equivocada»**: con 8 de 11 lo parecía; con las dos tandas (14 de 23) no se sostiene. **Lo
+  correcto: «la 2 dispara en torno a la mitad de las veces o más»**, sin magnitud fijada (contra la mitad, bilateral, p = 0,405).
+  La séptima vez del día que pega un adjetivo a un número que no lo aguanta.
+- **La puntuación NO cambia: P-P3-2 FALLA**, por su texto: decía que la vía es la 1 y que el disparo de la 2 es la lectura
+  equivocada, y la 2 dispara en la mayoría de las que salen.
+- **El p, con su lateralidad**: 3 de 11 contra la mitad da **0,113 UNILATERAL** (P(X ≤ 3)) y **0,227 BILATERAL**. El arquitecto dio el
+  primero sin decirlo.
+- **El tercer apoyo de la decisión del 01/11 existe, pero es más flojo de lo que escribió**: el mecanismo de la familia equivocada
+  opera en torno a la mitad de los casos, no domina. Sigue apoyando la razón 2; ya no «sobre todo».
