@@ -755,6 +755,9 @@ a ojo. El procedimiento, el coste y la consulta se plantean ANTES de pedírselo 
         del 28/09). **Y `SQL_34_12_el_precio_del_candidato_entero.sql` espera aquí**, probado y sin ejecutar (huella
         `9e61cc95700b6201`): da el coste de las dos condiciones de F-118. *(Code, al lado: el tope de 25 candidatos del exhaustivo,
         `MAX_SELECTED_EXHAUSTIVE`, con su «10 o 25» pendiente de decisión en `CLAUDE.md`, es de la misma puerta.)*
+        **Y una cuarta (05/11)**: el `tsc` del worker ya está en verde (`7929831e`), pero queda por confirmar en el panel de Railway si su
+        despliegue pasa por `tsc`. El repositorio dice que arranca con `tsx`, que no comprueba tipos, sin script `build` ni
+        configuración de Railway: si el panel no tiene un comando propio, los 41 días de rojo nunca impidieron desplegar.
       - **«No hay nada producido con código viejo» SE SOSTIENE, PERO NO PORQUE NO PASARA NADA: PORQUE NO QUEDA NADA** (Code,
         aceptado por el arquitecto el 04/11). La purga del 25/10 se llevó lo que hubiera de antes, y desde el 26/10 no hay
         ningún exhaustivo. No hay nada que reparar hacia atrás porque no hay nada guardado de ese tiempo, no porque se sepa

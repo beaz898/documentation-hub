@@ -5836,3 +5836,62 @@ Ninguna cifra archivada depende de ellos (comprobado por Code el mismo día). Si
   NO comprueba tipos, y no hay script `build` ni configuración de Railway en el repositorio. **Si el panel de Railway no tiene un comando
   de construcción propio, el despliegue nunca pasó por `tsc`** y el rojo no le impedía desplegar. Lo confirma el director mirando el
   panel (la puerta del exhaustivo).
+
+## LA SESIÓN DE LECTURA DEL DIRECTOR: EL ENCARGO, REHECHO CON LOS OCHO DOCUMENTOS INDEXADOS (arquitecto y Code, 05/11/2026)
+
+**Sustituye a la lista de «los 20 de corpus-pruebas»** del encargo de esta tarde; lo demás de aquél sigue en pie (qué se marca, «no sé»
+de primera clase, las dos salidas del SQL sin guiar al testigo, cómo se archiva, y las bandas DESPUÉS del dato).
+
+⚠️⚠️ **LO QUE ESTA SESIÓN NO PUEDE DECIR, escrito ANTES de medir (arquitecto): NOR-10 Y NOR-11 NO ESTÁN INDEXADOS.** Así que la sesión
+**no dice nada sobre D, ni sobre A, B y C, ni sobre el quinto.** No es un defecto: mide «de lo que publicamos, cuánto se sostiene» con
+el corpus que hay hoy. **Sus cifras no se citan nunca como si hablaran de D.**
+
+**1 · LOS OCHO** (el director, 05/11: lo que está indexado hoy; los otros 37 están en la bandeja de revisión sin indexar). Un análisis
+RÁPIDO de cada uno, de uno en uno, en este orden: **OPE-15, RRHH-08, OPE-13, OPE-11, OPE-10, CLI-20, CLI-13, CLI-12.**
+
+**2 · EL BLOQUE APARTE: CINCO HOJAS DE CÁLCULO, NO TRES.** OPE-13 y RRHH-08 también son `.xlsx`. Con el troceado de la indexación sobre
+los ficheros de `corpus-pruebas/` (que pueden no ser byte a byte los subidos: `SQL_SEG_02`, cabecera):
+```
+OPE-15 · xlsx · 34 trozos · text 3, table_summary 1, table_row 30
+RRHH-08 · xlsx · 15 trozos · table_summary 1, table_row 14
+OPE-13 · xlsx · 15 trozos · table_summary 1, table_row 14
+OPE-11 · xlsx · 64 trozos · text 3, table_summary 1, table_row 60
+OPE-10 · xlsx · 64 trozos · text 3, table_summary 1, table_row 60
+CLI-20 · txt · 8 trozos · text 8
+CLI-13 · docx · 11 trozos · text 11
+CLI-12 · docx · 55 trozos · text 55
+```
+- **Prosa: CLI-12, CLI-13 y CLI-20** (sin un solo trozo de tabla). **Tabla: OPE-10, OPE-11, OPE-13, OPE-15 y RRHH-08.**
+- ⚠️ **Pero OPE-10, OPE-11 y OPE-15 llevan también 3 trozos de PROSA cada uno** (las notas de la hoja). Así que el bloque aparte se hace
+  **POR HALLAZGO, no por documento**: un hallazgo entre filas de tabla va al bloque de tablas; uno de prosa, al de prosa, venga del
+  documento que venga. El SQL lo separará por si el hallazgo lleva filas comparadas o no.
+
+**3 · LA LISTA DE VERCEL, CANCELADA** (arquitecto): no se le pide ningún valor al director. Cuatro no tocan la sesión; `RATE_LIMIT_ANALYZE`
+vale 9999 y con 8 análisis da igual; y el régimen de pareja entera y el modelo del juez **vienen en la salida de cada análisis**, así que se
+leen del dato, no del panel. Lo que quede, a la puerta del exhaustivo.
+
+**4 · EL ORDEN** (arquitecto), y no hay nada más:
+```
+1. El director sube los seis commits.
+2. Code rehace el encargo con los ocho documentos (esto) y se lo pasa al arquitecto.
+3. El director hace los ocho análisis, de uno en uno, sin tocar nada más.
+4. Code escribe el SQL de las dos salidas. El arquitecto lo revisa. El director lo ejecuta.
+5. El director rellena las dos columnas y se las pega.
+```
+Nada de esto abre una rama nueva: lo que se le ocurra a Code por el camino, se apunta y no se persigue.
+
+### `corpus-del-examen`: EL CENSO, MEDIDO (Code, 05/11/2026; el primer paso del pendiente del 03/11, sin cura todavía)
+Con una herramienta que recorre EXACTAMENTE como cada prueba (`censo_corpus_examen.mjs`, scratchpad):
+| | directorios | entradas | llamadas a `stat` | ficheros leídos | MB | 1.ª pasada | 2.ª pasada |
+|---|---|---|---|---|---|---|---|
+| `corpus-del-examen` (`app`, `lib`, `components`, `worker`; `.ts`/`.tsx`) | 130 | 613 | **613** | **453** | **3,55** | 0,22 s | 0,13 s |
+| PGlite (todo el árbol; todas las extensiones de código) | 168 | 1.180 | **0** | **606** | **4,48** | 0,40 s | 0,13 s |
+- **El de `corpus-del-examen` lee MENOS que el de PGlite**: tres cuartos de los ficheros y de los MB. **El volumen no explica los 19,5 s
+  frente a 5,6.** La única diferencia de forma es que hace un `stat` por cada entrada (613) y el de PGlite ninguno (usa `withFileTypes`).
+- ⚠️ **Lo que esta medición NO reproduce**: el frío. Se corrió con el disco caliente (la suite completa había pasado poco antes), así que
+  sus 0,22 s no son comparables con los 19,5 s del 03/11. La cura la decide el arquitecto con estos números.
+
+### A LA PUERTA DEL EXHAUSTIVO, OTRA MÁS (arquitecto, 05/11/2026)
+El worker arranca con `tsx` (`worker/package.json`), que no comprueba tipos, y no hay script de build ni configuración de Railway en el
+repositorio: **si el panel no tiene su propio comando de construcción, los 41 días de `tsc` en rojo nunca impidieron un despliegue.** Se
+confirma en el panel, con las otras tres.
