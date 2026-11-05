@@ -4601,3 +4601,115 @@ correrlo, no escribió ni usó la cifra, y la declaró. Es inocua porque las
 bandas son una función del brazo 0 observado y todo lo demás está congelado
 con huella: no queda nada ajustable a la vista de un número.
 ```
+
+### P-F130-23 · LAS TRES CORRIDAS EN SECO CON LA REGLA (ii): LAS TRES SALEN «SE REPITE» (Code, 05/11/2026)
+
+Con la huella aprobada `527b3ad22bb79110` (y `contar_quinto.mjs` en `e21387a1ff2e7305`), comprobadas antes de contar. Salida literal:
+
+```
+contar_brazos.mjs 527b3ad22bb79110
+contar_quinto.mjs e21387a1ff2e7305
+===== CORRIDA 1 (N=20)
+la pareja del §3.1 (NOR-10·4 ↔ CLI-12·3) · n = 20
+1 · LAS FALLIDAS: 0
+2 · LAS ILEGIBLES, ANTES QUE NINGÚN NÚMERO: por ancla 10, por la regla del producto 13 (de ellas, a caballo: 0)
+   ancla: pulsación 1, vez 3: pregunta 1: OTRO; pregunta 2: NADA
+   ancla: pulsación 1, vez 5: pregunta 1: OTRO; pregunta 2: NADA
+   ancla: pulsación 1, vez 8: pregunta 1: OTRO; pregunta 2: NADA
+   ancla: pulsación 1, vez 9: pregunta 1: OTRO; pregunta 2: PARCIAL
+   ancla: pulsación 1, vez 10: pregunta 1: OTRO; pregunta 2: PARCIAL
+   ancla: pulsación 1, vez 11: pregunta 1: OTRO; pregunta 2: NADA
+   ancla: pulsación 1, vez 12: pregunta 1: OTRO; pregunta 2: PARCIAL
+   ancla: pulsación 1, vez 13: pregunta 1: OTRO; pregunta 2: PARCIAL
+   ancla: pulsación 1, vez 17: pregunta 1: OTRO; pregunta 2: NADA
+   ancla: pulsación 1, vez 18: pregunta 1: OTRO; pregunta 2: NADA
+   producto: pulsación 1, vez 2: pregunta 1: OTRO; pregunta 2: PARCIAL (un solo lado por la regla del producto)
+   producto: pulsación 1, vez 3: pregunta 1: OTRO; pregunta 2: NADA
+   producto: pulsación 1, vez 5: pregunta 1: OTRO; pregunta 2: NADA
+   producto: pulsación 1, vez 8: pregunta 1: OTRO; pregunta 2: NADA
+   producto: pulsación 1, vez 9: pregunta 1: OTRO; pregunta 2: PARCIAL (un solo lado por la regla del producto)
+   producto: pulsación 1, vez 10: pregunta 1: OTRO; pregunta 2: PARCIAL (un solo lado por la regla del producto)
+   producto: pulsación 1, vez 11: pregunta 1: OTRO; pregunta 2: NADA
+   producto: pulsación 1, vez 12: pregunta 1: OTRO; pregunta 2: PARCIAL (un solo lado por la regla del producto)
+   producto: pulsación 1, vez 13: pregunta 1: OTRO; pregunta 2: PARCIAL (un solo lado por la regla del producto)
+   producto: pulsación 1, vez 14: pregunta 1: OTRO; pregunta 2: PARCIAL (un solo lado por la regla del producto)
+   producto: pulsación 1, vez 15: pregunta 1: OTRO; pregunta 2: PARCIAL (un solo lado por la regla del producto)
+   producto: pulsación 1, vez 17: pregunta 1: OTRO; pregunta 2: NADA
+   producto: pulsación 1, vez 18: pregunta 1: OTRO; pregunta 2: NADA
+SE REPITE: más de 4 ilegibles. No se enseña ningún número de «sale».
+===== CORRIDA 2 (N=20)
+la pareja del §3.1 (NOR-10·4 ↔ CLI-12·3) · n = 20
+1 · LAS FALLIDAS: 0
+2 · LAS ILEGIBLES, ANTES QUE NINGÚN NÚMERO: por ancla 7, por la regla del producto 9 (de ellas, a caballo: 0)
+   ancla: pulsación 1, vez 2: pregunta 1: OTRO; pregunta 2: PARCIAL
+   ancla: pulsación 1, vez 3: pregunta 1: OTRO; pregunta 2: NADA
+   ancla: pulsación 1, vez 5: pregunta 1: OTRO; pregunta 2: NADA
+   ancla: pulsación 1, vez 8: pregunta 1: OTRO; pregunta 2: PARCIAL
+   ancla: pulsación 1, vez 11: pregunta 1: OTRO; pregunta 2: PARCIAL
+   ancla: pulsación 1, vez 12: pregunta 1: OTRO; pregunta 2: NADA
+   ancla: pulsación 1, vez 15: pregunta 1: OTRO; pregunta 2: PARCIAL
+   producto: pulsación 1, vez 1: pregunta 1: OTRO; pregunta 2: PARCIAL (un solo lado por la regla del producto)
+   producto: pulsación 1, vez 2: pregunta 1: OTRO; pregunta 2: PARCIAL (un solo lado por la regla del producto)
+   producto: pulsación 1, vez 3: pregunta 1: OTRO; pregunta 2: NADA
+   producto: pulsación 1, vez 5: pregunta 1: OTRO; pregunta 2: NADA
+   producto: pulsación 1, vez 6: pregunta 1: OTRO; pregunta 2: PARCIAL (un solo lado por la regla del producto)
+   producto: pulsación 1, vez 8: pregunta 1: OTRO; pregunta 2: PARCIAL (un solo lado por la regla del producto)
+   producto: pulsación 1, vez 11: pregunta 1: OTRO; pregunta 2: PARCIAL (un solo lado por la regla del producto)
+   producto: pulsación 1, vez 12: pregunta 1: OTRO; pregunta 2: NADA
+   producto: pulsación 1, vez 15: pregunta 1: OTRO; pregunta 2: PARCIAL (un solo lado por la regla del producto)
+SE REPITE: más de 4 ilegibles. No se enseña ningún número de «sale».
+===== CORRIDA 3 (N=40)
+la pareja del §3.1 (NOR-10·4 ↔ CLI-12·3) · n = 40
+1 · LAS FALLIDAS: 0
+2 · LAS ILEGIBLES, ANTES QUE NINGÚN NÚMERO: por ancla 17, por la regla del producto 22 (de ellas, a caballo: 0)
+   ancla: pulsación 1, vez 3: pregunta 1: OTRO; pregunta 2: NADA
+   ancla: pulsación 1, vez 5: pregunta 1: OTRO; pregunta 2: NADA
+   ancla: pulsación 1, vez 8: pregunta 1: OTRO; pregunta 2: NADA
+   ancla: pulsación 1, vez 9: pregunta 1: OTRO; pregunta 2: PARCIAL
+   ancla: pulsación 1, vez 10: pregunta 1: OTRO; pregunta 2: PARCIAL
+   ancla: pulsación 1, vez 11: pregunta 1: OTRO; pregunta 2: NADA
+   ancla: pulsación 1, vez 12: pregunta 1: OTRO; pregunta 2: PARCIAL
+   ancla: pulsación 1, vez 13: pregunta 1: OTRO; pregunta 2: PARCIAL
+   ancla: pulsación 1, vez 17: pregunta 1: OTRO; pregunta 2: NADA
+   ancla: pulsación 1, vez 18: pregunta 1: OTRO; pregunta 2: NADA
+   ancla: pulsación 2, vez 2: pregunta 1: OTRO; pregunta 2: PARCIAL
+   ancla: pulsación 2, vez 3: pregunta 1: OTRO; pregunta 2: NADA
+   ancla: pulsación 2, vez 5: pregunta 1: OTRO; pregunta 2: NADA
+   ancla: pulsación 2, vez 8: pregunta 1: OTRO; pregunta 2: PARCIAL
+   ancla: pulsación 2, vez 11: pregunta 1: OTRO; pregunta 2: PARCIAL
+   ancla: pulsación 2, vez 12: pregunta 1: OTRO; pregunta 2: NADA
+   ancla: pulsación 2, vez 15: pregunta 1: OTRO; pregunta 2: PARCIAL
+   producto: pulsación 1, vez 2: pregunta 1: OTRO; pregunta 2: PARCIAL (un solo lado por la regla del producto)
+   producto: pulsación 1, vez 3: pregunta 1: OTRO; pregunta 2: NADA
+   producto: pulsación 1, vez 5: pregunta 1: OTRO; pregunta 2: NADA
+   producto: pulsación 1, vez 8: pregunta 1: OTRO; pregunta 2: NADA
+   producto: pulsación 1, vez 9: pregunta 1: OTRO; pregunta 2: PARCIAL (un solo lado por la regla del producto)
+   producto: pulsación 1, vez 10: pregunta 1: OTRO; pregunta 2: PARCIAL (un solo lado por la regla del producto)
+   producto: pulsación 1, vez 11: pregunta 1: OTRO; pregunta 2: NADA
+   producto: pulsación 1, vez 12: pregunta 1: OTRO; pregunta 2: PARCIAL (un solo lado por la regla del producto)
+   producto: pulsación 1, vez 13: pregunta 1: OTRO; pregunta 2: PARCIAL (un solo lado por la regla del producto)
+   producto: pulsación 1, vez 14: pregunta 1: OTRO; pregunta 2: PARCIAL (un solo lado por la regla del producto)
+   producto: pulsación 1, vez 15: pregunta 1: OTRO; pregunta 2: PARCIAL (un solo lado por la regla del producto)
+   producto: pulsación 1, vez 17: pregunta 1: OTRO; pregunta 2: NADA
+   producto: pulsación 1, vez 18: pregunta 1: OTRO; pregunta 2: NADA
+   producto: pulsación 2, vez 1: pregunta 1: OTRO; pregunta 2: PARCIAL (un solo lado por la regla del producto)
+   producto: pulsación 2, vez 2: pregunta 1: OTRO; pregunta 2: PARCIAL (un solo lado por la regla del producto)
+   producto: pulsación 2, vez 3: pregunta 1: OTRO; pregunta 2: NADA
+   producto: pulsación 2, vez 5: pregunta 1: OTRO; pregunta 2: NADA
+   producto: pulsación 2, vez 6: pregunta 1: OTRO; pregunta 2: PARCIAL (un solo lado por la regla del producto)
+   producto: pulsación 2, vez 8: pregunta 1: OTRO; pregunta 2: PARCIAL (un solo lado por la regla del producto)
+   producto: pulsación 2, vez 11: pregunta 1: OTRO; pregunta 2: PARCIAL (un solo lado por la regla del producto)
+   producto: pulsación 2, vez 12: pregunta 1: OTRO; pregunta 2: NADA
+   producto: pulsación 2, vez 15: pregunta 1: OTRO; pregunta 2: PARCIAL (un solo lado por la regla del producto)
+SE REPITE: más de 4 ilegibles. No se enseña ningún número de «sale».
+```
+
+**LO QUE DICEN, sin ningún «sale»** (el guion no los enseña y no se han calculado por otra vía). Las ilegibles, por la clase de su
+pregunta 2, contadas de la propia salida:
+- corrida 1 (n = 20): ancla: NADA 6, PARCIAL 4 · producto: NADA 6, PARCIAL 7
+- corrida 2 (n = 20): ancla: NADA 3, PARCIAL 4 · producto: NADA 3, PARCIAL 6
+- corrida 3 (n = 40): ancla: NADA 9, PARCIAL 8 · producto: NADA 9, PARCIAL 13
+- **La pregunta 1 es OTRO en TODAS las ilegibles**: la regla (ii) hizo lo que tenía que hacer, y ese motivo ya no hace ilegible a
+  nadie. **Lo que queda es de la pregunta 2**: o NO DECIDE (NADA, el núcleo de R4 que sobrevive), o afirma con un solo lado
+  (PARCIAL). «A caballo»: 0.
+- Por instrucción del arquitecto (05/11): con «SE REPITE» no se dan cifras; se da el motivo y él replantea.
