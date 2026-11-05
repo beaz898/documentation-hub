@@ -593,6 +593,14 @@ El dueño del proyecto NO es programador. Vercel deploya automáticamente al hac
   y limpiado huérfanos reales—; el cero de «esa pareja no tiene clave» no lo
   tenía, y **el mismo camino, ciego, habría dado el mismo cero.** Promovida en
   F-103 P2.
+  ⚠️ **SU FORMA PARA LAS REGLAS QUE DESCARTAN: UN CONTADOR A CERO SÓLO VALE SI
+  ANTES SE HA DEMOSTRADO QUE EL CONTADOR SABE SUBIR.** El caso, del 05/11/2026:
+  antes de informar de que la regla «a caballo» de `SQL_34_06` no descartaba
+  ninguna cita de D del archivo, se le pasaron cuatro citas inventadas, copiadas
+  literales del §2.4 de NOR-10 —una que abarca las dos frases sale dudosa, una
+  de A sale A, una de D sale D, una corta no cuenta—. Sin eso, «0 descartadas»
+  no distinguía una regla que no encuentra nada de una que no sabe descartar.
+  Promovida por el arquitecto el 05/11/2026.
   ⚠️ **Y NO ES SOLO EL CERO: es cualquier cifra que se lea como medida.** El caso,
   del 06/09 y a un día de promover la regla: una consulta titulada «cota inferior
   de documentos cortados por longitud» devolvió **5**, y lo que contaba eran
