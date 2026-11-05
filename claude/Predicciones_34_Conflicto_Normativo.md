@@ -4713,3 +4713,115 @@ pregunta 2, contadas de la propia salida:
   nadie. **Lo que queda es de la pregunta 2**: o NO DECIDE (NADA, el núcleo de R4 que sobrevive), o afirma con un solo lado
   (PARCIAL). «A caballo»: 0.
 - Por instrucción del arquitecto (05/11): con «SE REPITE» no se dan cifras; se da el motivo y él replantea.
+
+### P-F130-23 · POR QUÉ LA PREGUNTA 2 SALE «SIN DECIDIR»: LAS 9, TODAS DE LECTURA (Code, 05/11/2026, a petición del arquitecto)
+
+**La pregunta del arquitecto**: de los motivos por los que `veredicto` devuelve «sin decidir», todos son de LECTURA salvo uno, el
+de SUSTANCIA (ninguna forma de veredicto en toda la sección). Si fueran de lectura, el lector fallaría según el FORMATO de la
+respuesta, el bloque del principio puede cambiar ese formato, y la tasa de ilegibles podría moverse entre brazos por el parseo:
+**el tratamiento moviendo el canal de la medición, por la puerta del lector.**
+
+**La herramienta** (sin huella: no produce ninguna cifra de resultado; no toca el guion aprobado): una COPIA de `veredicto` con cada
+salida nula etiquetada por su línea, comprobada ANTES contra el original en las 80 secciones de la condición 1: 0 discrepancias.
+**Salida, literal:**
+
+```
+la copia frente al original: 80 secciones, 0 discrepancias
+  condición 1, vez 3 · L69 · la sección llega a una viñeta antes de ningún veredicto · su primera línea: «· EL CUMPLIMIENTO»
+  condición 1, vez 5 · L69 · la sección llega a una viñeta antes de ningún veredicto · su primera línea: «· EL CUMPLIMIENTO»
+  condición 1, vez 8 · L79 · una cita antes del veredicto (línea con comillas y sin forma de veredicto) · su primera línea: «· EL CUMPLIMIENTO»
+  condición 1, vez 11 · L85 · el seguro de polaridad («Sí, hay hallazgo») · su primera línea: «· EL CUMPLIMIENTO»
+  condición 1, vez 17 · L69 · la sección llega a una viñeta antes de ningún veredicto · su primera línea: «· EL CUMPLIMIENTO»
+  condición 1, vez 18 · L69 · la sección llega a una viñeta antes de ningún veredicto · su primera línea: «· EL CUMPLIMIENTO»
+condición 1 · la pregunta 2 sin decidir, por motivo: L69 · la sección llega a una viñeta antes de ningún veredicto: 4 · L79 · una cita antes del veredicto (línea con comillas y sin forma de veredicto): 1 · L85 · el seguro de polaridad («Sí, hay hallazgo»): 1
+  condición 1 repetida, vez 3 · L69 · la sección llega a una viñeta antes de ningún veredicto · su primera línea: «· EL CUMPLIMIENTO»
+  condición 1 repetida, vez 5 · L69 · la sección llega a una viñeta antes de ningún veredicto · su primera línea: «· EL CUMPLIMIENTO»
+  condición 1 repetida, vez 12 · L85 · el seguro de polaridad («Sí, hay hallazgo») · su primera línea: «· EL CUMPLIMIENTO: SÍ, HAY HALLAZGO»
+condición 1 repetida · la pregunta 2 sin decidir, por motivo: L69 · la sección llega a una viñeta antes de ningún veredicto: 2 · L85 · el seguro de polaridad («Sí, hay hallazgo»): 1
+```
+
+**LAS 9, POR MOTIVO**: viñeta antes del veredicto (L69), **6** (4 + 2); una cita antes del veredicto (L79), **1**; el seguro de
+polaridad (L85, «Sí, hay hallazgo»), **2** (1 + 1); la primera frase con «sí» y «no» (L84), 0; **NINGUNA forma de veredicto (L88, la
+de sustancia), 0.** **El 22 % es del lector, no del juez**: el juez contestó y nuestro lector no supo leerlo. Eso lo hace un defecto
+del instrumento, que se arregla, y abre el riesgo que el arquitecto nombró: si el bloque cambia el formato, cambia la tasa de
+ilegibles entre brazos.
+
+**El texto de la herramienta, para la procedencia:**
+
+```js
+// Herramienta de un solo uso (05/11), SIN HUELLA porque no produce ninguna cifra de resultado: por qué la pregunta 2 sale «sin
+// decidir» (NADA) en las respuestas de la condición 1. NO modifica el guion aprobado: lleva una COPIA de `veredicto`
+// (contar_quinto.mjs:65-89, huella e21387a1ff2e7305) con cada `return null` etiquetado por su línea, y ANTES de usarla comprueba
+// que la copia devuelve exactamente lo mismo que el original en las dos preguntas de las 40 respuestas. Si discrepa en una, no vale.
+// No imprime ningún «sale».
+import { readFileSync } from 'node:fs';
+const { secciones, veredicto } = await import('./contar_quinto.mjs');
+const SI = /(^|[^\p{L}])sí([^\p{L}]|$)/iu, NO = /(^|[^\p{L}])no([^\p{L}]|$)/iu;
+// la copia, línea por línea; cada salida nula lleva su motivo y la línea del original
+function veredictoConMotivo(seccion, pregunta = 1) {
+  const lineas = seccion.split('\n');
+  for (let i = 0; i < lineas.length; i++) {
+    const cruda = lineas[i];
+    if (/^\s*([-•]\s)/.test(cruda)) return [null, 'L69 · la sección llega a una viñeta antes de ningún veredicto'];
+    let l = (i === 0 ? cruda.replace(/^[\s·:.\-–—]*(el dato|el cumplimiento)?[\s·:.\-–—]*/i, '') : cruda).trim();
+    if (l.includes('?')) l = l.slice(l.lastIndexOf('?') + 1).trim();
+    l = l.replace(/^((respuesta|hay hallazgo|hallazgo)\s*:\s*)+/i, '').trim();
+    if (l === '') { if (/[«“"]/.test(cruda)) return [null, 'L73 · una cita antes del veredicto (línea vacía tras quitar la cabecera)']; continue; }
+    let v = null, frase = false;
+    if (pregunta === 2 && /^no se pueden cumplir/i.test(l)) { v = 'no'; frase = true; }
+    else if (pregunta === 2 && /^(s[ií][,\s]+)?se pueden cumplir/i.test(l)) { v = 'sí'; frase = true; }
+    else if (/^sí([^\p{L}]|$)/iu.test(l) || /^si([.,;:!]|$)/i.test(l)) v = 'sí';
+    else if (/^no([^\p{L}]|$)/iu.test(l)) v = 'no';
+    if (v === null) { if (/[«“"]/.test(cruda)) return [null, 'L79 · una cita antes del veredicto (línea con comillas y sin forma de veredicto)']; continue; }
+    const primera = l.split(/(?<=[.:;])\s/)[0];
+    const resto = frase && v === 'no' ? primera.replace(/^no se pueden cumplir/i, '') : primera;
+    if (SI.test(resto) && NO.test(resto)) return [null, 'L84 · la primera frase lleva «sí» y «no» a la vez'];
+    if (pregunta === 2 && v === 'sí' && /hallazgo/i.test(primera)) return [null, 'L85 · el seguro de polaridad («Sí, hay hallazgo»)'];
+    return [v, null];
+  }
+  return [null, 'L88 · NINGUNA forma de veredicto en toda la sección'];
+}
+const C = 'E:/Doc-Hub/claude/';
+const tandas = [['condición 1', C + 'Medida_F130_Veinte_Condicion_1_30-10-2026.json'], ['condición 1 repetida', C + 'Medida_F130_Veinte_Condicion_1_Repetida_30-10-2026.json']];
+let comparadas = 0, discrepa = 0;
+const salida = [];
+for (const [nombre, f] of tandas) {
+  const cuenta = {};
+  for (const r of JSON.parse(readFileSync(f, 'utf8')).respuestas) {
+    const s = secciones(r.respuesta ?? ''); if (!s) continue;
+    for (const [sec, n] of [[s.p1, 1], [s.p2, 2]]) {
+      comparadas++;
+      const [v, motivo] = veredictoConMotivo(sec, n);
+      if (v !== veredicto(sec, n)) { discrepa++; salida.push(`LA COPIA DISCREPA · ${nombre}, vez ${r.vez}, pregunta ${n}`); }
+      if (n === 2 && v === null) {
+        cuenta[motivo] = (cuenta[motivo] ?? 0) + 1;
+        const primera = sec.split('\n').map(x => x.trim()).find(x => x) ?? '';
+        salida.push(`  ${nombre}, vez ${r.vez} · ${motivo} · su primera línea: «${primera.slice(0, 150)}${primera.length > 150 ? '…' : ''}»`);
+      }
+    }
+  }
+  salida.push(`${nombre} · la pregunta 2 sin decidir, por motivo: ${Object.entries(cuenta).map(([m, k]) => `${m}: ${k}`).join(' · ') || 'ninguna'}`);
+}
+console.log(`la copia frente al original: ${comparadas} secciones, ${discrepa} discrepancias${discrepa ? ' — LA COPIA NO VALE' : ''}`);
+console.log(salida.join('\n'));
+```
+
+### LO QUE QUEDA EN EL APARATO DE CUENTA CONSTRUIDO PARA EL QUINTO Y REUTILIZADO EN D (Code, 05/11/2026)
+
+**El mecanismo** (arquitecto): R4, su regla de legibilidad y el lector del veredicto se construyeron para el quinto, cuya pareja no
+lleva otro caso dentro, y se reutilizan en D, donde A vive en los mismos trozos. La lista, agrupada por ese mecanismo:
+1. **El lector de secciones y de veredicto (R1' y R2'), calibrado con las 21 respuestas de la PRIMERA TANDA DEL QUINTO**: es su única
+   prueba de formato (`contar_quinto.mjs:322-340`, «formato de la primera tanda»). **Ya ha fallado en D** (las 9 de arriba, todas de
+   lectura). Y depende del formato, que el tratamiento puede mover.
+2. **Las citas (R3) sólo reconocen «…», “…” y "…"**, las comillas del quinto. Si una respuesta de D cita con otras (cursiva, comillas
+   simples, comillas invertidas), su cita no existe para ninguno de los dos recuentos. **No está medido en D.**
+3. **El recuento por ancla, con la regla de CONTENER el ancla entera**, pensada para las anclas cortas del quinto (31 a 38 caracteres)
+   y usada con una de 74: **8 PARCIAL de 40 por ancla** en la condición 1. Era el riesgo que se avisó, y el segundo recuento se puso
+   para cubrirlo.
+4. **El tope de repetición, «más de 4 ilegibles»**: la única derivación de ese 4 en el archivo es la del quinto («la banda A pide 17 de
+   21, así que con más de 4…», líneas 1595 y 1886). **Para n = 42 y la regla de las cotas no hay ninguna escrita.**
+5. **Fuera del quinto, pero del mismo mecanismo** (construido para una fuente y usado en otra): **la regla del producto se hizo para
+   las citas del PRODUCTO**, que pasan por la puerta y publican la frase real, y aquí se aplica a texto libre: **13 PARCIAL de 40** en
+   la condición 1.
+**Lo que no está en la lista**: la selección de respuestas (P1), Fisher, las bandas, la etiqueta (P-D-3) y la regla (ii) se escribieron
+para D, y el prompt de la pregunta cerrada también nació con D (E3).
