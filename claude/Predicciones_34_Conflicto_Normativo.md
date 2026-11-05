@@ -5692,3 +5692,46 @@ El director lo ejecuta, abre su salida en una hoja de cálculo, rellena las dos 
 **5 · CÓMO SE ARCHIVA**: Code comprueba que cada fila tiene sus dos marcas, que los valores están entre los permitidos y que el número
 de filas por análisis cuadra con la consulta; une las marcas con la salida del archivo por el número de fila; y archiva las dos, literales,
 en un fichero nuevo de `claude/`. **Y entonces el arquitecto escribe las bandas.**
+
+### LA RETIRADA DEL ARQUITECTO SOBRE F-123, Y SUS RETIRADAS DEL DÍA SEGÚN EL ARCHIVO (05/11/2026)
+**La retirada, con sus palabras**: comparó los «0, 0, 0, 0» de F-123 con los 3.000 del exhaustivo, y no son lo mismo: aquéllos eran
+CLI-12 como documento ANALIZADO, cortado por POSICIÓN; los 3.000 son del lado del CANDIDATO, elegidos por PARECIDO, y la segunda forma
+es mucho menos dañina. «Tomé una relación medida (cuánto texto ve → cuántas publica) y la apliqué cruzando una diferencia estructural
+que no había comprobado.» **Y es la segunda alarma del día dada al director y rebajada en la misma hora.** Lo que sobrevive es F-118.
+
+**CUÁNTAS LLEVA HOY, SEGÚN EL ARCHIVO** (el arquitecto pidió el recuento porque las contó de memoria). **El archivo no lleva una cuenta
+numerada del día**, así que lo honesto son dos listas:
+- **Archivadas con fecha del 05/11, en este fichero**: (1) la regla «solape de 20 caracteres» atribuida a `SQL_34_06`, que no existía
+  (adenda 1, línea 3429); (2) la autocontradicción de la regla (ii), sus líneas 1 y 3 (cierre de los huecos, cerca de la 4219); (3)
+  «sale SOBRE TODO por la vía equivocada» (5571); (4) la propuesta de certificar la forma en los falsos (5623); (5) el motivo «40 no
+  caben en 30» de la decisión de partir en dos días (5589); y (6) ésta, la de F-123. **Seis.**
+- **Las que dijo en sus mensajes del 05/11 y NO estaban archivadas como suyas** (se archivan aquí, ahora): (7) archivó en el proyecto
+  la fecha «28/10» del 6 de 7 sin abrir el JSON (él la llamó «la 14»); (8) «en la herramienta D es sólo §2.4 ↔ §3.5», ensanchando lo
+  que Code decía del registro de siembra; (9) retiró el «186» como no verificable sin preguntar cómo se había buscado; (10) «el quinto
+  no es alcanzable», que corrige Fable (él la llamó «decimoctava»; consta en el texto de la adenda de Fable, no como suya).
+- ⚠️ **Y LA NUMERACIÓN NO CUADRA**: «la decimocuarta» se usó para dos cosas distintas (el 04/11, su corrección de «el 90 % no es D»,
+  línea 3215; el 05/11, la fecha del 6 de 7); la decimoquinta y la decimosexta no le llegaron nunca a Code; y la decimoctava no estaba
+  archivada. Con el archivo delante, **diez con fecha del 05/11** (seis archivadas antes y cuatro ahora), sin contar las de su proyecto
+  que Code no ve.
+
+### EL PRESUPUESTO DEL EXHAUSTIVO ES POR CADA CANDIDATO (LECTURA A), CON SU LÍNEA (Code, 05/11/2026)
+- `lib/analysis/retrieval.ts`: el presupuesto se resuelve UNA vez por análisis (`:419-422`), y luego hay un bucle POR CANDIDATO
+  (`for (const [documentId, frags] of byDoc)`, `:444`) que llama a `selectUnitsWithinBudget` para cada uno (`:494`); dentro, el
+  acumulador **vuelve a cero en cada llamada** (`let usedChars = 0`, `:1125`). **Son 3.000 por CADA candidato**: con 25, hasta 75.000
+  caracteres de candidatos. (La función se llama `selectUnitsWithinBudget`, no `fitWithinBudget`.)
+
+### ¿GUARDÓ F-118 EL COSTE, LA DURACIÓN Y LOS TOKENS? NO EN EL ARCHIVO; UNA PARTE PUEDE SEGUIR EN LA BASE (Code, 05/11/2026)
+- **El archivo de F-118** (`Estado_Del_MVP.md:7640-7700`) guarda lo publicado, los ids de los dos trabajos de la ventana de 14.676
+  (`4b0471ba…` y `6d987d97…`) y cuántos trozos entraron, **pero ni coste, ni duración, ni tokens**. El registro por llamada que hoy lo
+  guarda todo (3.1.1) es posterior, del 21/10.
+- **Lo que puede seguir en la base**: `llm_usage` SOBREVIVIÓ a la purga, con 543 filas desde el 02/07 y el id del piloto (`SQL_SEG_02`,
+  consulta 6, 26/10; `Estado…:59-62`), con **tokens, caché y coste por llamada**, pero **sin latencias** (la tabla no tiene esa
+  columna). Así que **el precio en tokens y dólares de las dos condiciones de F-118 se podría sacar** con un SQL de sólo lectura sobre esa
+  ventana del 28/09; **la duración no**: `analysis_jobs` se borró con la purga. **No está comprobado que esas filas cubran el 28/09**:
+  lo diría el propio SQL.
+
+### LA PREGUNTA DE PRODUCTO QUE SALE DE AQUÍ (arquitecto, 05/11/2026; NO se toca hoy)
+El exhaustivo cambia PROFUNDIDAD por AMPLITUD: 25 parejas en vez de 6, cada una leída con 3.000 caracteres del candidato. **Si para las
+contradicciones pesa más la profundidad, la mejora no es subir el presupuesto: es comparar MENOS parejas y leer MÁS de cada una.** Eso
+es un rediseño, no un ajuste. **Puede ser la pregunta más importante del producto de todo lo mirado hoy: el análisis que cuesta seis
+veces más puede estar optimizando el eje equivocado.** Y no se propone ningún valor nuevo para el presupuesto sin saber lo que cuesta.
