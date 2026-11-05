@@ -5626,3 +5626,69 @@ mecánicamente sin el bloque.** La lectura humana no es aquí un recurso de segu
 director marca HALLAZGO A HALLAZGO. Y el plan es uno: **el etiquetado de 20 análisis y la tasa de «sí» falsos se juntan en UNA sesión
 de lectura del director**, con dos marcas por hallazgo publicado (¿es real? ¿tiene la forma «permiso contra principio»?). **Sin bandas ni
 predicciones todavía** (arquitecto): esta vez, el dato antes de la aritmética.
+
+### ⚠️ EL EXHAUSTIVO Y SUS 3.000 CARACTERES POR CANDIDATO: LAS TRES PREGUNTAS DEL ARQUITECTO, CONTESTADAS (Code, 05/11/2026)
+**La preocupación** (arquitecto, sin afirmarla): si el exhaustivo le da al juez 3.000 caracteres de CLI-12, que tiene 55.135, es el
+5,4 %, por debajo del régimen de F-123 que publicó «0, 0, 0, 0»; y es el análisis que cuesta 30 créditos.
+1. **Son 3.000 POR CANDIDATO EN TOTAL, no por trozo.** `selectUnitsWithinBudget` (`lib/analysis/retrieval.ts:1111` y ss.) va sumando
+   lo que mete de cada candidato (`usedChars`) hasta agotar el presupuesto, con un tope de 25 piezas (`:110`); el presupuesto lo da
+   `presupuestoPorCandidato` (`:199`): 3.000 en el rápido sin pareja entera, y en el exhaustivo `ANALYSIS_EXHAUSTIVE_BUDGET_CHARS` o, si
+   no está puesta, los mismos 3.000 (`:179-188`).
+2. **Su valor en Railway no está escrito hoy, PERO el archivo dice que se puso y se quitó una vez**: el 28/09, de 13:20 a 13:26, con
+   14.676, para el experimento de F-118, y se RETIRÓ a las 13:26 (`Estado_Del_MVP.md:7646-7652`). Si nadie la ha vuelto a poner, el
+   exhaustivo corre con 3.000. **Pasa a ser la primera de la lista para el director.**
+3. **¿Le sale a cuenta? Hay UNA medición archivada, y apunta en la dirección que teme el arquitecto**: F-118, el 28/09, exhaustivo sobre
+   NOR-11 ↔ CLI-13 (`Estado_Del_MVP.md:7658-7668`): **con 3.000, una trampa publicada por dirección; con el candidato ENTERO (14.676),
+   dos y tres**, cero falsos, con Sonnet confirmándolas. **Es una pareja y un análisis por condición y dirección**: dice la dirección,
+   no la magnitud. **Sobre la amplitud** (25 candidatos frente a 6) **no hay nada archivado** que diga si compensa. Los «nueve
+   exhaustivos antes de la purga» del arquitecto no aparecen en el archivo con ese número; la purga del 25/10 borró los análisis.
+- ⚠️ **Una precisión sobre la comparación con F-123, y es de la clase de hoy**: los «0, 0, 0, 0» de F-123 (`consultas-fable/F-123…:110`)
+  son de CLI-12 como documento ANALIZADO en el RÁPIDO, cortado POR POSICIÓN a sus primeros 6.000 caracteres. **En el exhaustivo el
+  analizado va ENTERO**; los 3.000 son del lado del CANDIDATO, elegidos POR PARECIDO (los trozos más relevantes). **Son dos operandos y
+  dos criterios de corte distintos**, así que el «por debajo del régimen de los cuatro ceros» no se sostiene tal cual. La medición que
+  sí es del mismo lado y del mismo modo es la de F-118, la del punto 3, y apunta igual.
+- **Lo que esto deja para el director** (es su decisión, con estos datos): el exhaustivo, que cuesta seis veces el rápido, lee de cada
+  candidato lo que lee el rápido sin pareja entera, mientras el rápido lee hoy la pareja entera (`ANALYSIS_PAREJA_ENTERA` en Vercel, que
+  el exhaustivo ni mira).
+
+### EL CAMPO «FORMA» DEL VERIFICADOR: EL ORDEN, ACEPTADO (arquitecto, 05/11/2026)
+Primero la sesión con el producto tal como está; después el campo, validado contra las marcas: **la forma sería lo que el modelo
+declara, no lo que es, así que sólo se puede medir contra marcas humanas.** Y el cambio de prompt del verificador **exige su tanda de
+regresión de 42 pasadas** antes de darlo por bueno.
+
+## LA SESIÓN DE LECTURA DEL DIRECTOR: EL ENCARGO, CERRADO (arquitecto y Code, 05/11/2026)
+
+**Qué se mide**: de lo que el producto publica, cuánto se sostiene; y si el bloque del principio inventa la forma «permiso contra
+principio» donde no la hay. Dos marcas por hallazgo, en una sola sesión. **Sin bandas ni predicciones todavía: el dato antes de la
+aritmética** (arquitecto). Las bandas se escriben DESPUÉS de tener las marcas.
+
+**1 · LOS DOCUMENTOS**: los 20 de `corpus-pruebas/` (los ficheros que no son registros de siembra). **Antes de empezar, el director
+confirma cuáles están subidos hoy en la organización** (el repositorio no lo sabe desde la purga). Un análisis RÁPIDO de cada uno, en el
+orden de la lista, de uno en uno.
+
+**2 · DURANTE LA SESIÓN, EL DIRECTOR NO TOCA**: los botones de aceptar o descartar (un descarte se guarda, mueve las huellas y contamina
+los análisis siguientes); ninguna subida, reindexación ni borrado; ningún despliegue. **Apunta la hora de comienzo y la de fin.**
+
+**3 · QUÉ SE MARCA** (arquitecto):
+- **Contradicciones e inconsistencias menores: SÍ.** La frontera entre las dos es justo donde han vivido los errores de clase, así que
+  se mira con ojos humanos.
+- **Solapamientos y duplicados: NO se marcan, pero SE CUENTAN**, para decidir una sesión futura con el volumen delante.
+- **Las hojas de cálculo: DENTRO, pero EN BLOQUE APARTE.** Son salida real que un cliente ve; pero una discrepancia entre filas de tabla
+  es otro mecanismo (F-92), y juntarlas con la prosa sería agrupar por síntoma.
+- **Las dos marcas**: «¿es real?» (sí / no / no sé) y «¿tiene la forma permiso contra principio?» (sí / no / no aplica).
+- **«NO SÉ» ES UNA RESPUESTA DE PRIMERA CLASE**: forzar a decidir fabrica dato; un hallazgo que un revisor competente no puede dirimir
+  es justo lo que la decisión del 01/11 dice que no se afirma; y entra en el rango de las dos cotas. **La tasa de «no sé» es una de las
+  cifras que se quieren**, no un hueco.
+
+**4 · DÓNDE MARCA, SIN GUIAR AL TESTIGO**: al acabar, Code escribe un SQL de sólo lectura (organización del piloto, probado en PGlite,
+cabecera PENDIENTE DE EJECUTAR) con DOS SALIDAS de la misma consulta, unidas por el número de fila:
+- **la del director**: número de fila, id del análisis y su hora, documento analizado, documento candidato y **las dos citas**, más las
+  dos columnas vacías. **Sin etiqueta, sin tipo, sin severidad**: le pedimos que dirima la afirmación del sistema, y la etiqueta ES la
+  afirmación; verla mientras juzga es guiar al testigo (arquitecto).
+- **la del archivo**: todo lo anterior más tipo, severidad y `conflictoNormativo`; y, aparte, el recuento de solapamientos y duplicados
+  por análisis.
+El director lo ejecuta, abre su salida en una hoja de cálculo, rellena las dos columnas y la pega a Code.
+
+**5 · CÓMO SE ARCHIVA**: Code comprueba que cada fila tiene sus dos marcas, que los valores están entre los permitidos y que el número
+de filas por análisis cuadra con la consulta; une las marcas con la salida del archivo por el número de fila; y archiva las dos, literales,
+en un fichero nuevo de `claude/`. **Y entonces el arquitecto escribe las bandas.**
