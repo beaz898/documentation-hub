@@ -593,6 +593,16 @@ El dueño del proyecto NO es programador. Vercel deploya automáticamente al hac
   y limpiado huérfanos reales—; el cero de «esa pareja no tiene clave» no lo
   tenía, y **el mismo camino, ciego, habría dado el mismo cero.** Promovida en
   F-103 P2.
+  ⚠️ **Y SU FORMA GENERAL: UNA OBSERVACIÓN NO ES PRUEBA SI LA HIPÓTESIS
+  CONTRARIA HABRÍA DADO LA MISMA OBSERVACIÓN.** Sale del trabajo de Code del
+  05/11/2026 al aplicársela a sus propias pruebas (el arquitecto la escribe
+  así): al rehacer el guion de P-F130-23, una versión con el margen de la
+  banda B cambiado de 2 a 3 pasaba todas las pruebas, porque ninguna tenía un
+  caso que lo distinguiera; y la prueba de las cotas cruzadas de la banda A
+  daba el mismo resultado con el diseño aprobado y con el rechazado. **Una
+  prueba sólo acredita un diseño si el diseño equivocado la suspende**; se
+  sustituyó por un caso que los separa, buscado con un guion. El contador a
+  cero, abajo, es el caso particular.
   ⚠️ **SU FORMA PARA LAS REGLAS QUE DESCARTAN: UN CONTADOR A CERO SÓLO VALE SI
   ANTES SE HA DEMOSTRADO QUE EL CONTADOR SABE SUBIR.** El caso, del 05/11/2026:
   antes de informar de que la regla «a caballo» de `SQL_34_06` no descartaba
