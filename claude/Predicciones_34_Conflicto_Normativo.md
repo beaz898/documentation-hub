@@ -5577,3 +5577,52 @@ quitan las que son credenciales o direcciones (claves de API, de Supabase, Strip
   primero sin decirlo.
 - **El tercer apoyo de la decisión del 01/11 existe, pero es más flojo de lo que escribió**: el mecanismo de la familia equivocada
   opera en torno a la mitad de los casos, no domina. Sigue apoyando la razón 2; ya no «sobre todo».
+
+### EL 9999, ZANJADO (director, 05/11/2026), Y LO QUE SÍ MOVIÓ EL 30 FALSO
+- **El director**: se subió un día que hacían falta más pruebas; se vuelve a poner en su valor y listo. **Nada de lo medido se rehace.**
+- **El cambio del tope: PENDIENTE CON DISPARADOR, no «mañana».** Disparador: **el próximo despliegue, el que sea** (el cambio exige
+  redesplegar, y no se hace uno sólo para esto). Valor viejo 9999, valor nuevo 100; las fechas, cuando ocurra.
+- **Los documentos del proyecto del arquitecto**: comprobados por él; el 30 falso no está en ninguno.
+- **EL 30 FALSO SÍ MOVIÓ UNA DECISIÓN, Y SE SOSTIENE POR OTRO MOTIVO** (arquitecto): partir la tanda del paso 2 en dos días (20 de
+  NOR-10 y 20 de NOR-11) se justificó con «40 no caben en 30», que era falso. Pero la misma nota da un segundo motivo: «la línea base
+  también se midió en días distintos, así que partir por documento CONSERVA la comparabilidad» (`Estado…:603-605`). **La decisión se
+  sostiene sobre el segundo motivo y la medición no se rehace. Lo que se cae es el primero.** Es el patrón del 03/11: una decisión
+  correcta con un motivo falso y otro verdadero.
+
+### EL MODELO DEL JUEZ: TRAZADO, NO CREÍDO (Code, 05/11/2026)
+- **Quién lo escribió primero**: el arquitecto, en la resolución de F-128 del 19/10 (`Estado…:2221-2222`, «`ANALYSIS_JUDGE_MODEL` se
+  deja puesto, en Vercel, con el valor `claude-haiku-5-5`»), después de la tanda de F-128 que midió los dos modelos.
+- **Y se ha MEDIDO después, en cada análisis**: el modelo que contestó queda guardado por análisis (`lecturaDeLasParejas[].modelo` y el
+  registro por llamada, `SQL_34_03:11-19, 100, 107`), y las salidas archivadas lo enseñan pasada a pasada: `claude-haiku-5-5` en las
+  del 28/10 (`Medida_F130_E3_Y_Vecindad_29-10-2026.md:777-782`), y en los JSON de la herramienta, llamada a llamada. **Para el RÁPIDO,
+  el «haiku-5-5» es un dato, no otro 30.**
+- **EL EXHAUSTIVO NO SE PUEDE AFIRMAR**: corre en Railway, y `ANALYSIS_JUDGE_MODEL` de Railway no está escrito en ningún sitio.
+- **¿Alguna cifra archivada cruza un rápido con un exhaustivo con jueces distintos? No después del 20/09**: `SQL_34_11` (04/11) da
+  **cero exhaustivos desde el 20/09** (`Medida_F130…:2034-2037`), y la purga del 25/10 borró los anteriores. Las comparaciones
+  antiguas (F-127, 16/10) son anteriores a Haiku 5.5 y ya cruzaban modelos a propósito (F-128 era esa comparación). **El riesgo es del
+  próximo exhaustivo**, no de lo archivado.
+
+### `ANALYSIS_PAREJA_ENTERA`: SÓLO LO LEE EL RÁPIDO (Code, 05/11/2026)
+- `lib/analysis/judge.ts:1151-1153` y `:1261`: «el interruptor sólo existe en RÁPIDO. En exhaustivo ni se lee, así que 'pareja_entera'
+  y 'corte_honesto' no pueden salir de un exhaustivo». **Su valor en Railway no cambia nada.**
+- Lo que lee el exhaustivo, según el propio código: el analizado ENTERO y, de cada candidato, el presupuesto de
+  `ANALYSIS_EXHAUSTIVE_BUDGET_CHARS` (3.000 si no está puesta). **Si el paso 4 del plan da por supuesto que el exhaustivo lee parejas
+  enteras, no lo hace**; Code no ve el paso 4 (vive en el proyecto).
+
+### LA LISTA PARA EL DIRECTOR, UN SOLO VIAJE (Code, 05/11/2026)
+- **En Vercel** (lo lee el rápido y la entrada de los análisis): `RATE_LIMIT_EXHAUSTIVE`, `RATE_LIMIT_ASK`, `RATE_LIMIT_STYLE`,
+  `RATE_LIMIT_IMPROVE`, `ANALYSIS_JUDGE_MODEL` y `ANALYSIS_PAREJA_ENTERA` (`RATE_LIMIT_ANALYZE` ya se sabe: 9999).
+- **En Railway** (lo lee el worker, que corre el exhaustivo): `ANALYSIS_JUDGE_MODEL` y `ANALYSIS_EXHAUSTIVE_BUDGET_CHARS`.
+- **De cada una**: el valor tal cual, o «no existe». Un 0 en una `RATE_LIMIT_*` es «sin límite» (abajo).
+
+### DEUDA TÉCNICA, PEQUEÑA Y SIN URGENCIA: EL 0 QUE SIGNIFICA «SIN LÍMITE» (arquitecto, 05/11/2026)
+En los cinco `RATE_LIMIT_*`, **un 0 significa SIN LÍMITE** (`lib/rate-limiter.ts:17, 77-80`), y en el panel de Vercel se lee como «ninguno
+permitido». **El valor que abre la puerta del todo parece el que la cierra**: el día que alguien escriba 0 para cerrarla, la abrirá. El
+centinela de «sin límite» debería ser explícito (`-1`, o la variable ausente), no el 0. No se toca hoy.
+
+### LA PROPUESTA DE LOS FALSOS, RETIRADA, Y LA RAZÓN QUE LA MATA (arquitecto, 05/11/2026)
+**«Decidir si una frase enuncia un principio es exactamente la lectura que hace el bloque»: no se puede auditar el bloque
+mecánicamente sin el bloque.** La lectura humana no es aquí un recurso de segunda: es estructural. Se adopta la alternativa de Code: el
+director marca HALLAZGO A HALLAZGO. Y el plan es uno: **el etiquetado de 20 análisis y la tasa de «sí» falsos se juntan en UNA sesión
+de lectura del director**, con dos marcas por hallazgo publicado (¿es real? ¿tiene la forma «permiso contra principio»?). **Sin bandas ni
+predicciones todavía** (arquitecto): esta vez, el dato antes de la aritmética.
