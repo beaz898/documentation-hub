@@ -5372,3 +5372,68 @@ No se pueden cumplir. ${ND} ${CP} norma_contra_norma`), CASOS.D), { quinto: null
   console.log(resumen(pulsaciones, caso).join('\n'));
 }
 ```
+
+## ⚠️ P-F130-23, SUSPENDIDO ANTES DE CORRER NINGÚN BRAZO (arquitecto, 05/11/2026)
+
+**EL LECTOR CORREGIDO, APROBADO** (arquitecto, 05/11): `contar_quinto.mjs`, SHA-256
+`5210ea9a40ccf6c04d0f095d0b39c126c03c2b120b362c9d9f0c9be911b4a4c6` (huella `5210ea9a40ccf6c0`; sustituye a `e21387a1ff2e7305`).
+`contar_brazos.mjs` sigue en `527b3ad22bb79110440b0b7fffff8b64ec48f7e0242a8bec986d9c89ed62e43f`. **La columna 1 del quinto no cambia
+con él** (13 de 21 y 12 de 21): el defecto del lector no contaminó las cifras publicadas.
+
+**La suspensión, literal**, sacada del registro con un script:
+
+```
+P-F130-23 · SE SUSPENDE EL 05/11/2026, ANTES DE CORRER NINGÚN BRAZO.
+Decisión del arquitecto. No se vio ninguna cifra de «sale» de ningún brazo.
+
+1. EL APARATO NO PUEDE RESOLVERLO (medido). Con el lector corregido, la
+   condición 1 deja 16 ilegibles de 40 por ancla y 20 por la regla del
+   producto. El techo de PARCIAL para que n = 42 vea una caída del 90 % al
+   50 % es 5 de 42. Estamos en 9 o más. Subir el n no lo arregla: con el 20 %
+   de PARCIAL harían falta 210 por brazo (60 pulsaciones) y con el 32,5 % el
+   signo de la diferencia está invertido y NINGÚN n lo arregla.
+2. NO HAY PALANCA BARATA (medido). En 4 de las 6 respuestas sin el lado de
+   CLI-12, el juez no cita CLI-12 de ninguna forma. Acortar el ancla no
+   bajaría el PARCIAL de 8 a 5, porque la cita más corta aparece una sola vez.
+   Y no hay citas en estilos no reconocidos: ninguna.
+3. Y LA RAZÓN DE FONDO: EL EXPERIMENTO NO MIDE LA PREGUNTA QUE SE HIZO.
+   La pregunta del director es si el bloque del principio es AD HOC. Ad hoc
+   significa «sólo funciona en el caso para el que se escribió». P-F130-23
+   mide cuánto depende D del bloque, que es otra cosa: un bloque que
+   describa una clase real también haría caer a D al quitarlo. LA PRUEBA DE
+   LA GENERALIDAD NO ES QUITAR LA REGLA DEL CASO QUE LA INSPIRÓ: ES APLICARLA
+   EN OTRO SITIO.
+
+LO QUE NO SE HACE: la regla de leer el veredicto en mitad de línea. Code la
+describió y no la escribió, correctamente: ajustarla hasta que pasen esas 7
+respuestas sería calibrar el instrumento sobre una muestra CON bloque.
+
+LO QUE SE CONSERVA: el lector corregido, la lista de las cinco piezas
+construidas para el quinto, los dos recuentos, la regla de las cotas cruzadas
+y las cuatro reglas de método del día. Nada de eso se tira: lo que se tira es
+el contraste.
+```
+
+**EL SÉPTIMO DEFECTO PARA LA LISTA DE FABLE** (arquitecto): la medición que Fable propuso (P-F130-23) no pone a prueba la afirmación
+que Fable hace. Afirma que el bloque «describe una clase de casos» y propone medirlo QUITÁNDOLO DEL CASO QUE LO INSPIRÓ. **Eso mide
+dependencia, no generalidad.**
+
+**P-P3-2, PENDIENTE DE PUNTUAR POR EL ARQUITECTO** con el texto literal delante (líneas 956-959, enmienda 3; aclarada en 1004-1005 y
+1041-1042: «Un quinto que salga por la pregunta 2 SÍ cuenta en (1) y hace FALLAR P-P3-2»), contra la columna 2 de la segunda tanda
+con el lector aprobado: la 1: 3 · la 2: 4 · las dos: 4 · sin decidir: 1. **Se puntúa con un lector distinto del que había cuando se
+prerregistró**, y con las dos lecturas al lado (con el anterior, NO PUNTUABLE por 5 de 21 sin decidir).
+
+### EL TOPE DIARIO DE ANÁLISIS RÁPIDOS, A 50: LO QUE DICE EL CÓDIGO (Code, 05/11/2026; NO SE HA TOCADO NADA)
+- **El valor no está en el código: está en Vercel.** `getLimit` (`lib/rate-limiter.ts:130-140`) lee `RATE_LIMIT_ANALYZE` de las
+  variables de entorno, y **sólo si no existe** usa el 30 del código (`:23`). Subir el número del código no cambiaría nada si la
+  variable está puesta; el cambio es del director, en Vercel, y entra con el siguiente despliegue.
+- **No desbloquea P-F130-23 ni lo habría desbloqueado nunca** (arquitecto): la herramienta llama al juez directamente, cuesta 0
+  créditos y no pasa por el limitador. **El motivo del cambio es el trabajo que viene** (E5 y el etiquetado), y ya estaba pendiente
+  con disparador (`Estado_Y_Pendientes_14-10-2026.md`, «EL LÍMITE DE 30 ANÁLISIS RÁPIDOS AL DÍA», 02/11).
+- **Lo que cuelga de él**: (1) es POR USUARIO y día y sólo cuenta los rápidos que salieron bien (`:83-100`); (2) **el coste**, a unos
+  0,031 $ por análisis, pasa de unos 0,93 $ a unos 1,55 $ por usuario y día como máximo; (3) **los créditos**: 5 por análisis rápido,
+  así que 50 al día son 250 créditos; el saldo de la organización sigue mandando, y en un plan pequeño se acaba antes que el tope;
+  (4) **la carga no cambia**: un solo análisis activo por organización (`checkAndAcquireAnalysisLock`, `app/api/analyze-v2/route.ts`,
+  409 si hay otro en curso), y el limitador de Anthropic por minuto (`lib/llm/rate-limiter.ts:4-6`) es global y no depende del
+  tope diario; (5) **el exhaustivo tiene su propio tope** (`RATE_LIMIT_EXHAUSTIVE`, 10 por defecto) y no se mueve.
+- **Para escribir el valor viejo, el nuevo y las dos fechas, falta el valor que tiene HOY Vercel** (30, o lo que diga): lo da el director.
