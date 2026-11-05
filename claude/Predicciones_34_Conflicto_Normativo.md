@@ -4160,3 +4160,56 @@ contó nada; se repitió con `E:/…`. Es la que está arriba.)*
 - **El Fisher entre las dos tandas que pidió el arquitecto no se da**: el guion no enseña el número de «sale» de un brazo a repetir,
   y calcularlo por otra vía sería saltarse su propia regla.
 - **Es un hallazgo de DISEÑO, no de recuento**, y lo decide el arquitecto. Code no ha tocado el guion.
+
+### P-F130-23 · LA ADENDA 2 AL PRERREGISTRO, LITERAL (arquitecto, 05/11/2026, antes de correr ningún brazo)
+
+Sacada del registro de la conversación con un script. **La regla (ii), tal como la escribió el arquitecto** (05/11):
+- «Sale: la pregunta 1 trae D con las dos anclas, o la pregunta 2 dice "no se pueden cumplir" con las dos anclas.»
+- «No sale: la pregunta 1 trae cualquier cosa que no sea D (o nada) y la pregunta 2 dice "sí se pueden cumplir".»
+- «Ilegible: la pregunta 2 no decide nada, con independencia de lo que traiga la 1. Ese núcleo de R4 sobrevive y no se toca.»
+- Idéntica en los seis brazos. Y en los mutantes, uno explícito: la vuelta a R4 tiene que salir en rojo.
+
+```
+ADENDA 2 AL PRERREGISTRO DE P-F130-23 · 05/11/2026, antes de correr ningún brazo.
+
+MOTIVO: la comprobación en seco sobre las 40 respuestas archivadas de la
+condición 1 salió «SE REPITE» en las tres corridas: 10 ilegibles de 20 por
+ancla y 13 de 20 por la regla del producto, iguales en las dos tandas.
+
+CAUSA: R4, la regla de legibilidad con la que se contó el quinto, lee un
+hallazgo de la pregunta 1 sin las anclas de la pareja como ILEGIBLE. En la
+pareja del quinto eso era correcto porque no había otro caso dentro. En las
+parejas de D, A vive en los mismos trozos, así que la pregunta 1 afirma
+hallazgos legítimamente y R4 convierte en ilegible lo que es simplemente
+«no es D». Con R4, estos brazos se repetirían indefinidamente.
+
+CAMBIO: se adopta la regla (ii). Un hallazgo de la pregunta 1 sin las anclas
+es OTRO HALLAZGO, no ilegible. Sale / no sale / ilegible quedan definidos como
+en el encargo del arquitecto del 05/11, 11:18. El núcleo de R4 —la pregunta 2
+sin decidir es ilegible— se mantiene.
+
+SE DESCARTA la opción de medir D sólo por la pregunta 2: el bloque del
+principio está redactado en el lenguaje del conflicto normativo, que es el de
+la pregunta 2, de modo que el tratamiento puede mover el canal de la medición.
+UNA MEDICIÓN NO PUEDE PASAR POR UN CANAL QUE EL TRATAMIENTO PUEDE MOVER.
+
+LO QUE MANTIENE VIVO ESTE PRERREGISTRO: el cambio se decidió SIN QUE NADIE
+VIERA NINGUNA CIFRA DE «SALE». El guion se negó a mostrarlas en un brazo
+marcado «SE REPITE» y no se calcularon por otra vía.
+
+CERRADO EN LA MISMA COMPROBACIÓN: la regla «a caballo» descarta 0 de 40. Con
+40 observaciones se descarta una tasa superior al 8,8 % (Wilson 95 %). Deja de
+ser un riesgo del diseño.
+
+PENDIENTE QUE ESTO ABRE, Y NO ES DE P-F130-23: el plan del paso 4 preveía
+comparar la tanda de 42 de D contra los 12 de 21 del quinto. Esas dos
+mediciones NO comparten regla de legibilidad, y ahora se sabe por qué: R4
+muerde distinto según haya o no otro caso dentro de la pareja. Esa comparación
+queda en cuarentena hasta que se decida con qué regla se rehace.
+```
+
+⚠️ **DOS HUECOS QUE CODE MARCA ANTES DE ESCRIBIR LA REGLA EN EL GUION** (pendientes de decisión del arquitecto; nada cambiado):
+1. **La pregunta 1 trae D con las dos anclas y la 2 no decide**: la primera línea dice «sale»; la tercera, «ilegible, con
+   independencia de lo que traiga la 1». R4 la daba como «sale».
+2. **La pregunta 2 dice «no se pueden cumplir» SIN las dos anclas, y la 1 no trae D**: no es «sale» (faltan anclas), no es «no
+   sale» (la 2 no dice «sí») y no es «ilegible» (la 2 decide). R4 la daba como ilegible.
