@@ -5735,3 +5735,28 @@ El exhaustivo cambia PROFUNDIDAD por AMPLITUD: 25 parejas en vez de 6, cada una 
 contradicciones pesa más la profundidad, la mejora no es subir el presupuesto: es comparar MENOS parejas y leer MÁS de cada una.** Eso
 es un rediseño, no un ajuste. **Puede ser la pregunta más importante del producto de todo lo mirado hoy: el análisis que cuesta seis
 veces más puede estar optimizando el eje equivocado.** Y no se propone ningún valor nuevo para el presupuesto sin saber lo que cuesta.
+
+### EL REGISTRO DE LAS RETIRADAS DEL ARQUITECTO: UNO SOLO, EL DEL REPOSITORIO (arquitecto, 05/11/2026)
+- **El registro único es éste, el del repositorio, y lo mantiene Code. El arquitecto deja de numerar**: ha corregido su copia del
+  proyecto para que describa las retiradas sin numerarlas, con una nota que explica por qué.
+- **La causa** (arquitecto): dos registros con una sola numeración divergen por construcción. El 14 se usó dos veces; la 15 y la 16
+  no llegaron porque se escribieron en un archivo que Code no puede abrir; la 18 no se archivó en ningún sitio. Es la regla del 01/11
+  aplicada al registro de sus propios errores.
+- **LA REGLA NUEVA: una retirada MENCIONADA en un mensaje no es una retirada ARCHIVADA.** Toda retirada va en el bloque del mensaje,
+  marcada como línea para archivar y con su fecha; si no va así, no cuenta. Una retirada que se evapora es peor que el error: deja la
+  afirmación en pie y la corrección fuera.
+- **EL 05/11, DIEZ**, con su lectura al lado (arquitecto): **las diez se cazaron, ninguna llegó a producción ni a un cliente, y cuatro
+  las cazó él.** Lo que falló no fue la aritmética ninguna de las diez veces: **fue la procedencia, nueve de diez.**
+
+### SQL_34_12 · EL PRECIO DEL CANDIDATO ENTERO, PREPARADO (Code, 05/11/2026; PENDIENTE DE EJECUTAR)
+- **Qué saca**: de `llm_usage`, las filas del 28/09 de la organización del piloto (el id viejo, a propósito, como `SQL_SEG_02`), agrupadas
+  por análisis, con su ventana —antes de las 13:20 (3.000), de 13:20 a 13:26 (14.676), después—, sus tokens y su coste; y el total y el
+  medio por ventana de los exhaustivos. **Dice por sí misma si las filas llegan al 28/09**, y si el id no lee nada lo dice a gritos.
+- **La duración, NO**, y la consulta lo declara en una fila: `llm_usage` no lleva id de análisis ni de trabajo ni latencia, y el worker
+  escribe las filas de un exhaustivo AL TERMINAR, una por modelo y en un solo INSERT (`worker/src/index.ts:144`,
+  `lib/observability/record-usage.ts:42-64`). Sólo hay la hora del final; `analysis_jobs` se borró con la purga. **Por eso «una hora =
+  un análisis»** es como agrupa, y la salida enseña cuántas filas lleva cada grupo.
+- **Probado en PGlite** (`claude/arneses/f34/sql-34-12-el-precio-del-candidato-entero.test.ts`, 6 pruebas con filas sintéticas: dentro, antes
+  y después de la ventana, otro día, otra organización y otra operación como ruido; los bordes 13:19:59, 13:20:00, 13:26:59 y 13:27:00;
+  sin filas ese día; con el id vacío). **11 mutantes, los 11 en rojo** (`mutantes-sql-34-12.ts`). Huella `9e61cc95700b6201`. Suite completa
+  y tsc a cero.
