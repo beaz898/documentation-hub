@@ -3414,3 +3414,59 @@ normalizada (minúsculas, espacios colapsados, tildes quitadas), **mide 20 carac
 tramo toca la frase del caso en al menos UN carácter**. El 20 es la longitud mínima de la cita, no la del solape. Y del lado de
 NOR-10 añade la regla de «a caballo»: una cita que toca la frase de A y la de D a la vez es DUDOSA y no cuenta en ninguna (líneas
 135-137). En el §3.5 no hay tramo: basta con salir literal en el párrafo.
+
+### P-F130-23 · LA ADENDA AL PRERREGISTRO, LITERAL (arquitecto, 05/11/2026, antes de correr nada)
+
+Marca una frase falsa del prerregistro de arriba; no lo borra. Sacada del registro de la conversación con un script.
+
+```
+ADENDA AL PRERREGISTRO DE P-F130-23 · 05/11/2026, el mismo día y antes de correr nada.
+
+1. DONDE DICE «recuento laxo … solape de 20 car., regla de SQL_34_06:87», ES FALSO.
+   La línea 87 es sólo el texto de la frase. La regla está en 89-90, 129-134 y
+   138-142: normaliza, exige 20 caracteres MÍNIMOS DE LONGITUD DE LA CITA (no de
+   solape), exige literalidad dentro del párrafo y que el tramo toque la frase.
+   El arquitecto describió una regla que no existía y la justificó diciendo que no
+   se la inventaba. Lo cazó Code antes de escribir una línea de script.
+
+2. LOS DOS RECUENTOS NO ESTÁN ANIDADOS y ninguno es «el laxo». Se llaman
+   RECUENTO POR ANCLA y RECUENTO POR LA REGLA DEL PRODUCTO. El primero se cae con
+   las citas cortas; el segundo, con las paráfrasis y las elipsis. Fallan en
+   direcciones opuestas, y por eso exigir que coincidan acota.
+   LA GARANTÍA NO CAMBIA: exigir acuerdo sólo puede hacer una banda más difícil
+   de asignar, nunca más fácil.
+
+3. LA REGLA «A CABALLO» DE SQL_34_06 (135-137) SE PORTA TAMBIÉN. Una cita que
+   abarque a la vez la frase de A y la de D en NOR-10·4 no cuenta para ninguna y
+   entra en los ilegibles, con la regla del rango. Contarla como D sería dar por
+   supuesta la respuesta que se mide.
+
+4. LA DEBILIDAD, con las cifras de n = 42 en vez de las de 40: caída de 15
+   puntos, 30,0 % desde 0,85 y 44,3 % desde 0,95. Caída de 10 puntos, 20,3 %
+   desde 0,95. La banda C sigue siendo ancha y sigue siendo una propiedad del n.
+
+5. CONDICIÓN PREVIA A CONSTRUIR: se cuenta sobre el archivo cuántas de las 9
+   citas de D y cuántas de las 8 del principio sobreviven a estas reglas. Si la
+   regla «a caballo» descarta la mayoría de las 9, o si los dos recuentos
+   discrepan en la mayoría de las 8, EL DISEÑO SE REVISA ANTES DE CORRER NADA.
+```
+
+**La celda que le llegó cortada al arquitecto** (Code): caída de 10 puntos desde 0,85, a n = 42, **15,0 %**.
+
+**SU PUNTO 5, HECHO POR CODE SOBRE EL ARCHIVO** (la regla del producto portada de `SQL_34_06`, con sus textos leídos del propio
+fichero SQL; herramienta de un solo uso `regla_producto.mjs` en el scratchpad):
+- ⚠️ **NO SON 9 CITAS DE D NI 8 DEL PRINCIPIO: SON 6 Y 5. El 9 y el 8 los dio Code, y contaban dos veces las tres de la línea base**,
+  que están archivadas dos veces: la salida de `SQL_34_05` (`Medida_F130_E3_Y_Vecindad_29-10-2026.md:812, 818, 823`) y la de
+  `SQL_34_06` (`:1056, 1077, 1094`), las pasadas 12, 17 y 21 del 30-31/10. Las distintas: las pasadas 4 y 5 del 28/10 (`:781,
+  783`), la 12, la 17 y la 21 de la línea base, y la 19 del 02/11 (`:1760`, la única por el §3.5).
+- **«A caballo» no descarta ninguna de las 6**: todas tocan sólo la frase del permiso. Y **la regla PUEDE descartar** (control
+  positivo con citas inventadas, literales del §2.4): una que abarca el final de la frase de D y el principio de la de A sale
+  DUDOSA; una sólo de la de A, A; una sólo de la de D, D; una de menos de 20 caracteres, ninguno. **En todas las salidas archivadas
+  de `SQL_34_06` y `SQL_34_05` sobre NOR-10 (7 + 21 + 21 + 21 pasadas), «dudosas aparte: 0».**
+- **Por el lado de CLI-12, los dos recuentos coinciden en las 6**: las 5 del principio pasan la regla del producto («el principio de
+  §3.1») y contienen el ancla de 74; la del §3.5 pasa («§3.5») y contiene la suya. Del lado de NOR-10, las 6 contienen el ancla.
+- ⚠️ **LO QUE ESTO NO DICE, y es el límite que importa**: las 6 son citas del PRODUCTO, que pasan por la puerta de citas y publican la
+  frase real; por eso son literales y no abarcan dos frases. **Las de la herramienta son texto libre**: pueden ser más largas,
+  parafrasear o abarcar las dos frases de NOR-10·4, y ahí las dos reglas pueden fallar más. El archivo no tiene con qué contestarlo
+  para la herramienta, salvo las 40 respuestas de la condición 1 (la misma pareja del §3.1), que siguen sin leer. Y las selecciona
+  el propio instrumento: las «cita de D» son, por construcción, las que no salieron dudosas.
