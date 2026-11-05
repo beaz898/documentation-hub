@@ -4030,3 +4030,133 @@ else if (ACCION === 'banda') {
   console.log(L.join('\n'));
 }
 ```
+
+### P-F130-23 · LA COMPROBACIÓN DE LA CONDICIÓN 1, CON EL GUION APROBADO: LAS TRES CORRIDAS SALEN «SE REPITE» (Code, 05/11/2026)
+
+**La huella `c86e2ecbddab3826`, APROBADA** (arquitecto, 05/11), comprobada antes de contar, y `contar_quinto.mjs` con la suya,
+`e21387a1ff2e7305`. Tres corridas, como pidió el arquitecto (cada tanda de 20 sola, y las dos juntas), pareja del §3.1:
+
+```
+===== CORRIDA 1 (N=20)
+la pareja del §3.1 (NOR-10·4 ↔ CLI-12·3) · n = 20
+1 · LAS FALLIDAS: 0
+2 · LAS ILEGIBLES, ANTES QUE NINGÚN NÚMERO: por ancla 10, por la regla del producto 13 (de ellas, a caballo: 0)
+   ancla: pulsación 1, vez 3: pregunta 1: hallazgo sin las anclas de la pareja; pregunta 2: veredicto sin decidir
+   ancla: pulsación 1, vez 5: pregunta 1: hallazgo sin las anclas de la pareja; pregunta 2: veredicto sin decidir
+   ancla: pulsación 1, vez 8: pregunta 1: hallazgo sin las anclas de la pareja; pregunta 2: veredicto sin decidir
+   ancla: pulsación 1, vez 9: pregunta 1: hallazgo sin las anclas de la pareja; pregunta 2: hallazgo con una sola de las dos anclas
+   ancla: pulsación 1, vez 10: pregunta 1: hallazgo sin las anclas de la pareja; pregunta 2: hallazgo con una sola de las dos anclas
+   ancla: pulsación 1, vez 11: pregunta 1: hallazgo sin las anclas de la pareja; pregunta 2: veredicto sin decidir
+   ancla: pulsación 1, vez 12: pregunta 1: hallazgo sin las anclas de la pareja; pregunta 2: hallazgo con una sola de las dos anclas
+   ancla: pulsación 1, vez 13: pregunta 1: hallazgo sin las anclas de la pareja; pregunta 2: hallazgo con una sola de las dos anclas
+   ancla: pulsación 1, vez 17: pregunta 1: hallazgo sin las anclas de la pareja; pregunta 2: veredicto sin decidir
+   ancla: pulsación 1, vez 18: pregunta 1: hallazgo sin las anclas de la pareja; pregunta 2: veredicto sin decidir
+   producto: pulsación 1, vez 2: pregunta 1: hallazgo sin ningún lado por la regla del producto; pregunta 2: hallazgo con un solo lado por la regla del producto
+   producto: pulsación 1, vez 3: pregunta 1: hallazgo sin ningún lado por la regla del producto; pregunta 2: veredicto sin decidir
+   producto: pulsación 1, vez 5: pregunta 1: hallazgo sin ningún lado por la regla del producto; pregunta 2: veredicto sin decidir
+   producto: pulsación 1, vez 8: pregunta 1: hallazgo sin ningún lado por la regla del producto; pregunta 2: veredicto sin decidir
+   producto: pulsación 1, vez 9: pregunta 1: hallazgo sin ningún lado por la regla del producto; pregunta 2: hallazgo con un solo lado por la regla del producto
+   producto: pulsación 1, vez 10: pregunta 1: hallazgo sin ningún lado por la regla del producto; pregunta 2: hallazgo con un solo lado por la regla del producto
+   producto: pulsación 1, vez 11: pregunta 1: hallazgo sin ningún lado por la regla del producto; pregunta 2: veredicto sin decidir
+   producto: pulsación 1, vez 12: pregunta 1: hallazgo sin ningún lado por la regla del producto; pregunta 2: hallazgo con un solo lado por la regla del producto
+   producto: pulsación 1, vez 13: pregunta 1: hallazgo sin ningún lado por la regla del producto; pregunta 2: hallazgo con un solo lado por la regla del producto
+   producto: pulsación 1, vez 14: pregunta 1: hallazgo sin ningún lado por la regla del producto; pregunta 2: hallazgo con un solo lado por la regla del producto
+   producto: pulsación 1, vez 15: pregunta 1: hallazgo sin ningún lado por la regla del producto; pregunta 2: hallazgo con un solo lado por la regla del producto
+   producto: pulsación 1, vez 17: pregunta 1: hallazgo sin ningún lado por la regla del producto; pregunta 2: veredicto sin decidir
+   producto: pulsación 1, vez 18: pregunta 1: hallazgo sin ningún lado por la regla del producto; pregunta 2: veredicto sin decidir
+SE REPITE: más de 4 ilegibles. No se enseña ningún número de «sale».
+===== CORRIDA 2 (N=20)
+la pareja del §3.1 (NOR-10·4 ↔ CLI-12·3) · n = 20
+1 · LAS FALLIDAS: 0
+2 · LAS ILEGIBLES, ANTES QUE NINGÚN NÚMERO: por ancla 10, por la regla del producto 13 (de ellas, a caballo: 0)
+   ancla: pulsación 1, vez 2: pregunta 1: hallazgo sin las anclas de la pareja; pregunta 2: hallazgo con una sola de las dos anclas
+   ancla: pulsación 1, vez 3: pregunta 1: hallazgo sin las anclas de la pareja; pregunta 2: veredicto sin decidir
+   ancla: pulsación 1, vez 4: pregunta 1: hallazgo sin las anclas de la pareja; pregunta 2: hallazgo sin las anclas de la pareja
+   ancla: pulsación 1, vez 5: pregunta 1: hallazgo sin las anclas de la pareja; pregunta 2: veredicto sin decidir
+   ancla: pulsación 1, vez 8: pregunta 1: hallazgo sin las anclas de la pareja; pregunta 2: hallazgo con una sola de las dos anclas
+   ancla: pulsación 1, vez 11: pregunta 1: hallazgo sin las anclas de la pareja; pregunta 2: hallazgo con una sola de las dos anclas
+   ancla: pulsación 1, vez 12: pregunta 1: hallazgo sin las anclas de la pareja; pregunta 2: veredicto sin decidir
+   ancla: pulsación 1, vez 14: pregunta 1: hallazgo sin las anclas de la pareja; pregunta 2: hallazgo sin las anclas de la pareja
+   ancla: pulsación 1, vez 15: pregunta 1: hallazgo sin las anclas de la pareja; pregunta 2: hallazgo con una sola de las dos anclas
+   ancla: pulsación 1, vez 20: pregunta 1: hallazgo sin las anclas de la pareja
+   producto: pulsación 1, vez 1: pregunta 1: hallazgo sin ningún lado por la regla del producto; pregunta 2: hallazgo con un solo lado por la regla del producto
+   producto: pulsación 1, vez 2: pregunta 1: hallazgo sin ningún lado por la regla del producto; pregunta 2: hallazgo con un solo lado por la regla del producto
+   producto: pulsación 1, vez 3: pregunta 1: hallazgo sin ningún lado por la regla del producto; pregunta 2: veredicto sin decidir
+   producto: pulsación 1, vez 4: pregunta 1: hallazgo sin ningún lado por la regla del producto; pregunta 2: hallazgo sin ningún lado por la regla del producto
+   producto: pulsación 1, vez 5: pregunta 1: hallazgo sin ningún lado por la regla del producto; pregunta 2: veredicto sin decidir
+   producto: pulsación 1, vez 6: pregunta 1: hallazgo sin ningún lado por la regla del producto; pregunta 2: hallazgo con un solo lado por la regla del producto
+   producto: pulsación 1, vez 8: pregunta 1: hallazgo sin ningún lado por la regla del producto; pregunta 2: hallazgo con un solo lado por la regla del producto
+   producto: pulsación 1, vez 10: pregunta 1: hallazgo sin ningún lado por la regla del producto; pregunta 2: hallazgo sin ningún lado por la regla del producto
+   producto: pulsación 1, vez 11: pregunta 1: hallazgo sin ningún lado por la regla del producto; pregunta 2: hallazgo con un solo lado por la regla del producto
+   producto: pulsación 1, vez 12: pregunta 1: hallazgo sin ningún lado por la regla del producto; pregunta 2: veredicto sin decidir
+   producto: pulsación 1, vez 14: pregunta 1: hallazgo sin ningún lado por la regla del producto; pregunta 2: hallazgo sin ningún lado por la regla del producto
+   producto: pulsación 1, vez 15: pregunta 1: hallazgo sin ningún lado por la regla del producto; pregunta 2: hallazgo con un solo lado por la regla del producto
+   producto: pulsación 1, vez 20: pregunta 1: hallazgo sin ningún lado por la regla del producto
+SE REPITE: más de 4 ilegibles. No se enseña ningún número de «sale».
+===== CORRIDA 3 (N=40)
+la pareja del §3.1 (NOR-10·4 ↔ CLI-12·3) · n = 40
+1 · LAS FALLIDAS: 0
+2 · LAS ILEGIBLES, ANTES QUE NINGÚN NÚMERO: por ancla 20, por la regla del producto 26 (de ellas, a caballo: 0)
+   ancla: pulsación 1, vez 3: pregunta 1: hallazgo sin las anclas de la pareja; pregunta 2: veredicto sin decidir
+   ancla: pulsación 1, vez 5: pregunta 1: hallazgo sin las anclas de la pareja; pregunta 2: veredicto sin decidir
+   ancla: pulsación 1, vez 8: pregunta 1: hallazgo sin las anclas de la pareja; pregunta 2: veredicto sin decidir
+   ancla: pulsación 1, vez 9: pregunta 1: hallazgo sin las anclas de la pareja; pregunta 2: hallazgo con una sola de las dos anclas
+   ancla: pulsación 1, vez 10: pregunta 1: hallazgo sin las anclas de la pareja; pregunta 2: hallazgo con una sola de las dos anclas
+   ancla: pulsación 1, vez 11: pregunta 1: hallazgo sin las anclas de la pareja; pregunta 2: veredicto sin decidir
+   ancla: pulsación 1, vez 12: pregunta 1: hallazgo sin las anclas de la pareja; pregunta 2: hallazgo con una sola de las dos anclas
+   ancla: pulsación 1, vez 13: pregunta 1: hallazgo sin las anclas de la pareja; pregunta 2: hallazgo con una sola de las dos anclas
+   ancla: pulsación 1, vez 17: pregunta 1: hallazgo sin las anclas de la pareja; pregunta 2: veredicto sin decidir
+   ancla: pulsación 1, vez 18: pregunta 1: hallazgo sin las anclas de la pareja; pregunta 2: veredicto sin decidir
+   ancla: pulsación 2, vez 2: pregunta 1: hallazgo sin las anclas de la pareja; pregunta 2: hallazgo con una sola de las dos anclas
+   ancla: pulsación 2, vez 3: pregunta 1: hallazgo sin las anclas de la pareja; pregunta 2: veredicto sin decidir
+   ancla: pulsación 2, vez 4: pregunta 1: hallazgo sin las anclas de la pareja; pregunta 2: hallazgo sin las anclas de la pareja
+   ancla: pulsación 2, vez 5: pregunta 1: hallazgo sin las anclas de la pareja; pregunta 2: veredicto sin decidir
+   ancla: pulsación 2, vez 8: pregunta 1: hallazgo sin las anclas de la pareja; pregunta 2: hallazgo con una sola de las dos anclas
+   ancla: pulsación 2, vez 11: pregunta 1: hallazgo sin las anclas de la pareja; pregunta 2: hallazgo con una sola de las dos anclas
+   ancla: pulsación 2, vez 12: pregunta 1: hallazgo sin las anclas de la pareja; pregunta 2: veredicto sin decidir
+   ancla: pulsación 2, vez 14: pregunta 1: hallazgo sin las anclas de la pareja; pregunta 2: hallazgo sin las anclas de la pareja
+   ancla: pulsación 2, vez 15: pregunta 1: hallazgo sin las anclas de la pareja; pregunta 2: hallazgo con una sola de las dos anclas
+   ancla: pulsación 2, vez 20: pregunta 1: hallazgo sin las anclas de la pareja
+   producto: pulsación 1, vez 2: pregunta 1: hallazgo sin ningún lado por la regla del producto; pregunta 2: hallazgo con un solo lado por la regla del producto
+   producto: pulsación 1, vez 3: pregunta 1: hallazgo sin ningún lado por la regla del producto; pregunta 2: veredicto sin decidir
+   producto: pulsación 1, vez 5: pregunta 1: hallazgo sin ningún lado por la regla del producto; pregunta 2: veredicto sin decidir
+   producto: pulsación 1, vez 8: pregunta 1: hallazgo sin ningún lado por la regla del producto; pregunta 2: veredicto sin decidir
+   producto: pulsación 1, vez 9: pregunta 1: hallazgo sin ningún lado por la regla del producto; pregunta 2: hallazgo con un solo lado por la regla del producto
+   producto: pulsación 1, vez 10: pregunta 1: hallazgo sin ningún lado por la regla del producto; pregunta 2: hallazgo con un solo lado por la regla del producto
+   producto: pulsación 1, vez 11: pregunta 1: hallazgo sin ningún lado por la regla del producto; pregunta 2: veredicto sin decidir
+   producto: pulsación 1, vez 12: pregunta 1: hallazgo sin ningún lado por la regla del producto; pregunta 2: hallazgo con un solo lado por la regla del producto
+   producto: pulsación 1, vez 13: pregunta 1: hallazgo sin ningún lado por la regla del producto; pregunta 2: hallazgo con un solo lado por la regla del producto
+   producto: pulsación 1, vez 14: pregunta 1: hallazgo sin ningún lado por la regla del producto; pregunta 2: hallazgo con un solo lado por la regla del producto
+   producto: pulsación 1, vez 15: pregunta 1: hallazgo sin ningún lado por la regla del producto; pregunta 2: hallazgo con un solo lado por la regla del producto
+   producto: pulsación 1, vez 17: pregunta 1: hallazgo sin ningún lado por la regla del producto; pregunta 2: veredicto sin decidir
+   producto: pulsación 1, vez 18: pregunta 1: hallazgo sin ningún lado por la regla del producto; pregunta 2: veredicto sin decidir
+   producto: pulsación 2, vez 1: pregunta 1: hallazgo sin ningún lado por la regla del producto; pregunta 2: hallazgo con un solo lado por la regla del producto
+   producto: pulsación 2, vez 2: pregunta 1: hallazgo sin ningún lado por la regla del producto; pregunta 2: hallazgo con un solo lado por la regla del producto
+   producto: pulsación 2, vez 3: pregunta 1: hallazgo sin ningún lado por la regla del producto; pregunta 2: veredicto sin decidir
+   producto: pulsación 2, vez 4: pregunta 1: hallazgo sin ningún lado por la regla del producto; pregunta 2: hallazgo sin ningún lado por la regla del producto
+   producto: pulsación 2, vez 5: pregunta 1: hallazgo sin ningún lado por la regla del producto; pregunta 2: veredicto sin decidir
+   producto: pulsación 2, vez 6: pregunta 1: hallazgo sin ningún lado por la regla del producto; pregunta 2: hallazgo con un solo lado por la regla del producto
+   producto: pulsación 2, vez 8: pregunta 1: hallazgo sin ningún lado por la regla del producto; pregunta 2: hallazgo con un solo lado por la regla del producto
+   producto: pulsación 2, vez 10: pregunta 1: hallazgo sin ningún lado por la regla del producto; pregunta 2: hallazgo sin ningún lado por la regla del producto
+   producto: pulsación 2, vez 11: pregunta 1: hallazgo sin ningún lado por la regla del producto; pregunta 2: hallazgo con un solo lado por la regla del producto
+   producto: pulsación 2, vez 12: pregunta 1: hallazgo sin ningún lado por la regla del producto; pregunta 2: veredicto sin decidir
+   producto: pulsación 2, vez 14: pregunta 1: hallazgo sin ningún lado por la regla del producto; pregunta 2: hallazgo sin ningún lado por la regla del producto
+   producto: pulsación 2, vez 15: pregunta 1: hallazgo sin ningún lado por la regla del producto; pregunta 2: hallazgo con un solo lado por la regla del producto
+   producto: pulsación 2, vez 20: pregunta 1: hallazgo sin ningún lado por la regla del producto
+SE REPITE: más de 4 ilegibles. No se enseña ningún número de «sale».
+```
+*(La primera vez, la corrida 3 falló al abrir el segundo fichero —una ruta `/e/…` dentro de la lista que el shell no traduce— y no
+contó nada; se repitió con `E:/…`. Es la que está arriba.)*
+
+**LO QUE DICEN, sin enseñar ningún «sale» (el guion no los enseña, y no se han calculado por otra vía):**
+- **Ilegibles: 10 y 13 de 20 en la primera tanda, 10 y 13 de 20 en la repetida, 20 y 26 de 40 juntas** (por ancla y por la regla del
+  producto). **«A caballo»: 0 en las tres.** Las tres, muy por encima del tope de 4: SE REPITE.
+- **Las 46 líneas de ilegibles de la corrida de 40 empiezan por el mismo motivo: «pregunta 1: hallazgo sin las anclas de la
+  pareja»** (o «sin ningún lado por la regla del producto»). Es decir: la pregunta 1 dice que HAY hallazgo, y su sección no cita la
+  pareja de D. Y R4, la regla congelada, lee ese caso como ilegible: sólo deja «no sale» cuando la 1 dice «no» y la 2 dice «sí» (su
+  caso (c)). **En una pareja que lleva A dentro de los dos trozos**, una pregunta 1 que afirma hallazgo sin las frases de D es lo
+  esperable —se ve en los motivos, no se ha leído qué cita—, así que la respuesta sólo es legible si la pregunta 2 trae D con las dos
+  anclas.
+- **El Fisher entre las dos tandas que pidió el arquitecto no se da**: el guion no enseña el número de «sale» de un brazo a repetir,
+  y calcularlo por otra vía sería saltarse su propia regla.
+- **Es un hallazgo de DISEÑO, no de recuento**, y lo decide el arquitecto. Code no ha tocado el guion.
