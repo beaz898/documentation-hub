@@ -3324,3 +3324,93 @@ archivada en `Medida_F130_E3_Y_Vecindad_29-10-2026.md:1916-1917`: **106 en NOR-1
   (`1912469a`, el principio, que según la cabecera de su módulo nació porque la cláusula anterior «excluía §3.1 de CLI-12, la mitad
   que el juez escogía para D»). Fable dice «añadido en F-129 y F-130»: el frente fue el 3.4, entre las dos.
 - **«12 de 21 lo alcanzan»**: el número legible del quinto (con las 4 ilegibles, entre 12 y 16).
+
+## P-F130-23 · EL PRERREGISTRO, LITERAL (arquitecto, 05/11/2026, antes de correr nada)
+
+Sacado del registro de la conversación con un script. **NADA CONSTRUIDO Y NADA LANZADO**: la construcción espera a que cuadren los
+cortes (cuadran, abajo) y a la huella nueva del script, aprobada por escrito.
+
+```
+P-F130-23 · ¿SOSTIENE EL BLOQUE DEL PRINCIPIO LA DETECCIÓN DE D?
+Prerregistrado por el arquitecto el 05/11/2026, antes de correr nada.
+
+DISEÑO. Seis brazos: tres condiciones por dos parejas.
+  Condiciones: 0 = prompt de hoy, sin parámetro (control).
+               a = sin el bloque (cortes 1 y 2), con la afirmación general en pie.
+               c = sin el bloque y sin la afirmación (cortes 1, 2 y 3).
+  Parejas:     §3.1 = NOR-10·4 ↔ CLI-12·3 (lleva A dentro del trozo).
+               §3.5 = NOR-10·4 ↔ CLI-12·6 (no lleva A).
+  n = 42 por brazo, en dos pulsaciones de 21. Doce pulsaciones, 0 créditos, ~0,5 $.
+  El brazo 0 SE CORRE DE NUEVO: no se hereda ninguna cifra con bloque, porque
+  las archivadas se contaron con la regla laxa y mezclarlas sería el cruce de
+  condiciones del 31/10.
+
+LAS PAREJAS NO SE COMPARAN ENTRE SÍ. Difieren en dos cosas (qué apartado
+enuncia el principio, y si A está en el trozo). Son dos preguntas con su propio
+control. Sólo se compara dentro de cada pareja, entre brazos.
+
+RECUENTO. Dos anclas (NOR-10 42 car., CLI-12 74 car.), y cada respuesta
+contada dos veces: estricto (ancla entera) y laxo (solape de 20 car., regla de
+SQL_34_06:87). Los ilegibles se reportan como RANGO: cota baja = no sale,
+cota alta = sí sale.
+  UNA BANDA SE ASIGNA SÓLO SI LAS DOS COTAS Y LOS DOS RECUENTOS COINCIDEN.
+  Si discrepan, es banda C.
+
+BANDAS (dentro de cada pareja, brazo de retirada contra su brazo 0, Fisher
+exacto bilateral, alfa 0,05):
+  A · EL BLOQUE SOSTIENE A D. p < 0,05. Cortes: brazo 0 en 42 → 36 o menos;
+      en 40 → 33 o menos; en 38 → 30 o menos.
+      CONSECUENCIA: el bloque es portante. La pregunta pasa a si describe una
+      clase, y eso lo mide la tasa de sí-falso sobre 100 parejas sin conflicto,
+      que sube al primer puesto de la lista de Fable.
+  B · EL BLOQUE APORTA MENOS DE 5 PUNTOS. Diferencia de 2 pasadas o menos
+      sobre 42 (margen de equivalencia declarado, no un contraste).
+      CONSECUENCIA: la inquietud del ad hoc queda vacía para esa pareja. El
+      bloque se queda como aclaración y NO SE CONSTRUYE NADA NUEVO. Es la
+      única banda que cambia lo que hacemos.
+  C · TODO LO DEMÁS.
+      CONSECUENCIA: no se añaden pasadas. Se decide igual que en A, pero sin
+      poder escribir que el bloque sostiene a D.
+
+TASA DE ERROR: 2,68 % (tipo I, tasa base 0,85, n = 42).
+POTENCIA: 99,88 % de 0,95 a 0,50 · 91,6 % de 0,85 a 0,50 · 67,2 % de 0,85 a 0,60.
+
+LA DEBILIDAD, DICHA ANTES DE MEDIR: para una caída de 15 puntos la potencia
+ronda el 30-40 %, y para una de 10 puntos el 15 %. LA BANDA C ES ANCHA Y ESO
+ES UNA PROPIEDAD DEL n, NO UN DEFECTO DEL DISEÑO: estrecharla pediría cientos
+de pasadas. Si sale C, sale C, y no se mira otra vez.
+
+NO SE MIRA A MEDIAS. Los seis brazos se corren completos antes de contar nada.
+REPETICIÓN: un brazo con más de 4 ilegibles se repite. La decisión de repetir
+se toma MIRANDO SÓLO EL NÚMERO DE ILEGIBLES, antes de contar resultados.
+Repetir porque no se puede parsear está permitido; repetir porque el número
+salió incómodo, no.
+HUELLA: ninguna tanda corre con una huella del script que el arquitecto no
+haya aprobado por escrito.
+```
+
+**LOS TRES CORTES, APROBADOS** (arquitecto, 05/11), sacados por script de `CRITERIO_DEL_CUMPLIMIENTO`; cada uno sale UNA vez en el
+criterio y en el bloque del juez: el 1, de «CUIDADO CON UN CASO QUE PARECE UNA RAZÓN» hasta justo antes de «Y ESTO VALE PARA
+CUALQUIERA DE LOS CASOS DE ARRIBA», con su línea en blanco (1.397 car.); el 2, « Pero OJO: … abajo.» con el espacio delante (135);
+el 3, sólo en el brazo c, la viñeta «- Una regla y SU PROPIA razón… no choca con nada.» con el salto de línea delante (250). **El
+ejemplo del taller del 26/10 se queda en los tres brazos**, y con él la etiqueta «norma_contra_norma» enseñada: el corte 1 se lleva
+una de sus apariciones, no todas (arquitecto: si no, los brazos a y c medirían dos cosas). **La cláusula anterior al 27/10 no se
+corre** (era otra instrucción, no una ausencia del bloque).
+
+**EL DESCUADRE DE UN CARÁCTER, RECONTADO CON SCRIPT** (Code): criterio 5.395 − 1.397 − 135 = **3.863, brazo a**; − 250 = **3.613,
+brazo c**. Los cuatro números son buenos; **el que estaba mal era el 3.614 que dio Code**, calculado con el corte 3 SIN su salto de
+línea (249), antes de proponer el de 250. Con aquél el brazo c quedaba «la 2.\n\n\nY ESTO VALE…», una línea en blanco de más; con
+el aprobado, «la 2.\n\nY ESTO VALE…», igual que la junta del brazo a.
+
+**LAS CIFRAS A n = 42** (Code, Fisher exacto bilateral, alfa 0,05): tipo I con tasa base 0,85, **2,683 %**; de 0,95 a 0,50,
+**99,877 %**; de 0,85 a 0,50, 91,6 %; de 0,85 a 0,60, 67,2 %. **Las caídas pequeñas**: 15 puntos, **44,3 %** (0,95 → 0,80) y **30,0 %**
+(0,85 → 0,70); 10 puntos, **20,3 %** (0,95 → 0,85) y **15,0 %** (0,85 → 0,75). El «30-40 %» y el «15 %» del texto de arriba son de
+n = 40; a 42 son 30-44 % y 15-20 %.
+
+⚠️ **UN AVISO DE CODE SOBRE EL RECUENTO LAXO, PENDIENTE DE DECISIÓN DEL ARQUITECTO** (bloquea el script, no el prerregistro): el
+texto dice «solape de 20 car., regla de SQL_34_06:87». **La regla de `SQL_34_06` no es ésa.** La línea 87 sólo es el literal de la
+frase del principio. La regla está en las líneas 89-90 (`tramo_p`), 129-134 (lado de NOR-10) y 138-142 (lado de CLI-12): la cita,
+normalizada (minúsculas, espacios colapsados, tildes quitadas), **mide 20 caracteres o más, sale LITERAL dentro del párrafo, y su
+tramo toca la frase del caso en al menos UN carácter**. El 20 es la longitud mínima de la cita, no la del solape. Y del lado de
+NOR-10 añade la regla de «a caballo»: una cita que toca la frase de A y la de D a la vez es DUDOSA y no cuenta en ninguna (líneas
+135-137). En el §3.5 no hay tramo: basta con salir literal en el párrafo.
