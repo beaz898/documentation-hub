@@ -4554,3 +4554,26 @@ else if (ACCION === 'banda') {
   console.log(L.join('\n'));
 }
 ```
+
+### P-F130-23 · LA FILA QUE DECIDE ENTRE «NO SALE» E «ILEGIBLE», COMPROBADA (Code, 05/11/2026, a petición del arquitecto)
+
+**La fila**: en el recuento por ancla, una pregunta que NO aparece en el cubo de R4 se traduce a **NIEGA**. Es una inferencia por
+ausencia, y decide la frontera: sin D y sin PARCIAL, una pregunta 2 en NIEGA da NO SALE y en NADA da ILEGIBLE.
+**La pregunta del arquitecto**: ¿emite R4 «veredicto sin decidir» SIEMPRE que la pregunta no decidió? **Sí, siempre, y lo determina el
+código** (`contar_quinto.mjs`, huella `e21387a1ff2e7305`):
+- `veredicto` (líneas 65-89) sólo devuelve tres valores: 'sí' o 'no' (línea 86, la única con `return v`, y `v` sólo se asigna en
+  75-78 a 'sí' o 'no') o `null` (69, 73, 79, 84, 85 y 88).
+- En la rama que llena el cubo (`contar`, 127-135), para cada pregunta: `v === null` → empuja «veredicto sin decidir» (**129**, sin
+  condición); `v !== afirma` → no empuja nada (**130**); y si afirma, empuja SIEMPRE uno de tres motivos (131-133, con `else` final).
+- Las respuestas que no llegan a esa rama no pasan por la fila: (a) o (b) devuelven SALE antes (124), (c) es «las dos niegan» y se
+  traduce explícitamente (126), y «sin respuesta» o «sin las dos secciones» son ilegibles enteras (115, 117).
+- Así que **«ausente del cubo» ⇔ la pregunta decidió y contestó lo contrario de afirmar**. La traducción es exacta, no una suposición.
+
+**Y CRUZADA CON RESPUESTAS REALES** (`cruce_niega.mjs`, scratchpad): en las 40 de la condición 1 y las 42 de las dos tandas del
+quinto, para cada pregunta de cada respuesta que R4 no da por SALE, la clase traducida frente a la del veredicto calculado
+directamente: **0 discrepancias**, con 18 preguntas en NADA y 40 en NIEGA por el veredicto directo (así que la comprobación tenía
+casos de las dos clases que separa: no es un cero de una regla que no sabe distinguir). Una prueba del guion la ejerce además en
+falso (el mutante «la pregunta ausente del cubo leída como NADA» sale en rojo).
+⚠️ **Una fuga, dicha**: el cruce se salta las respuestas que salen, así que el número de preguntas comparadas deja deducir cuántas
+respuestas de la condición 1 salen por ancla con la regla (ii). **Code lo ha visto y no lo escribe aquí ni lo ha usado**; esa cifra
+se iba a dar de todos modos en las corridas en seco, y la condición 1 no es ninguno de los seis brazos.
