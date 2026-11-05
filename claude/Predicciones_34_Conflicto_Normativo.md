@@ -5437,3 +5437,63 @@ prerregistró**, y con las dos lecturas al lado (con el anterior, NO PUNTUABLE p
   409 si hay otro en curso), y el limitador de Anthropic por minuto (`lib/llm/rate-limiter.ts:4-6`) es global y no depende del
   tope diario; (5) **el exhaustivo tiene su propio tope** (`RATE_LIMIT_EXHAUSTIVE`, 10 por defecto) y no se mueve.
 - **Para escribir el valor viejo, el nuevo y las dos fechas, falta el valor que tiene HOY Vercel** (30, o lo que diga): lo da el director.
+
+## P-P3-2 · PUNTUADA: FALLA (arquitecto, 05/11/2026)
+
+**Con el texto literal delante** (líneas 956-959, aclarado en 1004-1005 y 1041-1042). **Se puntúa con un LECTOR DISTINTO del que había
+al prerregistrarla**: el corregido, `contar_quinto.mjs` `5210ea9a40ccf6c0`, aprobado el 05/11. Con el anterior (`e21387a1ff2e7305`)
+era NO PUNTUABLE (5 de 21 sin decidir en la pregunta 2, por encima de su tope de 4); el nuevo movió las sin decidir de 5 a 4, y **ese
+único cambio no puede voltear un 8 contra 3**.
+
+**Segunda tanda, la del paso 3** (12 que salieron): la 1: 3 · la 2: 4 · las dos: 4 · sin decidir: 1. Decididas, 11: **la pregunta 2
+DISPARÓ en 8 (72,7 %)**; la pregunta 1 limpia en 3 (27,3 %, **Wilson del 9,7 % al 56,6 %**; si la sin decidir fuera limpia, 4 de 12,
+del 13,8 % al 60,9 %).
+**P-P3-2 FALLA, y falla por lo que decía, no por un umbral**: era una predicción sobre LA VÍA, la predicha era la 1, y la 2 disparó
+en la mayoría. **La dirección es clara y la magnitud no está fijada.** *(Una precisión de Code al cifrarlo: el «p = 0,11 contra la
+mitad» del arquitecto es UNILATERAL, P(X ≤ 3) con n = 11; el bilateral es 0,227. Ninguno afirma que la vía limpia sea
+significativamente minoritaria, que es lo que él escribió.)*
+
+**La columna 2 de la primera tanda** (la de 13 de 21; el arquitecto la pidió), con el mismo lector aprobado:
+- la 1: 6 · la 2: 3 · las dos: 3 · sin decidir: 1. Decididas, 12: la pregunta 2 disparó en 6 (50 %); limpia en 6 (Wilson del 25,4 %
+  al 74,6 %).
+- ⚠️ **Esa tanda se declaró ILEGIBLE en su día** con la regla de entonces, y fue la que obligó a endurecer el lector: estas cifras
+  son de releerla con el lector de hoy, no las de su momento.
+- **Las dos tandas juntas**: decididas 23, la 2 disparó en 14, limpia en 9 (39,1 %, Wilson del 22,2 % al 59,2 %; contra la mitad,
+  bilateral, p = 0,405). **Entre tandas**: limpia 6 de 12 frente a 3 de 11, Fisher p = 0,400: no se separan.
+
+**LO QUE SIGNIFICA** (arquitecto): el quinto no sólo sale poco, **sale sobre todo por la vía equivocada**: el juez lo lee como un
+problema de cumplimiento siendo un caso de dato. **Es el segundo apoyo MEDIDO de la decisión del 01/11**, y el que apunta al riesgo:
+la razón 2 decía, sin medirlo, que el mecanismo que encadenaría glosario, cláusula y referencia «es el mismo que produce falsos
+positivos razonados»; un hallazgo alcanzado por la familia equivocada es esa máquina. *(Observación, no medición, y marcada así por
+el arquitecto: él clasificó mal el quinto dos veces y el modelo lo hace en la mayoría; el caso parece estar en una frontera donde
+la taxonomía no decide.)*
+
+### E5 · LA DEFINICIÓN DEL ARQUITECTO, QUE VIVE EN EL PROYECTO (pegada por él el 05/11; Code no la ha visto en su sitio)
+> **E5 · la curva de acumulación.** De Fable, dictamen de F-130 del 28/10: «E5 · Curva de acumulación. Diez pasadas. P-F130-5: se
+> aplana entre 7 y 9 distintos a partir de la sexta; D aparece antes de la quinta.» Ampliado el 31/10: «E5 sobre las tres parejas
+> con siembra, veinte pasadas cada una, antes de activar».
+> - **Son dos curvas**, una sin la pasada 2 y otra con ella: es lo que distingue «sube la cobertura en general» de «sube D en esta
+>   pareja». La primera NO SE HA CORRIDO NUNCA.
+> - Se puede sacar de las pasadas que ya existen **sin gastar nada** —las discrepancias están guardadas—, pero falta **un criterio
+>   de cuándo dos hallazgos de pasadas distintas son «el mismo»**, y ese criterio no está escrito. (Y es, literalmente, el mismo
+>   problema que el producto intenta resolver.)
+> - **El nombre está sobrecargado:** el 30/10 se llamó «E5» a la medición de veinte por condición de la pregunta cerrada, que es
+>   otra cosa — una variante de E3.
+
+**PENDIENTE, CON SU MOTIVO** (arquitecto): el criterio de «cuándo dos hallazgos de pasadas distintas son el mismo» NO se escribe hoy.
+Después de la regla inventada de esta mañana, no se inventa un criterio de equivalencia con prisa.
+
+### LOS FALSOS DE AGOSTO: QUÉ HAY ARCHIVADO (Code, 05/11/2026, para que el arquitecto decida si sirven de banco de pruebas)
+- **No están certificados como PAREJAS sin conflicto: están certificados FRASE A FRASE.** `corpus-pruebas/SIEMBRA_falsos_de_agosto.md`
+  declara, para cada falso, el par de frases que el sistema emparejó mal y **por qué ese par no se opone**, y su comprobación
+  (`lib/examen/discriminantes.mjs`) es que cada frase se pueda citar desde un fragmento y no salga en el documento contrario. **No
+  dice que el resto de la pareja no tenga ningún conflicto.**
+- **Una de las parejas TIENE una contradicción real**: OPE-01 ↔ CLI-01, el ciclo del autoclave (134 °C / 18 min frente a 121 °C /
+  30 min), que su caso lleva en los que deben salir. **No es una pareja sin conflicto.**
+- **Son cuatro falsos, no cinco**: el 1 (pelo recogido, MKT-01 ↔ RRHH-05), el 3 (RRHH-04 ↔ RRHH-06), el 4 (NOR-04 ↔ OPE-01) y el
+  5 (OPE-01 ↔ CLI-01). El 2 (calzado, la misma pareja que el 1), el 6 (RRHH-06 ↔ OPE-02) y el 7 no tienen su cita y no se pueden
+  usar.
+- **No se han vuelto a pasar desde que entró el bloque del principio** (26 y 27/10), hasta donde ve el repositorio: los únicos
+  resultados del examen son del 27/09 (`examen/resultados/`), y ninguna medición posterior al 26/10 nombra esos documentos.
+- **Y la purga del 25/10 borró los análisis de agosto y la indexación**: si esos siete documentos están subidos HOY en la
+  organización nueva es algo que el repositorio no sabe; lo sabe el director.
