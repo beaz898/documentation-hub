@@ -1,6 +1,6 @@
 -- ============================================================================
 -- F-127 · EL COSTE POR ANÁLISIS, CON EL PRECIO BUENO — SÓLO LECTURA
--- ⏳ PENDIENTE DE EJECUTAR. Sólo SELECT: ni un UPDATE ni un DELETE. No saca
+-- ✅ EJECUTADO por el director (consta en claude/Estado_Y_Pendientes_14-10-2026.md:2207 («las salidas de… SQL_F127_02 que ejecutó el director»); cabecera corregida el 05/11/2026: decía PENDIENTE DE EJECUTAR). Sólo SELECT: ni un UPDATE ni un DELETE. No saca
 -- texto de ningún documento: sólo tokens, costes, horas e ids.
 -- ✅ PROBADO ANTES DE ENTREGARLO (19/10/2026) en un Postgres local (PGlite) con
 -- filas sintéticas: con tres análisis de NOR-10 y siete de NOR-11 bien

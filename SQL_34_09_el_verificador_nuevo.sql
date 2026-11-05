@@ -1,7 +1,7 @@
 -- ============================================================================
 -- SQL_34_09 · EL VERIFICADOR NUEVO EN LA TANDA DE 20: EL CONTADOR DEL CUMPLIMIENTO Y LAS RESPUESTAS MALFORMADAS,
 -- FRENTE A LA LÍNEA BASE — SÓLO LECTURA (02/11/2026)
--- ⏳ PENDIENTE DE EJECUTAR. Sólo SELECT: no escribe, no borra, no cambia nada. La ejecuta el director; Code no
+-- ✅ EJECUTADO por el director (consta en claude/Medida_F130_E3_Y_Vecindad_29-10-2026.md:1600, 1639 y 1903 (salidas literales, ejecutada por el director el 02/11); cabecera corregida el 05/11/2026: decía PENDIENTE DE EJECUTAR). Sólo SELECT: no escribe, no borra, no cambia nada. La ejecuta el director; Code no
 -- ejecuta consultas.
 --
 -- PARA QUÉ (arquitecto, 02/11): la medición de 20 pasadas con el verificador nuevo (`f1d94cbc`, las dos preguntas a todo

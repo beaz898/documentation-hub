@@ -1,6 +1,6 @@
 -- ============================================================================
 -- INVENTARIO DEL CORPUS DEL PILOTO — SÓLO LECTURA (26/10/2026)
--- ⏳ PENDIENTE DE EJECUTAR. Sólo SELECT: no escribe, no borra, no cambia nada.
+-- ✅ EJECUTADO por el director (consta en claude/Estado_Y_Pendientes_14-10-2026.md:36 («ejecutado por el director el 26/10»); cabecera corregida el 05/11/2026: decía PENDIENTE DE EJECUTAR). Sólo SELECT: no escribe, no borra, no cambia nada.
 -- La organización se RESUELVE por el usuario del director (bloque de la resolución, abajo): la primera fila dice cuál.
 --
 -- QUÉ CONTESTA (arquitecto, 26/10): la suscripción ha bajado a gratuito y el

@@ -1,6 +1,6 @@
 -- ============================================================================
 -- SQL_34_01 · LA TANDA DEL 3.4 (CONFLICTO NORMATIVO): LAS NUEVE PREDICCIONES — SÓLO LECTURA (26/10/2026)
--- ⏳ PENDIENTE DE EJECUTAR. Sólo SELECT: no escribe, no borra, no cambia nada.
+-- ✅ EJECUTADO por el director (consta en claude/Medida_34_Conflicto_Normativo_26-10-2026.md:16 («La salida de SQL_34_01, literal»); cabecera corregida el 05/11/2026: decía PENDIENTE DE EJECUTAR). Sólo SELECT: no escribe, no borra, no cambia nada.
 --
 -- QUÉ CONTESTA, bloque por bloque (claude/Predicciones_34_Conflicto_Normativo.md):
 --   0 · control: la ventana rellena, las pasadas que hay frente a las esperadas, que todas sean RÁPIDAS (condición de

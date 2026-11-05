@@ -1,7 +1,7 @@
 -- ============================================================================
 -- F-128 · EL JUEZ CON HAIKU 5.5: SIETE PASADAS DE NOR-11 CONTRA LA LÍNEA BASE DEL
 -- 14/10 (HAIKU 4.5) — SÓLO LECTURA
--- ⏳ PENDIENTE DE EJECUTAR. Sólo SELECT: ni un UPDATE ni un DELETE.
+-- ✅ EJECUTADO por el director (consta en claude/Estado_Y_Pendientes_14-10-2026.md:1564 y 2207 («las salidas de… SQL_F128_01… que ejecutó el director»); cabecera corregida el 05/11/2026: decía PENDIENTE DE EJECUTAR). Sólo SELECT: ni un UPDATE ni un DELETE.
 -- ⚠️ SACA TEXTO DE DOCUMENTO, ENTERO: las citas publicadas, las del tramo y las
 -- de los descartes. Son NOR-11, CLI-13 y lo que el juez compare en esas pasadas,
 -- documentos del corpus de pruebas, NO de un cliente.

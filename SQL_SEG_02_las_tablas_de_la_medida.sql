@@ -1,6 +1,6 @@
 -- ============================================================================
 -- EL SEGUNDO SEGURO: LAS TABLAS QUE LEEN NUESTRAS CONSULTAS DE MEDIDA, PARA DESCARGAR EN CSV — SÓLO LECTURA (26/10/2026)
--- ⏳ PENDIENTE DE EJECUTAR. Sólo SELECT: no escribe, no borra, no cambia nada.
+-- ✅ EJECUTADO por el director (consta en claude/Estado_Y_Pendientes_14-10-2026.md:59 («ejecutada y descargada por el director el 26/10»); cabecera corregida el 05/11/2026: decía PENDIENTE DE EJECUTAR). Sólo SELECT: no escribe, no borra, no cambia nada.
 -- Sólo la organización del piloto: la constante va al principio de CADA consulta, porque cada una se ejecuta sola.
 --
 -- ⚠️⚠️ ESTE ID ES EL VIEJO A PROPÓSITO (arquitecto, 26/10/2026). NO SE CAMBIA, NO SE RESUELVE Y NO SE «ARREGLA».

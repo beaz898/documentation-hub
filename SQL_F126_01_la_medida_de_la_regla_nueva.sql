@@ -1,7 +1,7 @@
 -- ============================================================================
 -- F-126 · LA MEDIDA DE LA REGLA NUEVA DE LA CITA — SIETE PASADAS DE NOR-11 CON
 -- EL PROMPT DE 2fe72b4e, COMPARADAS CON LAS SIETE DEL 13/10 — SÓLO LECTURA
--- ⏳ PENDIENTE DE EJECUTAR. Sólo SELECT: ni un UPDATE ni un DELETE.
+-- ✅ EJECUTADO por el director (consta en claude/Predicciones_F126_La_Regla_De_La_Cita.md:5 («la salida… ejecutada por el director»); cabecera corregida el 05/11/2026: decía PENDIENTE DE EJECUTAR). Sólo SELECT: ni un UPDATE ni un DELETE.
 -- ⚠️ SACA TEXTO DE DOCUMENTO, ENTERO: las citas publicadas, las del tramo y las
 -- de los descartes. Son NOR-11, CLI-13 y lo que el juez compare en esas pasadas,
 -- documentos del corpus de pruebas, NO de un cliente.

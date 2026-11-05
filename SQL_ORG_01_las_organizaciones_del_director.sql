@@ -1,6 +1,6 @@
 -- ============================================================================
 -- EN QUÉ ORGANIZACIONES ESTÁ EL USUARIO DEL DIRECTOR — SÓLO LECTURA (26/10/2026)
--- ⏳ PENDIENTE DE EJECUTAR. Sólo SELECT: no escribe, no borra, no cambia nada.
+-- ✅ EJECUTADO por el director (consta en claude/Estado_Y_Pendientes_14-10-2026.md:81 («ejecutada por el director el 26/10»); cabecera corregida el 05/11/2026: decía PENDIENTE DE EJECUTAR). Sólo SELECT: no escribe, no borra, no cambia nada.
 --
 -- POR QUÉ (arquitecto, 26/10): el director recontrató el plan más caro y tiene 10.000 créditos. Hace falta el id de la
 -- organización donde quedó la suscripción, para cambiarlo en las consultas, y ver si los 10.000 están ahí o en el piloto.

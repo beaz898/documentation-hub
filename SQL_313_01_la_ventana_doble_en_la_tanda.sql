@@ -1,7 +1,7 @@
 -- ============================================================================
 -- 3.1.3 · LA VENTANA DOBLE EN LA TANDA: QUÉ LEYÓ EL JUEZ DE CADA PAREJA, CUÁNTOS
 -- TROZOS DEL CANDIDATO, Y CUÁNTO TARDÓ — SÓLO LECTURA
--- ⏳ PENDIENTE DE EJECUTAR. Sólo SELECT: ni un UPDATE ni un DELETE.
+-- ✅ EJECUTADO por el director (consta en claude/Estado_Y_Pendientes_14-10-2026.md:1564 y 1776 («las salidas de SQL_313_01… que ejecutó el director»); cabecera corregida el 05/11/2026: decía PENDIENTE DE EJECUTAR). Sólo SELECT: ni un UPDATE ni un DELETE.
 -- No saca texto de ningún documento: números, nombres de documento y modelos.
 --
 -- LA TANDA (arquitecto, 22/10/2026): siete pasadas de NOR-11 y tres de NOR-10, seguidas, la misma forma que la

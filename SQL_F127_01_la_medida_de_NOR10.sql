@@ -1,7 +1,7 @@
 -- ============================================================================
 -- F-127 · LA MEDIDA DE NOR-10 COMO ANALIZADO — TRES PASADAS DESDE LA BANDEJA,
 -- SIN TOCAR EL PRESUPUESTO — SÓLO LECTURA
--- ⏳ PENDIENTE DE EJECUTAR. Sólo SELECT: ni un UPDATE ni un DELETE.
+-- ✅ EJECUTADO por el director (consta en claude/Predicciones_F127_NOR10_Documento_Largo.md:109 («la salida de SQL_F127_01 del 16/10»); cabecera corregida el 05/11/2026: decía PENDIENTE DE EJECUTAR). Sólo SELECT: ni un UPDATE ni un DELETE.
 -- ⚠️ SACA TEXTO DE DOCUMENTO, ENTERO: las citas publicadas y su contexto. Son
 -- NOR-10, CLI-12 y lo que el juez compare en esas pasadas, documentos del corpus
 -- de pruebas, NO de un cliente.

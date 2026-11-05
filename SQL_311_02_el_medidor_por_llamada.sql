@@ -1,7 +1,7 @@
 -- ============================================================================
 -- 3.1.1 · PASO 5 · EL MEDIDOR DEL REGISTRO POR LLAMADA: TOKENS, COSTE, CACHÉ,
 -- RELOJ Y LOS DOS ÷4, POR ANÁLISIS, POR ETAPA Y POR PETICIÓN — SÓLO LECTURA
--- ⏳ PENDIENTE DE EJECUTAR. Sólo SELECT: ni un UPDATE ni un DELETE.
+-- ✅ EJECUTADO por el director (consta en claude/Estado_Y_Pendientes_14-10-2026.md:1497 («la salida de SQL_311_02 que ejecutó el director», 21/10); cabecera corregida el 05/11/2026: decía PENDIENTE DE EJECUTAR). Sólo SELECT: ni un UPDATE ni un DELETE.
 -- No saca texto de ningún documento: el registro sólo lleva números, etapas,
 -- modelos e ids (lib/observability/registro-de-llamadas.ts, cabecera).
 --

@@ -1,7 +1,7 @@
 -- ============================================================================
 -- SQL_34_10 · EL COSTE DE LA TANDA DEL VERIFICADOR NUEVO FRENTE A LA LÍNEA BASE: COSTE MEDIO POR ANÁLISIS, EL DEL
 -- VERIFICADOR APARTE, Y LA DURACIÓN — SÓLO LECTURA (02/11/2026)
--- ⏳ PENDIENTE DE EJECUTAR. Sólo SELECT: no escribe, no borra, no cambia nada. La ejecuta el director; Code no
+-- ✅ EJECUTADO por el director (consta en claude/Medida_F130_E3_Y_Vecindad_29-10-2026.md:1780 y 1923 (salidas literales, ejecutada por el director el 02/11); cabecera corregida el 05/11/2026: decía PENDIENTE DE EJECUTAR). Sólo SELECT: no escribe, no borra, no cambia nada. La ejecuta el director; Code no
 -- ejecuta consultas.
 --
 -- PARA QUÉ (arquitecto, 02/11): P-F130-17 se puntúa contra el coste medido DESPUÉS del cambio del verificador, y ninguna

@@ -1,6 +1,6 @@
 -- ============================================================================
 -- SQL_34_03 · EL TECHO DE SALIDA DEL JUEZ Y LO QUE EMITIÓ DE VERDAD, POR PASADA Y POR PAREJA — SÓLO LECTURA (28/10/2026)
--- ⏳ PENDIENTE DE EJECUTAR. Sólo SELECT: no escribe, no borra, no cambia nada.
+-- ✅ EJECUTADO por el director (consta en claude/Protocolo_Harness_Tasas.md:1336 («se leyó el 28/10, con SQL_34_03»); cabecera corregida el 05/11/2026: decía PENDIENTE DE EJECUTAR). Sólo SELECT: no escribe, no borra, no cambia nada.
 --
 -- LA HIPÓTESIS QUE COMPRUEBA (arquitecto, 28/10): si la respuesta del juez llega a max_tokens, el JSON sale cortado,
 -- el código lo repara recortando hasta la última llave (lib/llm/anthropic-client.ts:282-345) y el hallazgo a medias
