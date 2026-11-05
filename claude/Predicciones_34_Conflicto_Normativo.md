@@ -5760,3 +5760,37 @@ veces más puede estar optimizando el eje equivocado.** Y no se propone ningún 
   y después de la ventana, otro día, otra organización y otra operación como ruido; los bordes 13:19:59, 13:20:00, 13:26:59 y 13:27:00;
   sin filas ese día; con el id vacío). **11 mutantes, los 11 en rojo** (`mutantes-sql-34-12.ts`). Huella `9e61cc95700b6201`. Suite completa
   y tsc a cero.
+
+## EL EXHAUSTIVO SALE DEL ALCANCE: EL PRINCIPIO (director, 05/11/2026)
+
+**El director, con sus palabras**: «es una parte que no hemos tocado; cuando toque, al final es por lo mismo que tenemos en el rápido
+pero con las diferencias que hay, que son ver más documentos, más pasadas. De momento sólo me interesa el rápido.»
+
+```
+PRINCIPIO (decisión del director, 05/11/2026): EL EXHAUSTIVO ES EL RÁPIDO
+APLICADO A MÁS PAREJAS. Un solo régimen de juez, dos coberturas. Lo que se
+decida sobre cuánto texto ve el juez se decide UNA VEZ, en el rápido, y el
+exhaustivo lo hereda; lo que lo distingue es a cuántas parejas se aplica, no
+cómo lee cada una.
+SE SUSTITUYE así la pregunta abierta de «profundidad frente a amplitud»: no
+hay dos ejes que equilibrar, hay un régimen y una cobertura.
+```
+
+**Lo que no se evapora** (arquitecto): el presupuesto del candidato va a la puerta «Railway antes del próximo exhaustivo», con el
+`tsc` del worker y `ANALYSIS_JUDGE_MODEL` (`Estado_Y_Pendientes_14-10-2026.md`, en ese pendiente). **`SQL_34_12` no se ejecuta hoy**: el
+dato es del 28/09 y no cambia; espera en esa puerta, probado.
+
+### EL ALCANCE, REESCRITO: SÓLO EL RÁPIDO (arquitecto, 05/11/2026; con lo que Code añade al lado)
+- **VIVO**: la sesión de lectura (20 rápidos; espera a que el director confirme qué documentos están subidos).
+- **ESPERANDO AL DIRECTOR**: las seis variables de Vercel (Railway sale de la lista: va a la puerta del exhaustivo).
+- **ESPERANDO UN DESPLIEGUE**: el tope a 100.
+- **PARADO Y ARCHIVADO**: P-F130-23; el campo `forma` del verificador (después de la sesión); el exhaustivo entero (en su puerta).
+- **BLOQUEADO POR TERCEROS**: el paso 4, por los siete defectos de la especificación de Fable; la curva E5, por el criterio de «cuándo dos
+  hallazgos son el mismo».
+- *Code, al lado, lo que la lista no nombraba*: **(a)** el pendiente de `corpus-del-examen` y **(b)** el `tsc` del worker **tienen fecha
+  propia, el 10/11**, y el (b) además salta con **el próximo commit que toque el grafo del worker**, que incluye `lib/analysis/` (el campo
+  `forma` lo dispararía); **(c)** el recuento estricto de las 40 de la condición 1 se hizo en seco y salió «SE REPITE», sin números: queda
+  CERRADO como corroboración; **(d)** la comparación de D con el quinto está en cuarentena (adenda 2); **(e)** la línea de la prelación no
+  entra en el prompt del juez antes de medir; **(f)** los dos pendientes del medidor del 02-03/11 (la latencia de `usage_logs` y lo que
+  el juez emite por pareja antes de la puerta, que no se guarda), parados; **(g)** los 17 guiones SQL con cabecera «PENDIENTE» sin
+  constancia de ejecución, esperando a que el director diga cuáles ejecutó.

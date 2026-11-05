@@ -747,6 +747,14 @@ a ojo. El procedimiento, el coste y la consulta se plantean ANTES de pedírselo 
       con cambios fuera de worker/. Cero exhaustivos desde el 20/09 (SQL_34_11, 03/11), así que no hay nada producido con
       código viejo; el riesgo es enteramente hacia delante. Si alguien va a pulsar «Exhaustivo», esto se mira ANTES. Y se
       mantienen los otros dos disparadores: el próximo commit que toque worker/ o su grafo, y el 10/11.»
+      - ⚠️ **LA PUERTA DEL EXHAUSTIVO LLEVA AHORA TRES COSAS QUE SE MIRAN DE UNA VEZ** (arquitecto, 05/11/2026, tras sacar el
+        director el exhaustivo del alcance: «el exhaustivo es el rápido aplicado a más parejas»; `Predicciones_34_…`, el principio
+        del 05/11): (1) el `tsc` del despliegue del worker, este pendiente; (2) **`ANALYSIS_JUDGE_MODEL` en Railway**, que no está
+        escrito en ningún sitio (en el rápido, medido: `claude-haiku-5-5`); (3) **el presupuesto del candidato,
+        `ANALYSIS_EXHAUSTIVE_BUDGET_CHARS` en Railway** (3.000 por candidato si no está puesta; se puso a 14.676 sólo de 13:20 a 13:26
+        del 28/09). **Y `SQL_34_12_el_precio_del_candidato_entero.sql` espera aquí**, probado y sin ejecutar (huella
+        `9e61cc95700b6201`): da el coste de las dos condiciones de F-118. *(Code, al lado: el tope de 25 candidatos del exhaustivo,
+        `MAX_SELECTED_EXHAUSTIVE`, con su «10 o 25» pendiente de decisión en `CLAUDE.md`, es de la misma puerta.)*
       - **«No hay nada producido con código viejo» SE SOSTIENE, PERO NO PORQUE NO PASARA NADA: PORQUE NO QUEDA NADA** (Code,
         aceptado por el arquitecto el 04/11). La purga del 25/10 se llevó lo que hubiera de antes, y desde el 26/10 no hay
         ningún exhaustivo. No hay nada que reparar hacia atrás porque no hay nada guardado de ese tiempo, no porque se sepa
