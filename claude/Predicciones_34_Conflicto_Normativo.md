@@ -4577,3 +4577,27 @@ falso (el mutante «la pregunta ausente del cubo leída como NADA» sale en rojo
 ⚠️ **Una fuga, dicha**: el cruce se salta las respuestas que salen, así que el número de preguntas comparadas deja deducir cuántas
 respuestas de la condición 1 salen por ancla con la regla (ii). **Code lo ha visto y no lo escribe aquí ni lo ha usado**; esa cifra
 se iba a dar de todos modos en las corridas en seco, y la condición 1 no es ninguno de los seis brazos.
+
+### P-F130-23 · LA ADENDA 3 AL PRERREGISTRO, LITERAL (arquitecto, 05/11/2026, antes de las corridas en seco)
+
+**La huella `527b3ad22bb79110`, APROBADA** (arquitecto, 05/11): «el codominio de `veredicto` es {'sí', 'no', null}… eso es una
+demostración, no una lectura». Y sobre la cifra que la fuga deja deducir (arquitecto): **no se calcula por ese camino**; sale de la
+corrida en seco y se archiva como salida de la corrida, con su huella. Sacada del registro con un script:
+
+```
+ADENDA 3 · 05/11/2026, antes de correr ningún brazo.
+
+UN BRAZO 0 QUE DISCREPE DE LA CONDICIÓN 1 DEL 30/10 ES UN HALLAZGO, NO UNA
+AVERÍA, Y NO SE REPITE. La condición 1 corrió con otra versión del prompt y
+otro día; que el brazo 0 dé otra cosa es información sobre el instrumento,
+no un motivo para volver a tirar.
+EL ÚNICO DISPARADOR DE REPETICIÓN SIGUE SIENDO EL RECUENTO DE ILEGIBLES,
+mirado antes de ver ninguna cifra de «sale».
+
+FUGA PARCIAL DECLARADA: el cruce de la fila NIEGA/NADA se saltaba las
+respuestas que salen, de modo que el número de preguntas comparadas permite
+deducir cuántas de las 40 de la condición 1 salen. Code lo detectó después de
+correrlo, no escribió ni usó la cifra, y la declaró. Es inocua porque las
+bandas son una función del brazo 0 observado y todo lo demás está congelado
+con huella: no queda nada ajustable a la vista de un número.
+```
