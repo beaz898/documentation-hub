@@ -3308,9 +3308,13 @@ lo escrito o no se puede comprobar desde el repositorio. **Sin puntuar**: la pun
 5. **«D tiene dos mitades posibles en CLI-12»**: el registro de siembra define D sólo por §2.4 ↔ §3.5 (líneas 97-100). Lo que admite
    cualquier cita de CLI-12 es la consulta del producto, `SQL_34_06`, que ni siquiera exige una de las dos (sección de ayer).
 
-**NO SE PUEDE COMPROBAR DESDE EL REPOSITORIO:**
-- **«42 pasadas y 186 veredictos»** del verificador de dos preguntas: las 42 pasadas sí constan (aquí, líneas 811 y 861; estado,
-  691); el **186** no aparece en ningún fichero de `claude/`.
+~~**NO SE PUEDE COMPROBAR DESDE EL REPOSITORIO:** «42 pasadas y 186 veredictos»… el 186 no aparece en ningún fichero de `claude/`.~~
+**CORREGIDO EL MISMO DÍA (Code, 05/11): EL 186 SÍ ESTÁ, y el error es de Code**, que buscó la cifra por su nombre («186») y no por
+lo que la compone. Es la suma de los hallazgos que llegaron al verificador en la tanda nueva, en la salida de `SQL_34_09`
+archivada en `Medida_F130_E3_Y_Vecindad_29-10-2026.md:1916-1917`: **106 en NOR-10 (21 pasadas) + 80 en NOR-11 (21 pasadas) =
+186, en 42 pasadas, con `descartado.sin_veredicto` en 0**. El contador de origen es `verificador.hallazgos_entrantes`
+(`SQL_34_09_el_verificador_nuevo.sql:15-16, 70`). Que cada uno de esos 186 tuviera veredicto es lo que dice el 0 de
+`sin_veredicto`.
 
 **CUADRA, comprobado:**
 - La base de coste, **0,031 $** (`Estado…:770`; 0,0315 $ en la línea 648), y el 0,015 $ como cifra inventada (`Estado…:652`).
