@@ -3741,3 +3741,292 @@ else if (ACCION === 'banda') {
   console.log(L.join('\n'));
 }
 ```
+
+### P-F130-23 · LAS CINCO DECISIONES DEL SCRIPT, Y LA VERSIÓN CORREGIDA: HUELLA `c86e2ecbddab3826` (05/11/2026; PENDIENTE DE APROBACIÓN)
+
+**`73bcb6cf21e48809` NO SE APRUEBA** (arquitecto): la decisión 1 cambia el código. **Lo que decidió sobre las cinco:**
+1. **RECHAZADA: las cotas van CRUZADAS, ocho evaluaciones** (los cuatro rincones por los dos recuentos). Comparar cota con cota
+   mira los dos rincones que no pueden voltear la banda y se salta los dos que sí: baja del 0 con alta del de retirada es el hueco
+   más pequeño (el que tumba A); alta del 0 con baja del de retirada, el más grande (el que tumba B). La banda se asigna sólo si las
+   ocho la sostienen.
+2. **APROBADA** (una cita D limpia vale aunque la sección traiga otra a caballo), **con su recuento a la vista**: la salida nombra
+   esos casos. Si son cero o uno, la decisión no pesa; si son muchos, está sosteniendo el resultado.
+3. **APROBADA, con TRES categorías**: coinciden y puntúan; coinciden en ilegible; y discrepan (incluye ilegible en un recuento y
+   puntuable en el otro). **La regla de «más de 2 discrepancias de 40, se revisa el diseño» mira SÓLO la tercera.**
+4. **APROBADA, y es la TERCERA diferencia entre las parejas**: del lado de CLI-12 se cuentan con reglas distintas (en el §3.1 la cita
+   tiene que tocar la frase del principio; en el §3.5 basta con salir literal en el párrafo, `SQL_34_06:138-142`). **Al prerregistro:
+   LAS DOS PAREJAS NO SE COMPARAN ENTRE SÍ, Y AHORA POR TRES MOTIVOS**: qué apartado enuncia el principio, si A está en el trozo, y
+   con qué regla se cuenta el lado de CLI-12.
+5. **APROBADA**: las citas se buscan en la sección de la pregunta que afirma el hallazgo, como en el recuento por ancla.
+
+**LAS 16 VERSIONES CON UN FALLO METIDO DE `73bcb6cf21e48809` SALIERON LAS 16 EN ROJO** (de 13 a 19 de 20). **Y en la versión nueva
+uno se escapó a la primera, y es el que la regla del contador predice**: con las cotas cruzadas, el margen de B en 3 en vez de 2
+pasaba las 25 pruebas, porque ninguna tenía un peor rincón de exactamente 3. Se añadió esa prueba. **Y la prueba de A con cotas
+cruzadas no era decisiva** (con la misma cota en los dos brazos también daba C): se cambió por un caso que las separa, encontrado
+por script (`decisivas.mjs`), donde la misma cota daría A. **Ahora, 26 de 26 pruebas y 19 versiones con un fallo metido, las 19 en
+rojo**, entre ellas la del diseño rechazado (la misma cota en los dos brazos) y las de las tres categorías y la decisión 2.
+
+```js
+// LA REGLA DE CUENTA DE P-F130-23, EN CÓDIGO (Code, 05/11/2026), escrita ANTES de la tanda y congelada por su huella.
+// Seis brazos (condiciones 0, a, c × parejas §3.1 y §3.5), n = 42 por brazo en dos pulsaciones de 21. Prerregistro y adenda del
+// arquitecto (05/11), literales en claude/Predicciones_34_Conflicto_Normativo.md.
+// Uso (SIN argumentos; todo por variables de entorno):
+//   ACCION=brazo PAREJA=p31|p35 FICHEROS=pulsación1.json,pulsación2.json[,pulsación3.json] [N=42] [SALIDA=brazo.json] node contar_brazos.mjs
+//   ACCION=banda FICHEROS=brazo-0.json,brazo-x.json node contar_brazos.mjs     ·     ACCION=pruebas node contar_brazos.mjs
+//
+// DEPENDE de contar_quinto.mjs (huella e21387a1ff2e7305, aprobada; NO se toca): de ella salen las dos secciones (R1'), el
+// veredicto (R2'), las citas (R3) y la cuenta por ancla (R4). Así el RECUENTO POR ANCLA es el mismo código que contó el quinto.
+import { readFileSync, writeFileSync } from 'node:fs';
+// contar_quinto.mjs dispara su línea de órdenes con CUALQUIER argumento, así que se comprueba ANTES de cargarlo, y se carga después.
+if (process.argv[2]) { console.log('NO SE CUENTA: este script no lleva argumentos (ver la cabecera); contar_quinto.mjs los tomaría como suyos.'); process.exit(1); }
+const { secciones, veredicto, contar } = await import('./contar_quinto.mjs');
+
+// LOS TEXTOS DE LA REGLA DEL PRODUCTO, copiados POR SCRIPT de SQL_34_06_hallazgos_por_pasada.sql (líneas 85-87 y 96-100), no a
+// mano; una prueba comprueba que siguen siendo los del fichero. P24: el párrafo del §2.4 de NOR-10; FRASE_D, su primera frase (el
+// permiso); FRASE_A, su segunda («no sustituye…»); P31: el §3.1 de CLI-12; PRINCIPIO, su frase del principio; P35: el §3.5.
+export const TEXTOS = {
+  "P24": "Cada clínica cuenta con un Coordinador de Calidad, figura que puede recaer en el propio Director Clínico o en otro profesional designado por él, encargado de supervisar el cumplimiento documental del protocolo: mantener actualizados los registros, preparar la documentación para auditorías internas y externas, y proponer mejoras al protocolo basadas en la experiencia diaria del centro. El Coordinador de Calidad no sustituye al Director Clínico en la responsabilidad última descrita en el apartado 2.1, sino que actúa como apoyo operativo directo.",
+  "FRASE_D": "Cada clínica cuenta con un Coordinador de Calidad, figura que puede recaer en el propio Director Clínico o en otro profesional designado por él, encargado de supervisar el cumplimiento documental del protocolo: mantener actualizados los registros, preparar la documentación para auditorías internas y externas, y proponer mejoras al protocolo basadas en la experiencia diaria del centro.",
+  "FRASE_A": "El Coordinador de Calidad no sustituye al Director Clínico en la responsabilidad última descrita en el apartado 2.1, sino que actúa como apoyo operativo directo.",
+  "P31": "El responsable último de la esterilización del instrumental en cada clínica es el Coordinador de Calidad del centro, no el Director Clínico. Esta asignación responde a un criterio deliberado del sistema de gestión de calidad: separar la responsabilidad de un proceso crítico de seguridad del paciente de la persona que, en su rol de Director Clínico, gestiona simultáneamente la agenda asistencial y puede verse sometida a presión de tiempo que entre en conflicto con el rigor exigido en esterilización. El Coordinador de Calidad es quien autoriza cualquier excepción documentada al protocolo de esterilización, quien firma los registros de auditoría trimestral del área y quien decide, con criterio técnico y sin necesidad de validación adicional del Director Clínico, la retirada de servicio de un autoclave que no supere un control biológico. El Director Clínico es informado de estas decisiones pero no interviene en ellas como autoridad jerárquica.",
+  "PRINCIPIO": "Esta asignación responde a un criterio deliberado del sistema de gestión de calidad: separar la responsabilidad de un proceso crítico de seguridad del paciente de la persona que, en su rol de Director Clínico, gestiona simultáneamente la agenda asistencial y puede verse sometida a presión de tiempo que entre en conflicto con el rigor exigido en esterilización.",
+  "P35": "En ausencia programada o imprevista del Coordinador de Calidad (vacaciones, baja), sus funciones son asumidas temporalmente por el Coordinador de Calidad de otra clínica de la red, nunca por el Director Clínico del propio centro, precisamente para mantener la separación de funciones descrita en el apartado 3.1. Esta sustitución se comunica formalmente a todo el personal del centro afectado."
+};
+
+export const ANCLA_NOR = 'puede recaer en el propio Director Clínico';
+// LAS DOS PAREJAS (arquitecto, 05/11): el lado de NOR-10 es el MISMO en las dos (el ancla de D). NO SE COMPARAN ENTRE SÍ.
+export const PAREJAS = {
+  p31: { nombre: 'la pareja del §3.1 (NOR-10·4 ↔ CLI-12·3)', anclaA: ANCLA_NOR, anclasB: ['separar la responsabilidad de un proceso crítico de seguridad del paciente'], deCaso: 'de la pareja', cli: 'p31' },
+  p35: { nombre: 'la pareja del §3.5 (NOR-10·4 ↔ CLI-12·6)', anclaA: ANCLA_NOR, anclasB: ['nunca por el Director Clínico del propio centro'], deCaso: 'de la pareja', cli: 'p35' },
+};
+
+// LA NORMALIZACIÓN DE SQL_34_06: espacios colapsados, minúsculas y «áéíóúü» → «aeiouu» (translate de la consulta).
+export const norm = s => s.replace(/\s+/g, ' ').trim().toLowerCase().replace(/[áéíóúü]/g, c => 'aeiouu'['áéíóúü'.indexOf(c)]);
+const T = Object.fromEntries(Object.entries(TEXTOS).map(([k, v]) => [k, norm(v)]));
+const tramo = (p, f) => { const i = T[p].indexOf(T[f]); if (i < 0) throw new Error(`${f} no está en ${p}`); return { ini: i, fin: i + T[f].length - 1 }; };
+const D = tramo('P24', 'FRASE_D'), A = tramo('P24', 'FRASE_A'), PR = tramo('P31', 'PRINCIPIO');
+
+// LA REGLA DEL PRODUCTO, portada de SQL_34_06 (89-90, 129-142): una cita cuenta si, normalizada, mide 20 caracteres o más, sale
+// LITERAL dentro del párrafo, y su tramo toca la frase del caso en al menos un carácter.
+const toca = (c, p, t) => { const i = T[p].indexOf(c); return c.length >= 20 && i >= 0 && i <= t.fin && i + c.length - 1 >= t.ini; };
+// Lado de NOR-10: 'D' si toca sólo la frase del permiso; 'a caballo' si toca la de D Y la de A (SQL_34_06:135-137: no cuenta en
+// ninguna); null si no toca la de D.
+export function ladoNor(cita) {
+  const c = norm(cita), d = toca(c, 'P24', D), a = toca(c, 'P24', A);
+  return d && a ? 'a caballo' : d ? 'D' : null;
+}
+// Lado de CLI-12: en la pareja del §3.1, la cita toca la frase del principio; en la del §3.5, sale literal en el §3.5 (SQL_34_06
+// no le pone tramo: líneas 138-142).
+export function ladoCli(cita, pareja) {
+  const c = norm(cita);
+  return pareja.cli === 'p31' ? toca(c, 'P31', PR) : c.length >= 20 && T.P35.includes(c);
+}
+// Las citas de una sección, en CRUDO (R3 de contar_quinto las aplana con sus minúsculas; aquí manda la normalización de SQL_34_06).
+const citasCrudas = s => [...s.matchAll(/«([^»]*)»|“([^”]*)”|"([^"]*)"/g)].map(m => m[1] ?? m[2] ?? m[3] ?? '');
+
+// EL RECUENTO POR LA REGLA DEL PRODUCTO: la misma estructura que R4 (las secciones y el veredicto son los de contar_quinto), con
+// la regla del producto en vez del ancla. (a) la 1 en «sí» con una cita D y una de CLI-12 → sale; (b) la 2 en «no» igual → sale;
+// (c) la 1 en «no» y la 2 en «sí» → no sale. Todo lo demás es ILEGIBLE, con su motivo; «a caballo» es un motivo de ilegible
+// (arquitecto, 05/11: es un «no sé» y entra en el rango): cuando una sección que afirma hallazgo no trae ninguna cita D limpia y sí
+// una a caballo.
+export function contarPorProducto(respuesta, pareja) {
+  if (!respuesta || typeof respuesta.respuesta !== 'string' || respuesta.respuesta.trim() === '') return { sale: null, motivos: ['sin respuesta'] };
+  const s = secciones(respuesta.respuesta);
+  if (!s) return { sale: null, motivos: ['sin las dos secciones'] };
+  const v1 = veredicto(s.p1, 1), v2 = veredicto(s.p2, 2);
+  const lados = sec => { const cs = citasCrudas(sec), n = cs.map(ladoNor); return { d: n.includes('D'), caballo: n.includes('a caballo'), cli: cs.some(c => ladoCli(c, pareja)) }; };
+  const l1 = lados(s.p1), l2 = lados(s.p2);
+  const a = v1 === 'sí' && l1.d && l1.cli, b = v2 === 'no' && l2.d && l2.cli;
+  // DECISIÓN 2 (arquitecto, 05/11): una cita D limpia vale aunque la misma sección traiga otra a caballo; la marca lo hace visible
+  if (a || b) return { sale: true, motivos: [], limpiaYCaballo: (a && l1.caballo) || (b && l2.caballo) };
+  if (v1 === 'no' && v2 === 'sí') return { sale: false, motivos: [] };
+  const motivos = [];
+  for (const [n, v, l, afirma] of [[1, v1, l1, 'sí'], [2, v2, l2, 'no']]) {
+    if (v === null) { motivos.push(`pregunta ${n}: veredicto sin decidir`); continue; }
+    if (v !== afirma) continue;
+    if (!l.d && l.caballo) motivos.push(`pregunta ${n}: cita a caballo`);
+    else if (l.d || l.cli) motivos.push(`pregunta ${n}: hallazgo con un solo lado por la regla del producto`);
+    else motivos.push(`pregunta ${n}: hallazgo sin ningún lado por la regla del producto`);
+  }
+  return { sale: null, motivos };
+}
+
+// EL RECUENTO POR ANCLA: R4 de contar_quinto, tal cual, con las anclas de la pareja.
+export function contarPorAncla(respuesta, pareja) {
+  const r = contar(respuesta, pareja);
+  return { sale: r.quinto, motivos: r.cubo1 };
+}
+
+// UN BRAZO. La selección es la de los prerregistros del 04/11 (P1): las n primeras respuestas buenas, en orden de pulsación y de
+// vez; una fallida no es un «no» y se repone con la siguiente buena. Cada respuesta se cuenta DOS VECES. Por recuento: cuántas
+// salen, cuántas no, las ilegibles con su motivo, y el RANGO (cota baja: las ilegibles no salen; cota alta: salen).
+// REPETICIÓN (prerregistro): un brazo con MÁS DE 4 ilegibles en cualquiera de los dos recuentos se repite, y la orden lo dice
+// ANTES de enseñar ningún número de «sale».
+export const MAX_ILEGIBLES = 4;
+export function brazo(pulsaciones, pareja, n = 42) {
+  const buenas = [], fallidas = [];
+  pulsaciones.forEach((rs, p) => rs.forEach(r => {
+    const id = `pulsación ${p + 1}, vez ${r?.vez}`;
+    const mala = !r || typeof r.respuesta !== 'string' || r.respuesta.trim() === '';
+    if (buenas.length >= n) return;
+    if (mala) fallidas.push(`${id}: ${r?.error ?? 'texto vacío'}`);
+    else buenas.push({ id, ancla: contarPorAncla(r, pareja), producto: contarPorProducto(r, pareja), conCita: citasCrudas(r.respuesta).length > 0 });
+  }));
+  const rec = k => {
+    const sale = buenas.filter(b => b[k].sale === true).length, ileg = buenas.filter(b => b[k].sale === null);
+    return { sale, noSale: buenas.filter(b => b[k].sale === false).length, ilegibles: ileg.map(b => `${b.id}: ${b[k].motivos.join('; ')}`), baja: sale, alta: sale + ileg.length };
+  };
+  const ancla = rec('ancla'), producto = rec('producto');
+  return {
+    pareja: pareja.cli, n, completas: buenas.length >= n, fallidas, conCita: buenas.filter(b => b.conCita).length,
+    aCaballo: buenas.filter(b => b.producto.motivos.some(m => m.includes('a caballo'))).map(b => b.id),
+    ancla, producto,
+    // LAS TRES CATEGORÍAS DEL ACUERDO (arquitecto, 05/11): coinciden y puntúan; coinciden en ilegible; y discrepan, que incluye
+    // la ilegible en un recuento y puntuable en el otro. La regla de «más de 2 discrepancias» mira SÓLO la tercera.
+    coincidenYPuntuan: buenas.filter(b => b.ancla.sale !== null && b.ancla.sale === b.producto.sale).length,
+    coincidenEnIlegible: buenas.filter(b => b.ancla.sale === null && b.producto.sale === null).length,
+    discrepan: buenas.filter(b => b.ancla.sale !== b.producto.sale).map(b => `${b.id}: ancla ${b.ancla.sale}, producto ${b.producto.sale}`),
+    limpiaYCaballo: buenas.filter(b => b.producto.limpiaYCaballo).map(b => b.id),
+    repetir: Math.max(ancla.ilegibles.length, producto.ilegibles.length) > MAX_ILEGIBLES,
+  };
+}
+
+// FISHER EXACTO BILATERAL (suma de las tablas con probabilidad <= la observada), el mismo de las cifras del prerregistro.
+const lf = (() => { const t = [0]; for (let i = 1; i <= 400; i++) t[i] = t[i - 1] + Math.log(i); return n => t[n]; })();
+const hip = (a, r1, c1, n) => Math.exp(lf(r1) + lf(n - r1) + lf(c1) + lf(n - c1) - lf(n) - lf(a) - lf(r1 - a) - lf(c1 - a) - lf(n - r1 - c1 + a));
+export function fisher(a, n1, b, n2) {
+  const c1 = a + b, n = n1 + n2, lo = Math.max(0, c1 - n2), hi = Math.min(n1, c1), p0 = hip(a, n1, c1, n);
+  let s = 0; for (let x = lo; x <= hi; x++) { const p = hip(x, n1, c1, n); if (p <= p0 * (1 + 1e-7)) s += p; } return Math.min(1, s);
+}
+
+// LA BANDA de un brazo de retirada frente a su brazo 0, DENTRO DE LA MISMA PAREJA (las parejas no se comparan entre sí).
+// LAS COTAS VAN CRUZADAS (arquitecto, 05/11): de cada brazo sólo se sabe que su valor está entre su cota baja y su alta, así que
+// la banda tiene que aguantar con CUALQUIER pareja de valores, y los rincones que la pueden voltear son los cruzados (baja del 0
+// con alta del de retirada, el hueco más pequeño; alta del 0 con baja del de retirada, el más grande). Ocho evaluaciones: los
+// cuatro rincones por los dos recuentos. A: en las ocho, el brazo de retirada sale MENOS que el 0 y Fisher da p < 0,05. B: en las
+// ocho, la diferencia es de 2 o menos. Si no, C. Un brazo que haya que repetir, o incompleto, no da banda.
+export function banda(b0, bx) {
+  if (b0.pareja !== bx.pareja) return { banda: null, motivo: 'las parejas no se comparan entre sí' };
+  for (const [nom, b] of [['el brazo 0', b0], ['el brazo de retirada', bx]]) {
+    if (!b.completas) return { banda: null, motivo: `${nom} no tiene sus ${b.n} respuestas` };
+    if (b.repetir) return { banda: null, motivo: `${nom} tiene más de ${MAX_ILEGIBLES} ilegibles: se repite` };
+  }
+  const ev = [];
+  for (const k of ['ancla', 'producto']) for (const c0 of ['baja', 'alta']) for (const cx of ['baja', 'alta']) {
+    const x = bx[k][cx], o = b0[k][c0];
+    ev.push({ recuento: k, cota0: c0, cotaX: cx, retirada: x, control: o, p: fisher(x, bx.n, o, b0.n) });
+  }
+  const A = ev.every(e => e.retirada < e.control && e.p < 0.05), B = ev.every(e => Math.abs(e.retirada - e.control) <= 2);
+  return { banda: A ? 'A' : B ? 'B' : 'C', evaluaciones: ev };
+}
+
+// LAS PRUEBAS (respuestas INVENTADAS)
+function correrPruebas() {
+  const R = (vez, respuesta) => ({ vez, respuesta });
+  const p31 = PAREJAS.p31, p35 = PAREJAS.p35;
+  // las citas, inventadas pero LITERALES de los textos de SQL_34_06
+  const NOR = '«figura que puede recaer en el propio Director Clínico o en otro profesional designado por él»';
+  const CABALLO = '«experiencia diaria del centro. El Coordinador de Calidad no sustituye al Director Clínico»';
+  const SOLO_A = '«El Coordinador de Calidad no sustituye al Director Clínico en la responsabilidad última»';
+  const PRIN = '«separar la responsabilidad de un proceso crítico de seguridad del paciente de la persona que, en su rol de Director Clínico»';
+  const PRIN_CORTA = '«de la persona que, en su rol de Director Clínico, gestiona simultáneamente la agenda asistencial»'; // literal, sin el ancla
+  const PRIN_PARAFRASIS = '«separar la responsabilidad de un proceso crítico de seguridad del paciente de quien dirige la clínica»'; // con el ancla, no literal
+  const P35 = '«nunca por el Director Clínico del propio centro, precisamente para mantener la separación de funciones»';
+  const Q = (c1, c2) => `PREGUNTA 1\nNo.\nPREGUNTA 2\nNo se pueden cumplir. ${c1} ${c2} norma_contra_norma`;
+  const casos = [
+    ['los textos son los de SQL_34_06 (líneas 85-87 y 96-100), y cada frase está dentro de su párrafo', () => {
+      const l = readFileSync('E:/Doc-Hub/SQL_34_06_hallazgos_por_pasada.sql', 'utf8').replace(/\r\n/g, '\n').split('\n');
+      const lit = i => [...l[i].matchAll(/'((?:[^']|'')*)'/g)].map(m => m[1].replace(/''/g, "'"));
+      const fila = c => l.slice(95, 101).map((x, i) => lit(95 + i)).find(v => v[0] === 'NOR-10' && v[1] === c && v[2].includes('puede recaer'));
+      return [TEXTOS.P35 === lit(84)[0], TEXTOS.P31 === lit(85)[0], TEXTOS.PRINCIPIO === lit(86)[0],
+        TEXTOS.P24 === fila('D')[2], TEXTOS.FRASE_D === fila('D')[3], TEXTOS.FRASE_A === fila('A')[3]];
+    }, [true, true, true, true, true, true]],
+    ['norm: tildes, mayúsculas y espacios, como la consulta', () => norm('  Clínica\n  ÚLTIMA  '), 'clinica ultima'],
+    ['NOR-10: el permiso → D; las dos frases → a caballo; sólo A → nada; corta → nada; no literal → nada',
+      () => [NOR, CABALLO, SOLO_A, '«recaer en el propio»', '«figura que podría recaer en el propio Director Clínico»'].map(c => ladoNor(c.slice(1, -1))),
+      ['D', 'a caballo', null, null, null]],
+    ['CLI-12, pareja del §3.1: el principio sí (también corto), fuera del principio no, el §3.5 no, una paráfrasis no',
+      () => [PRIN, PRIN_CORTA, '«El responsable último de la esterilización del instrumental en cada clínica»', P35, PRIN_PARAFRASIS].map(c => ladoCli(c.slice(1, -1), p31)),
+      [true, true, false, false, false]],
+    ['CLI-12, pareja del §3.5: el §3.5 sí, el principio no', () => [P35, PRIN].map(c => ladoCli(c.slice(1, -1), p35)), [true, false]],
+    ['por la regla del producto: (b) sale; (c) no sale; a caballo → ilegible con su motivo',
+      () => [contarPorProducto(R(1, Q(NOR, PRIN)), p31), contarPorProducto(R(2, 'PREGUNTA 1\nNo.\nPREGUNTA 2\nSí.'), p31), contarPorProducto(R(3, Q(CABALLO, PRIN)), p31)],
+      [{ sale: true, motivos: [], limpiaYCaballo: false }, { sale: false, motivos: [] }, { sale: null, motivos: ['pregunta 2: cita a caballo'] }]],
+    ['DECISIÓN 2: cita D limpia y otra a caballo en la misma sección → sale, y queda marcada', () => contarPorProducto(R(8, Q(NOR + ' ' + CABALLO, PRIN)), p31), { sale: true, motivos: [], limpiaYCaballo: true }],
+    ['por la regla del producto: (a), por la pregunta 1', () => contarPorProducto(R(4, `PREGUNTA 1\nSí. ${NOR} ${PRIN}\nPREGUNTA 2\nSí.`), p31), { sale: true, motivos: [], limpiaYCaballo: false }],
+    ['LOS DOS RECUENTOS FALLAN EN DIRECCIONES OPUESTAS: la cita corta del principio pasa el producto y no el ancla; la paráfrasis, al revés',
+      () => [R(5, Q(NOR, PRIN_CORTA)), R(6, Q(NOR, PRIN_PARAFRASIS))].map(r => [contarPorAncla(r, p31).sale, contarPorProducto(r, p31).sale]),
+      [[null, true], [true, null]]],
+    ['a caballo: el ancla la da por buena y el producto no (es la diferencia que el acuerdo obligatorio castiga)',
+      // la cita, LITERAL del §2.4, va del permiso hasta dentro de la frase de A: lleva el ancla y toca las dos frases
+      () => { const r = R(7, Q('«puede recaer en el propio Director Clínico o en otro profesional designado por él, encargado de supervisar el cumplimiento documental del protocolo: mantener actualizados los registros, preparar la documentación para auditorías internas y externas, y proponer mejoras al protocolo basadas en la experiencia diaria del centro. El Coordinador de Calidad no sustituye al Director Clínico»', PRIN)); return [contarPorAncla(r, p31).sale, contarPorProducto(r, p31).sale]; },
+      [true, null]],
+    ['un brazo: el rango, la selección con una fallida, a caballo en su lista, y las coincidencias', () => {
+      const b = brazo([[R(1, Q(NOR, PRIN)), { vez: 2, error: 'HTTP 529' }, R(3, Q(CABALLO, PRIN)), R(4, 'PREGUNTA 1\nNo.\nPREGUNTA 2\nSí.')], [R(1, Q(NOR, PRIN_CORTA)), R(2, Q(NOR, PRIN))]], p31, 4);
+      return [b.completas, b.fallidas.length, b.ancla.baja, b.ancla.alta, b.producto.baja, b.producto.alta, b.aCaballo, b.coincidenYPuntuan, b.coincidenEnIlegible, b.discrepan.length, b.repetir];
+      // las tres categorías: puntúan y coinciden la vez 1 (sale) y la 4 (no sale); coincide en ilegible la 3; discrepa la de la cita corta
+    }, [true, 1, 1, 3, 2, 3, ['pulsación 1, vez 3'], 2, 1, 1, false]],
+    ['un brazo cuenta y nombra los casos de la decisión 2', () => brazo([[R(1, Q(NOR + ' ' + CABALLO, PRIN)), R(2, Q(NOR, PRIN))]], p31, 2).limpiaYCaballo, ['pulsación 1, vez 1']],
+    ['un brazo con 5 ilegibles se repite; con 4, no', () => {
+      const raro = v => R(v, 'PREGUNTA 1\nNo obstante, sí.\nPREGUNTA 2\nSí.'), bien = v => R(v, Q(NOR, PRIN));
+      return [brazo([[...[1, 2, 3, 4, 5].map(raro), ...[6, 7, 8].map(bien)]], p31, 8).repetir, brazo([[...[1, 2, 3, 4].map(raro), ...[5, 6, 7, 8].map(bien)]], p31, 8).repetir];
+    }, [true, false]],
+    ['la cuenta por ancla del brazo es la de contar_quinto (el mismo «salió» que su resumen)', () => {
+      const rs = [R(1, Q(NOR, PRIN)), R(2, Q(NOR, PRIN_PARAFRASIS)), R(3, 'PREGUNTA 1\nNo.\nPREGUNTA 2\nSí.')];
+      return brazo([rs], p31, 3).ancla.sale === rs.filter(r => contar(r, p31).quinto === true).length;
+    }, true],
+  ];
+  // LAS BANDAS, con brazos de mentira: sólo importan pareja, n, completas, repetir y los rangos
+  const B = (pareja, aB, aA, pB, pA, extra = {}) => ({ pareja, n: 42, completas: true, repetir: false, ancla: { baja: aB, alta: aA }, producto: { baja: pB, alta: pA }, ...extra });
+  casos.push(
+    ['banda A: el brazo de retirada cae y las cuatro evaluaciones dan p < 0,05', () => banda(B('p31', 42, 42, 42, 42), B('p31', 30, 31, 30, 31)).banda, 'A'],
+    ['banda A exige los ocho: si la cota alta de un recuento no llega, es C', () => banda(B('p31', 42, 42, 42, 42), B('p31', 30, 31, 30, 37)).banda, 'C'],
+    ['COTAS CRUZADAS, banda A: el rincón del hueco más pequeño (baja del 0, alta del de retirada) la tumba aunque los rincones iguales aguanten', () => banda(B('p31', 30, 31, 30, 31), B('p31', 20, 21, 20, 21)).banda, 'C'], // con la misma cota en los dos brazos sería A (decisivas.mjs)
+    ['COTAS CRUZADAS, banda B: el rincón del hueco más grande (alta del 0, baja del de retirada) la tumba aunque los rincones iguales aguanten', () => banda(B('p31', 38, 41, 38, 41), B('p31', 37, 40, 37, 40)).banda, 'C'],
+    ['banda B: el margen es de 2, no de 3 (el peor rincón cruzado da 3 → C)', () => banda(B('p31', 40, 41, 40, 41), B('p31', 38, 39, 38, 39)).banda, 'C'],
+    ['son ocho evaluaciones', () => banda(B('p31', 42, 42, 42, 42), B('p31', 30, 31, 30, 31)).evaluaciones.length, 8],
+    ['banda B: diferencia de 2 o menos en los ocho', () => banda(B('p31', 40, 41, 40, 41), B('p31', 39, 40, 39, 40)).banda, 'B'],
+    ['banda B no: una evaluación con diferencia de 3 → C', () => banda(B('p31', 40, 41, 40, 42), B('p31', 37, 40, 39, 41)).banda, 'C'],
+    ['si el brazo de retirada sale MÁS, no es A', () => banda(B('p31', 20, 20, 20, 20), B('p31', 40, 40, 40, 40)).banda, 'C'],
+    ['las parejas no se comparan entre sí', () => banda(B('p31', 42, 42, 42, 42), B('p35', 30, 30, 30, 30)).banda, null],
+    ['un brazo a repetir no da banda', () => banda(B('p31', 42, 42, 42, 42), B('p31', 30, 30, 30, 30, { repetir: true })).banda, null],
+    ['Fisher, contra la cifra del prerregistro: 36 de 42 frente a 42 de 42, p = 0,0258', () => fisher(36, 42, 42, 42).toFixed(4), '0.0258'],
+  );
+  let mal = 0;
+  for (const [nombre, f, esperado] of casos) {
+    let sale; try { sale = f(); } catch (e) { sale = `EXCEPCIÓN: ${e.message}`; }
+    const ok = JSON.stringify(sale) === JSON.stringify(esperado);
+    if (!ok) mal++;
+    console.log(`${ok ? 'ok ' : 'MAL'} · ${nombre}${ok ? '' : `\n      sale ${JSON.stringify(sale)}\n      debía ${JSON.stringify(esperado)}`}`);
+  }
+  console.log(`${casos.length - mal} de ${casos.length}`);
+  process.exit(mal ? 1 : 0);
+}
+
+// LA ORDEN VA POR VARIABLES DE ENTORNO, NO POR ARGUMENTOS: contar_quinto.mjs, importado arriba y congelado, dispara su propia
+// línea de órdenes con CUALQUIER argumento. Así, sin argumentos, aquélla no hace nada.
+const ACCION = process.env.ACCION, FICHEROS = (process.env.FICHEROS ?? '').split(',').filter(Boolean);
+if (ACCION === 'pruebas') correrPruebas();
+else if (ACCION === 'banda') {
+  const [b0, bx] = FICHEROS.map(f => JSON.parse(readFileSync(f, 'utf8')));
+  const r = banda(b0, bx);
+  console.log(r.banda ? `BANDA ${r.banda}` : `SIN BANDA: ${r.motivo}`);
+  for (const e of r.evaluaciones ?? []) console.log(`  ${e.recuento}, cota ${e.cota0} del 0 y ${e.cotaX} del de retirada: retirada ${e.retirada} de ${bx.n} frente a ${e.control} de ${b0.n} · p = ${e.p.toFixed(4)}`);
+} else if (ACCION === 'brazo') {
+  const pareja = PAREJAS[process.env.PAREJA ?? ''];
+  if (!pareja) { console.log(`NO SE CUENTA: PAREJA tiene que ser ${Object.keys(PAREJAS).join(' o ')}`); process.exit(1); }
+  const b = brazo(FICHEROS.map(f => JSON.parse(readFileSync(f, 'utf8')).respuestas), pareja, Number(process.env.N ?? 42));
+  if (process.env.SALIDA) writeFileSync(process.env.SALIDA, JSON.stringify(b, null, 2));
+  const L = [`${pareja.nombre} · n = ${b.n}`, `1 · LAS FALLIDAS: ${b.fallidas.length}${b.fallidas.length ? ' — ' + b.fallidas.join(' · ') : ''}`];
+  if (!b.completas) { L.push('NO PUNTUABLE TODAVÍA: faltan respuestas buenas.'); console.log(L.join('\n')); process.exit(0); }
+  L.push(`2 · LAS ILEGIBLES, ANTES QUE NINGÚN NÚMERO: por ancla ${b.ancla.ilegibles.length}, por la regla del producto ${b.producto.ilegibles.length} (de ellas, a caballo: ${b.aCaballo.length})`);
+  for (const k of ['ancla', 'producto']) for (const i of b[k].ilegibles) L.push(`   ${k}: ${i}`);
+  if (b.repetir) { L.push(`SE REPITE: más de ${MAX_ILEGIBLES} ilegibles. No se enseña ningún número de «sale».`); console.log(L.join('\n')); process.exit(0); }
+  L.push(`3 · CON CITA: ${b.conCita} de ${b.n}`);
+  L.push(`4 · POR ANCLA: sale ${b.ancla.sale}, no sale ${b.ancla.noSale}, ilegibles ${b.ancla.ilegibles.length} → rango ${b.ancla.baja}-${b.ancla.alta}`);
+  L.push(`5 · POR LA REGLA DEL PRODUCTO: sale ${b.producto.sale}, no sale ${b.producto.noSale}, ilegibles ${b.producto.ilegibles.length} → rango ${b.producto.baja}-${b.producto.alta}`);
+  L.push(`6 · LOS DOS RECUENTOS: coinciden y puntúan ${b.coincidenYPuntuan} · coinciden en ilegible ${b.coincidenEnIlegible} · DISCREPAN ${b.discrepan.length}${b.discrepan.length ? ' — ' + b.discrepan.join(' · ') : ''}`);
+  L.push(`7 · DECISIÓN 2, cita D limpia y otra a caballo en la misma sección (cuenta la limpia): ${b.limpiaYCaballo.length}${b.limpiaYCaballo.length ? ' — ' + b.limpiaYCaballo.join(' · ') : ''}`);
+  console.log(L.join('\n'));
+}
+```
