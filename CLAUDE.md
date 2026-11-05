@@ -631,6 +631,17 @@ El dueño del proyecto NO es programador. Vercel deploya automáticamente al hac
   reutilizar un número cuyo contexto ya no se sostiene.** Por eso la defensa no es
   revisar la aritmética: es **preguntar de qué medición sale**, y si la respuesta es
   «de algo que dijimos antes», no sale de ninguna.
+- **UNA REGLA DE CLASIFICACIÓN NO ESTÁ ESCRITA HASTA QUE TODOS LOS CASOS
+  POSIBLES CAEN EN UNA CASILLA Y SÓLO EN UNA. Se comprueba ENUMERANDO el espacio
+  de casos, no leyendo la regla.**
+  El caso, del 05/11/2026: el arquitecto escribió la regla (ii) de P-F130-23
+  con dos líneas que se contradecían entre sí y dos casos sin casilla, y **lo
+  encontró Code al exigir exhaustividad antes de tocar el guion**. La versión
+  cerrada clasifica cada pregunta en cinco valores y lleva una prueba con las
+  25 combinaciones escritas a mano.
+  ⚠️ **Y NO ES UN DESCUIDO DE UN DÍA: es el mismo defecto que el proyecto le
+  está achacando a Fable en su especificación.** Lo cometen los dos lados, así
+  que se busca siempre. Promovida por el arquitecto el 05/11/2026.
 - **EL CRITERIO DE CIERRE NO ES LA AUSENCIA DE HALLAZGOS: ES LA COBERTURA DE LA
   BÚSQUEDA.** Se cierra cuando se ha buscado donde el usuario va a ir, no cuando
   se deja de encontrar. «No aparecen más» y «no hemos mirado donde están» se
