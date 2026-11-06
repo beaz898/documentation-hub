@@ -4879,7 +4879,10 @@ citan la SEGUNDA frase del §2.4, la de A** («El Coordinador de Calidad no sust
 pero no literal, 5; la frase de A, 2). **Los estilos de cita que R3 no reconoce: 0.** Las tres «comillas invertidas» que marcó la
 herramienta eran la etiqueta `norma_contra_norma`, no una cita (comprobado). **En 4 de las 6 a las que les falta CLI-12, el juez
 no cita CLI-12 de ninguna forma** (número, paráfrasis o nada): no hay una cita más corta que un discriminador más barato pudiera
-recoger.
+recoger. *(⚠️ 06/11, Code: **el «4» está mal, son 5 de 6.** El propio desglose de arriba da, de las 6, número del apartado 2,
+paráfrasis fuera de comillas 2 y nada reconocible 1, que son 5 sin ninguna cita de CLI-12; sólo 1 cita un trozo más corto. Lo cazó Code
+al revisar la adenda del arquitecto del 06/11, que lo había copiado de aquí. La conclusión no cambia: refuerza que acortar el ancla no
+ayuda. El «4 de las 6» de la suspensión de P-F130-23, más abajo, viene de este error.)*
 
 ### EL LECTOR CORREGIDO, PROPUESTO: `contar_quinto.mjs` HUELLA `5210ea9a40ccf6c0` (sustituiría a `e21387a1ff2e7305`; PENDIENTE DE APROBACIÓN)
 
