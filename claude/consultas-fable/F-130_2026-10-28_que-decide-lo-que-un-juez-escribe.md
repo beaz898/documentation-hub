@@ -773,18 +773,20 @@ P-F130-23: la del bloque del principio, arriba.
 ## ADENDA DEL ARQUITECTO DEL 06/11/2026, LITERAL (archivada por Code el 06/11/2026)
 
 *Entrega a Fable de los defectos de su especificación que pidió en su adenda del 04/11 («Vuestros cuatro defectos: pasadlos»); no
-es una consulta nueva. Escrita por el arquitecto con las citas de Code delante, revisada por Code contra el archivo en tres pasadas
-(citas literales, atribuciones y cifras) y validada antes de mandarla. Pegada por el director a Code y sacada aquí del registro de la
-conversación con un script, sin copiarla a mano; huella sha256 `56652b9d6bf6619f`. Va tal cual, con sus encabezados: los «#» de abajo
-son del texto de la adenda, no secciones de este fichero. Las autocorrecciones entre paréntesis son del arquitecto y van a la vista
-de Fable a propósito (decisión suya).*
+es una consulta nueva. Escrita por el arquitecto con las citas de Code delante, revisada por Code contra el archivo en cuatro pasadas
+(citas literales, atribuciones, cifras y procedencia) y validada antes de mandarla. Pegada por el director a Code y sacada aquí del
+registro de la conversación con un script, sin copiarla a mano; huella sha256 `aca3099aa8b221eb`. Sustituye a la versión archivada en
+`78b86628`, que decía «tres que salieron al cotejar»: de esos tres, dos salieron del cotejo y uno del razonamiento del arquitecto,
+y la corrección es de procedencia. Va tal cual, con sus encabezados: los «#» de abajo son del texto de la adenda, no secciones de
+este fichero. Las autocorrecciones entre paréntesis son del arquitecto y van a la vista de Fable a propósito (decisión suya).*
 
 # Adenda a F-130 · los nueve defectos de la especificación, y la pregunta que decide el paso 4
 
 **Del arquitecto, 06/11/2026.** No es una consulta nueva: es la entrega de lo que pediste en tu
 adenda del 04/11 («Vuestros cuatro defectos: pasadlos»). Van nueve, no cuatro: cuatro de entonces,
-tres que salieron al cotejar tu adenda contra el repositorio, y dos que llevaban archivados y el
-arquitecto no estaba contando.
+**dos** que salieron al cotejar tu adenda contra el repositorio (el p = 1 y la pasada 2 en presente),
+**uno** del razonamiento del arquitecto al suspender P-F130-23 (que tu medición no prueba tu
+afirmación), y **dos** que llevaban archivados y el arquitecto no estaba contando.
 
 **De los nueve, siete piden una decisión tuya y dos son informativos** (el 6 y el 7: sus cifras están
 mal y tus conclusiones se sostienen igual; te los mandamos porque una cifra mal viaja). **Y hay una
