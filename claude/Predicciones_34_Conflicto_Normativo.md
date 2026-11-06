@@ -6062,3 +6062,170 @@ Las decisiones 1 a 5 del arquitecto, **literales** (sacadas del registro de la c
   dicho sin comprobarlo. **Las dos mitades son el mismo fallo de procedencia.**
 - El texto de Fable del 04/11 se queda literal en F-130. Lo que lo corrige está en `:3301-3305`, y la respuesta de Fable del 06/11
   lo reconoce.
+
+### X · EL PRERREGISTRO COMPLETO, APROBADO ANTES DE PULSAR (arquitecto y Code, 06/11/2026)
+El texto que leyó el arquitecto de una pieza, con sus cuatro añadidos. **Aprobado, con las huellas `55aa84614fd21a94` (la capa
+de decisión) y `493d04614481e8a2` (la cuenta de los indecidibles).** Completa «X · EL PRERREGISTRO NUEVO…», más arriba.
+
+- **Condición**:
+  - la pregunta cerrada sobre la pareja sembrada de D, **NOR-10·4 (§2.4) ↔ CLI-12·6 (§3.5)**;
+  - la herramienta, ruta `d` (`app/api/admin/medida-f130/d/route.ts`, en `origin/main` desde `8995459b`): sólo el juez, con los dos
+    trozos enteros, sin puerta de citas y sin verificador;
+  - Haiku 5.5.
+- **Prompt**:
+  - la plantilla de hoy (la 2 «se contesta sola… sobre frases», con el documento delante de cada texto);
+  - el recorte `CRITERIO_DEL_CUMPLIMIENTO` (`a58deaf8`), sacado del bloque del juez de `5c2d50c9`. El bloque del principio va dentro.
+  - **No es el prompt del producto**: X es la pregunta cerrada. Las 7 respuestas del 29/10 corrieron con otra plantilla y no cuentan.
+- **n = 42**, en dos pulsaciones de 21. Si no llegan a 42 respuestas buenas, se pulsa una tercera vez y se cuentan las 42 primeras en
+  orden.
+- **⚠️ NINGÚN DESPLIEGUE ENTRE LAS DOS PULSACIONES** (arquitecto): el corpus no interviene, porque los trozos son constantes, así que
+  reindexar da igual; **desplegar no**, porque un despliegue puede cambiar la plantilla o el recorte, y entonces las dos mitades de la
+  tanda no serían la misma condición. **Reindexar da igual, desplegar no.**
+- **Regla de cuenta**:
+  - el guion aprobado (`527b3ad22bb79110` sobre `5210ea9a40ccf6c0`), con la regla (ii): sale si cualquiera de las dos preguntas da D;
+  - las citas se juzgan con la regla de `SQL_34_06`, **no con la puerta de citas**, y la diferencia queda declarada;
+  - **NADA y PARCIAL cuentan como FALLO**: una respuesta cuyas citas no se pueden leer es una respuesta que el producto tampoco podría
+    publicar. Con eso la prueba sólo puede rebajar la tasa, nunca inflarla.
+- **Las dos bandas, con un solo corte**:
+  - **CONSTRUIR con 24 o más de 42**: error de tipo I del 1,83 % (con el nulo en 0,40);
+  - **ENTERRAR con 23 o menos**: error de tipo II del 2,64 % (con la tasa en 0,70);
+  - 24 es el corte de razón de verosimilitudes. No hay zona inconclusa ni segunda tanda.
+- **Los indecidibles, asimétricos**:
+  - construir vale con cualquier número;
+  - **enterrar, sólo con 3 o menos en el recuento del producto**: con 3, el tipo II es del 9,44 %, y con 4, del 13,69 %;
+  - con 4 o más: «no decide, y el motivo es el instrumento, no el fenómeno»;
+  - **se leen ANTES que los positivos**, con la banda disponible.
+- **Quién decide**: el recuento por la **regla del producto**; el del ancla se informa al lado. **Si caen a lados distintos del 24, no
+  se decide nada, y esa discrepancia es el hallazgo.**
+- **Salvedad**: la tasa de la herramienta es una **cota superior** de la del producto, porque la puerta de citas puede quitar hallazgos,
+  unos 4,8 puntos (un pase de 21). El verificador no añade: su contador de rescates está a 0 en 42 pasadas.
+- **Contexto, NO comparadores**: los 3 de 21 (D por el §3.1, otra pareja); los 0 de 21 (D por el §3.5 en el producto entero); y las 7
+  del 29/10 (otra plantilla; en el ensayo en seco, 1 NADA y 0 PARCIAL).
+- **Qué se hace con el resultado** (Fable, con la corrección del arquitecto):
+  - **si construye**: la pasada 2 se construye tras interruptor y en sombra, y su activación para clientes queda condicionada al
+    segundo corpus;
+  - **si entierra**: se aparca con su ficha, y **la cobertura de D se declara POR PAREJA, nunca en una sola cifra**:
+    ```
+    cobertura medida de D, por pareja y en el producto entero:
+      §2.4 ↔ §3.1 (el permiso contra el principio): 3 de 21
+      §2.4 ↔ §3.5 (la D SEMBRADA):                  0 de 21
+    ```
+    Fable escribió «cobertura medida: 3 de 21», y es el cruce de las parejas otra vez: se corrige al archivarla (arquitecto).
+- **LA PREDICCIÓN DE FABLE, PRERREGISTRADA A SU NOMBRE Y QUE SE PUNTÚA**: **«entre 26 y 32 de 42»**. Se puntúa como cualquier otra
+  cuando salga el número, escrita aquí antes de verlo.
+- **El recuento**: `FICHEROS=pulsación1.json,pulsación2.json node decidir_x.mjs`, en el scratchpad. Code informa al arquitecto en dos
+  tiempos: **primero los indecidibles y la banda disponible, después los positivos**, y no juntos.
+
+**AL REGISTRO, ERROR DEL ARQUITECTO (06/11/2026)**: sus tres valores esperados de la tabla de indecidibles (26,5, 25,0 y 24,1) salieron
+de calcular con tasas redondeadas (0,10, 0,15 y 0,20) y llevaban al lado **cuentas enteras** (4, 6 y 8 de 42). Los correctos son 26,6,
+25,2 y 23,8 (`binomial_x_indecidibles.mjs`, huella `493d04614481e8a2`). **Una cifra que no sale de la etiqueta que lleva al lado**,
+otra vez. No cambia la conclusión: con 8, el esperado queda por debajo de 24.
+
+**LA CUENTA DE LOS INDECIDIBLES** (`binomial_x_indecidibles.mjs`, aprobada), literal:
+```
+r   esperado con 0,70   P(enterrar | 0,70)   P(construir | 0,40)
+0   29,4                2,64 %               1,83 %
+1   28,7                4,14 %               1,26 %
+2   28,0                6,33 %               0,83 %
+3   27,3                9,44 %               0,53 %
+4   26,6                13,69 %              0,33 %
+5   25,9                19,29 %              0,20 %
+6   25,2                26,35 %              0,11 %
+7   24,5                34,84 %              0,06 %
+8   23,8                44,55 %              0,03 %
+```
+
+**LA CAPA DE DECISIÓN, `decidir_x.mjs`, LITERAL** (huella `55aa84614fd21a94`, aprobada). Pruebas, 12 de 12. Mutantes, 8 de 9 en rojo:
+corte en 23 y en 25, tope en 2 y en 4, tope mirado en el ancla, sin la regla del acuerdo, sin la comprobación de completas, y enterrar
+siempre. **El superviviente es EQUIVALENTE**: «decidir por el ancla» sólo se alcanza cuando los dos recuentos ya están del mismo lado.
+Ensayo con las 7 del 29/10: «NO PUNTUABLE», sin imprimir ningún positivo. Un tropiezo de Code por el camino: usaba la variable `ACCION`,
+que es la del guion, y al importarlo corrían las pruebas del guion; pasó a `X_ACCION`. **Lectura de Code, aceptada por el arquitecto**:
+el tope de 3 cuenta los indecidibles del recuento del producto, porque protege el tipo II del recuento que decide; los del ancla
+ya los cubre la regla del desacuerdo.
+```js
+// LA DECISIÓN DE X EN CÓDIGO (Code, 06/11/2026), escrita ANTES de la tanda y congelada por su huella. Prerregistro de X en
+// claude/Predicciones_34_Conflicto_Normativo.md («X · EL PRERREGISTRO NUEVO…» y las tres respuestas del arquitecto del 06/11).
+// NO CUENTA NADA: el recuento es el del guion aprobado (contar_brazos.mjs, 527b3ad22bb79110, con contar_quinto.mjs, 5210ea9a40ccf6c0),
+// que se IMPORTA sin tocarlo, con su función brazo(). Esta capa sólo sustituye la decisión de P-F130-23 (dos brazos, cotas cruzadas,
+// repetición con más de 4 indecidibles) por la de X, que es otra:
+//   · UN SOLO BRAZO, n = 42, la pareja del §3.5 (p35). Positivos = el recuento estricto: los «sale». NADA y PARCIAL cuentan como fallo.
+//   · DECIDE el recuento por la REGLA DEL PRODUCTO; el del ANCLA se informa al lado, y si los dos caen a lados distintos del 24, NO SE
+//     DECIDE (la discrepancia es el hallazgo).
+//   · CONSTRUIR con 24 o más, con cualquier número de indecidibles. ENTERRAR con 23 o menos, SÓLO si los indecidibles del recuento que
+//     decide son 3 o menos; con 4 o más, «no decide, y el motivo es el instrumento, no el fenómeno».
+//   · Los indecidibles se imprimen ANTES que los positivos, y con ellos la banda disponible.
+// Lectura de Code, MARCADA para el arquitecto: el tope de 3 indecidibles mira el recuento que decide (producto), no el del ancla.
+// Uso (SIN argumentos; contar_quinto los tomaría como suyos): FICHEROS=pulsación1.json,pulsación2.json[,pulsación3.json] node decidir_x.mjs
+//   ·   X_ACCION=pruebas node decidir_x.mjs (no ACCION: es la variable del guion, que al importarlo correría su propia línea de órdenes)
+import { readFileSync } from 'node:fs';
+import { createHash } from 'node:crypto';
+if (process.argv[2]) { console.log('NO SE DECIDE: este script no lleva argumentos (ver la cabecera).'); process.exit(1); }
+const DIR = new URL('.', import.meta.url);
+for (const [f, h] of [['contar_quinto.mjs', '5210ea9a40ccf6c0'], ['contar_brazos.mjs', '527b3ad22bb79110']]) {
+  const real = createHash('sha256').update(readFileSync(new URL(f, DIR))).digest('hex').slice(0, 16);
+  if (real !== h) { console.log(`NO SE DECIDE: ${f} tiene huella ${real}, no la aprobada ${h}`); process.exit(1); }
+}
+const { brazo, PAREJAS } = await import('./contar_brazos.mjs');
+
+export const N = 42, CORTE = 24, MAX_INDECIDIBLES_PARA_ENTERRAR = 3;
+
+// La decisión, PURA, sobre lo que devuelve brazo(): { completas, n, fallidas, ancla: { sale, ilegibles }, producto: { sale, ilegibles } }.
+export function decidirX(b) {
+  if (!b.completas) return { decision: 'NO PUNTUABLE', motivo: `faltan respuestas buenas para ${b.n}: se pulsa una tercera vez y se cuenta en orden` };
+  const rP = b.producto.ilegibles.length, rA = b.ancla.ilegibles.length;
+  const enterrarDisponible = rP <= MAX_INDECIDIBLES_PARA_ENTERRAR;
+  const lado = s => (s >= CORTE ? 'construir' : 'enterrar');
+  const lP = lado(b.producto.sale), lA = lado(b.ancla.sale);
+  const base = { rP, rA, enterrarDisponible, positivosProducto: b.producto.sale, positivosAncla: b.ancla.sale };
+  if (lP !== lA) return { ...base, decision: 'NO SE DECIDE', motivo: `los dos recuentos caen a lados distintos del ${CORTE}: la discrepancia es el hallazgo` };
+  if (lP === 'construir') return { ...base, decision: 'CONSTRUIR', motivo: `${b.producto.sale} de ${b.n} por la regla del producto (y ${b.ancla.sale} por ancla), ${CORTE} o más` };
+  if (!enterrarDisponible) return { ...base, decision: 'NO DECIDE', motivo: `por debajo del ${CORTE}, pero con ${rP} indecidibles (más de ${MAX_INDECIDIBLES_PARA_ENTERRAR}) enterrar no está disponible: el motivo es el instrumento, no el fenómeno` };
+  return { ...base, decision: 'ENTERRAR', motivo: `${b.producto.sale} de ${b.n} por la regla del producto (y ${b.ancla.sale} por ancla), ${CORTE - 1} o menos, con ${rP} indecidibles` };
+}
+
+function informe(b) {
+  const d = decidirX(b);
+  const L = [`X · ${PAREJAS.p35.nombre} · n = ${b.n}`, `1 · LAS FALLIDAS: ${b.fallidas.length}${b.fallidas.length ? ' — ' + b.fallidas.join(' · ') : ''}`];
+  if (d.decision === 'NO PUNTUABLE') { L.push(`NO PUNTUABLE: ${d.motivo}`); return L.join('\n'); }
+  L.push(`2 · LOS INDECIDIBLES, ANTES QUE NINGÚN POSITIVO: por la regla del producto ${d.rP}, por ancla ${d.rA}`);
+  for (const k of ['producto', 'ancla']) for (const i of b[k].ilegibles) L.push(`   ${k}: ${i}`);
+  L.push(`3 · LA BANDA DISPONIBLE: construir siempre; enterrar ${d.enterrarDisponible ? 'SÍ' : `NO (más de ${MAX_INDECIDIBLES_PARA_ENTERRAR} indecidibles)`}`);
+  L.push(`4 · LOS POSITIVOS: por la regla del producto ${d.positivosProducto} de ${b.n} (decide) · por ancla ${d.positivosAncla} de ${b.n} (al lado)`);
+  L.push(`5 · DECISIÓN: ${d.decision} — ${d.motivo}`);
+  return L.join('\n');
+}
+
+// LAS PRUEBAS, con brazos INVENTADOS. Cada caso está puesto en una frontera, de modo que una versión equivocada lo suspenda: el corte
+// en 23 o en 25, el tope de indecidibles en 2 o en 4, decidir por el ancla, o no exigir que los dos recuentos caigan del mismo lado.
+function correrPruebas() {
+  const ileg = r => Array.from({ length: r }, (_, i) => `vez ${i + 1}: pregunta 2: NADA`);
+  const B = (sP, rP, sA = sP, rA = rP, completas = true) => ({ completas, n: N, fallidas: [], producto: { sale: sP, ilegibles: ileg(rP) }, ancla: { sale: sA, ilegibles: ileg(rA) } });
+  const casos = [
+    ['24 sin indecidibles → CONSTRUIR (mata el corte en 25)', B(24, 0), 'CONSTRUIR'],
+    ['23 sin indecidibles → ENTERRAR (mata el corte en 23)', B(23, 0), 'ENTERRAR'],
+    ['24 con 10 indecidibles → CONSTRUIR (construir no mira los indecidibles)', B(24, 10), 'CONSTRUIR'],
+    ['23 con 3 indecidibles → ENTERRAR (mata el tope en 2)', B(23, 3), 'ENTERRAR'],
+    ['23 con 4 indecidibles → NO DECIDE (mata el tope en 4)', B(23, 4), 'NO DECIDE'],
+    ['producto 23 y ancla 24 → NO SE DECIDE (mata decidir sólo por uno)', B(23, 0, 24, 0), 'NO SE DECIDE'],
+    ['producto 24 y ancla 23 → NO SE DECIDE (mata decidir por el producto sin mirar el ancla)', B(24, 0, 23, 0), 'NO SE DECIDE'],
+    ['los dos 23; producto con 3 indecidibles y ancla con 6 → ENTERRAR (el tope mira el recuento que decide)', B(23, 3, 23, 6), 'ENTERRAR'],
+    ['los dos 23; producto con 4 y ancla con 0 → NO DECIDE (mata mirar el tope en el ancla)', B(23, 4, 23, 0), 'NO DECIDE'],
+    ['incompleto → NO PUNTUABLE', B(30, 0, 30, 0, false), 'NO PUNTUABLE'],
+    ['el informe imprime los indecidibles antes que los positivos', () => { const s = informe(B(25, 2)); return s.indexOf('INDECIDIBLES') < s.indexOf('POSITIVOS') && s.indexOf('BANDA') < s.indexOf('POSITIVOS'); }, true],
+    ['el informe no imprime positivos si no es puntuable', () => /POSITIVOS/.test(informe(B(30, 0, 30, 0, false))), false],
+  ];
+  let ok = 0;
+  for (const [nombre, x, esperado] of casos) {
+    const real = typeof x === 'function' ? x() : decidirX(x).decision;
+    const bien = real === esperado; if (bien) ok++;
+    console.log(`${bien ? 'ok ' : 'MAL'} · ${nombre}${bien ? '' : ` — esperaba ${esperado}, sale ${real}`}`);
+  }
+  console.log(`${ok} de ${casos.length}`);
+  if (ok !== casos.length) process.exitCode = 1;
+}
+
+const ACCION = process.env.X_ACCION, FICHEROS = (process.env.FICHEROS ?? '').split(',').filter(Boolean);
+if (ACCION === 'pruebas') correrPruebas();
+else if (FICHEROS.length) console.log(informe(brazo(FICHEROS.map(f => JSON.parse(readFileSync(f, 'utf8')).respuestas), PAREJAS.p35, N)));
+else console.log('NO SE DECIDE: hacen falta FICHEROS o X_ACCION=pruebas (ver la cabecera).');
+```
