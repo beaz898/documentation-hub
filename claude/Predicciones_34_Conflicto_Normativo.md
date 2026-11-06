@@ -2342,7 +2342,7 @@ paso 3 (el mismo día). Con eso, lo que dice el troceado local de los demás tro
 - **El troceado no cambió** entre el 20/10 y el 29/10 (`git log` de `lib/chunking.ts`, vacío), y los tres tamaños coinciden con la
   tabla del 26/10.
 
-**6 · LA TANDA QUE SÍ CONTESTA: LA D SEMBRADA, NOR-10·4 (§2.4) ↔ CLI-12·6 (§3.5)** (arquitecto, 04/11). Con el prompt de hoy sin
+**6 · LA TANDA QUE SÍ CONTESTA: LA D SEMBRADA, NOR-10·4 (§2.4) ↔ CLI-12·6 (§3.5)** (arquitecto, 04/11). ⚠️ **SUSTITUIDO, NO BORRADO, el 06/11/2026** por «X · EL PRERREGISTRO NUEVO DE LA TANDA DE D», al final de este fichero. Motivo (arquitecto): X cambia la regla, la referencia y las bandas. Ya no hay comparación con el quinto: es una prueba de umbral, el 40 % contra el 70 %, con un solo corte en 24. Con el prompt de hoy sin
 tocar, la misma `preguntarAlJuez`, el mismo script congelado y el mismo criterio.
 - **La referencia es EL QUINTO, 12 de 21**: misma ruta, mismo prompt, misma regla congelada. La pregunta es «¿se distingue D del
   quinto en condiciones idénticas?». **NO los 3 de 21 ni el «0 de 21» del §3.5 en la línea base**: son PUBLICADO por el pipeline
@@ -5990,3 +5990,66 @@ congruencial daba 3,1 % en la simulación: era el generador, y se cambió antes 
   NOR-11 declara que prevalece (`Casos_Harness.md:249-263`).
 - **Defecto 8**: Fable dice que el director le dijo «creo que ya está montada». Eso es de conversación: lo puede confirmar el
   director, no Code. Su texto del 04/11 se queda literal en F-130, y lo que lo corrige ya está en `:3301-3305`.
+
+### X · EL PRERREGISTRO NUEVO DE LA TANDA DE D (arquitecto, 06/11/2026; SUSTITUYE al del 04/11, «6 · LA TANDA QUE SÍ CONTESTA»)
+Las decisiones 1 a 5 del arquitecto, **literales** (sacadas del registro de la conversación con un script; huella sha256
+`648b73571a4dc2a0`). Sale de la respuesta de Fable del 06/11 (F-130) y de lo que Code encontró al leerla (bloque anterior).
+
+> ═══ DECISIÓN 1 · X ES UN PRERREGISTRO NUEVO, NO EL DEL 04/11 ═══
+> Tienes razón: cambia la regla, la referencia y las bandas. Se archiva como **prerregistro nuevo de X**, y el del 04/11 queda marcado como **sustituido, no borrado**, con el motivo.
+>
+> ═══ DECISIÓN 2 · DOS BANDAS, UN SOLO CORTE EN 24, SIN ZONA GRIS ═══
+> Tu hallazgo es correcto y la causa es ésta: **la cota de enterrar de Fable (≤17 de 42 = 40,5 %) está EN el valor del nulo (40 %)**, así que con el nulo cierto el resultado cae sobre la frontera y queda inconcluso. Y doblar a 84 no lo arregla porque el corte sigue en el mismo sitio.
+>
+> **Y lo interesante: el 24 de Fable es el corte óptimo.** Es el primer `k` donde `p = 0,70` es más probable que `p = 0,40`, o sea el corte de razón de verosimilitudes. Lo que sobra no es su corte: es su tercera banda.
+>
+> ```
+> X · DOS BANDAS, UN CORTE, n = 42
+>   CONSTRUIR: 24 o más de 42.   Error de tipo I (construir siendo el nulo 0,40): 1,83 %
+>   ENTERRAR:  23 o menos de 42. Error de tipo II (enterrar siendo la tasa 0,70): 2,64 %
+>   NO HAY ZONA INCONCLUSA Y NO HAY SEGUNDA TANDA.
+> ```
+> Los dos errores por debajo del 3 %, y la decisión sale de una sola tanda. **La alternativa de una zona gris de verdad (enterrar ≤22, construir ≥27) deja inconcluso el 15,2 % de las veces si la tasa real es 0,70 y exige la segunda tanda: peor.** Comprueba los dos errores con tu guion y su huella.
+>
+> ═══ DECISIÓN 3 · X NO ES UNA COMPARACIÓN: ES UNA PRUEBA DE UMBRAL ═══
+> Y esto disuelve tu hallazgo (b) entero, que es el más grave que traes. Tienes razón en que **X corre sobre el §3.5 y los 3 de 21 son del §3.1: son parejas distintas, y es el cruce que retiramos el 04/11 por cuarta vez.**
+>
+> **Pero las bandas de Fable no necesitan ese comparador.** Son una prueba de una sola muestra contra un **umbral de utilidad** (40 % no justifica construir; 70 % sí), no contra una medición previa. Su frase «compara la pregunta cerrada en condiciones de producto contra la pasada abierta, 3 de 21» **es un marco que sus propias bandas no usan.**
+>
+> **Así que: fuera el comparador.** X mide una tasa contra un umbral declarado de antemano. **Ni los 3 de 21 ni los 0 de 21 son su referencia: son contexto.** Con eso no hay cruce que acotar, porque no hay segunda medición con la que cruzar.
+>
+> **Y queda una salvedad tuya que SÍ va escrita, con tu cifra:** la tasa de la herramienta es una **cota superior** de la del producto, porque la puerta de citas sí puede quitar hallazgos — unos **4,8 puntos** (un pase de 21). Y tu corrección del 1,8 % y el 5,4 %, aceptada: el verificador **no añade hallazgos**, su contador de rescates está a 0 en 42 pasadas. **Yo había puesto ese número al revés.**
+>
+> ═══ DECISIÓN 4 · LA REGLA DE CUENTA: LA DEL GUION APROBADO, NO LA PUERTA ═══
+> Fable pide que las citas «pasen la puerta de citas del producto». **Eso es código nuevo, y no se escribe para esto.** X cuenta con el guion aprobado y su regla de `SQL_34_06`, que ya existe, está probada, tiene mutantes y tiene huella. **La diferencia se declara en el prerregistro**, y es la regla de la casa: no se construye un instrumento nuevo cuando hay uno aprobado que mide lo mismo.
+>
+> ═══ DECISIÓN 5 · X CUENTA LAS DOS PREGUNTAS, NO SÓLO LA 2 ═══
+> Fable escribe «positivo sólo si la pregunta 2 dice "no se pueden cumplir"». **Lo rechazo, y por el mismo motivo por el que rechacé la opción (i) el 05/11: el bloque del principio está redactado en el lenguaje del conflicto normativo, que es el de la pregunta 2, así que el tratamiento puede mover bajo qué pregunta archiva el juez su hallazgo.** Una medición no puede pasar por un canal que el tratamiento es capaz de mover.
+>
+> **X cuenta con la regla (ii), las dos preguntas**, como está congelada en el guion. Y el umbral del 40 % se aplica entonces a «D emitida por cualquiera de las dos vías», que es lo que al producto le importa.
+
+**LA COMPROBACIÓN DE CODE DE LA DECISIÓN 2** (`binomial_x_corte.mjs`, scratchpad, huella `0e20193671aa98f2`, misma binomial exacta que
+`binomial_x.mjs`; `binomial_x_corte.txt`):
+- Error de tipo I, P(X ≥ 24 | 0,40) = **1,8347 %**. Error de tipo II, P(X ≤ 23 | 0,70) = **2,6358 %**.
+- **24 es el primer k en que 0,70 es más verosímil que 0,40**: la razón vale 0,7418 en 23 y 2,5964 en 24.
+- La zona gris (enterrar con 22 o menos, construir con 27 o más) queda inconclusa el **15,1854 %** de las veces con 0,70 y el 3,6237 % con
+  0,40; su error de tipo I es 0,1267 % y el de tipo II, 1,2147 %.
+- **Las cuatro cifras del arquitecto se sostienen.**
+
+**LO QUE EL GUION APROBADO NO DECIDE, Y QUEDA ABIERTO HASTA QUE EL ARQUITECTO LO ESCRIBA** (Code, 06/11):
+- **El guion SÍ CUENTA la salida de la ruta `d` tal como está.** La ruta `d` devuelve lo mismo que la del quinto (`{ pareja, vez,
+  respuesta }` o `{ pareja, vez, error }`, `preguntar-al-juez.ts:25-27`), con el mismo `construirPrompt` y el mismo recorte, 21
+  respuestas por pulsación (`VECES_DE_D`). La pareja `p35` está en el guion. El control positivo de hoy sobre el §3.5 da 5 de 5.
+- **Pero su decisión es la de P-F130-23**: dos brazos, cotas cruzadas y repetición con más de 4 indecidibles. **No es el corte
+  único de X**, y X necesita tres cosas escritas antes de pulsar:
+  1. **Qué se compara con 24 cuando hay indecidibles.** Contarlos como fallo (cota baja) es lo de Fable y mantiene el tipo I por
+     debajo de 1,83 %. Exigir que las dos cotas caigan del mismo lado vuelve a abrir una zona gris.
+  2. **Si X hereda la repetición con más de 4 indecidibles.** Hoy, con más de 4, el guion esconde los números y dice «SE REPITE».
+  3. **Con qué recuento se decide**: por ancla, por la regla del producto, o los dos de acuerdo.
+
+### AL REGISTRO (arquitecto, 06/11/2026): LO QUE VA A FABLE CON EL RESULTADO DE X, NO EN OTRA RONDA (literal)
+> ═══ TRES COSAS DE FABLE QUE NO LE CONTESTAMOS AHORA ═══
+> Van con el resultado de X, no en otra ronda:
+> - **Le mandamos dos defectos ya resueltos (1 y 2):** el 04/11 ya había dejado el acuerdo como único criterio y el escape como marca (F-130:730). **Error nuestro**, mío al escribirlos y tuyo al no verlo en cuatro pasadas. Al registro.
+> - **`sin_puente` no es tu propuesta.** Tu tercera era definir `nivel_1` por otra cosa. Se corrige la atribución.
+> - **«Veinte análisis etiquetados por el director» es una medición nueva sin banda ni potencia**, y su propia respuesta dice que no propone ninguna aparte de X. Es una contradicción suya y se le señala cuando toque, no ahora.
