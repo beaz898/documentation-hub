@@ -6229,3 +6229,108 @@ if (ACCION === 'pruebas') correrPruebas();
 else if (FICHEROS.length) console.log(informe(brazo(FICHEROS.map(f => JSON.parse(readFileSync(f, 'utf8')).respuestas), PAREJAS.p35, N)));
 else console.log('NO SE DECIDE: hacen falta FICHEROS o X_ACCION=pruebas (ver la cabecera).');
 ```
+
+### X · EL RESULTADO: NO SE DECIDE, Y EL MOTIVO ES EL INSTRUMENTO (06/11/2026)
+**Las dos fugas, al registro**: el director pegó las 42 respuestas en bruto al arquitecto y a Code. Los dos las vieron antes del
+recuento y ninguno contó positivos a mano. El arquitecto lo declaró antes de pedir el recuento, y Code al dar los indecidibles.
+Son inertes porque el corte, la regla de cuenta, el guion y la capa estaban congelados antes de pulsar.
+**La metadata, comprobada por script** (`extraer_x.mjs`), antes de contar:
+- la misma `medida` y el mismo modelo (`claude-haiku-5-5`), y la misma pareja en las 42;
+- **4.155 tokens de entrada en las 42 llamadas**;
+- 21 + 21 respuestas con texto, todas con `ok`, 200, intento 1 y `sinEtapa` 0;
+- 10:59:37 y 11:02:13 UTC. Entre el final de la primera tanda y el comienzo de la segunda hubo unos 46 s, no 2,5 minutos; lo que
+  descarta el despliegue son los tokens idénticos.
+
+Las dos salidas, en `claude/Medida_F130_X_D_Sembrada_Pulsacion_{1,2}_06-11-2026.json` (`4659e773`).
+
+**Primer tiempo, los indecidibles y la banda** (`indecidibles_x.mjs`, sin positivos), literal:
+```
+X · la pareja del §3.5 (NOR-10·4 ↔ CLI-12·6) · n = 42 · completas: true
+1 · LAS FALLIDAS: 0
+2 · LOS INDECIDIBLES: por la regla del producto 18, por ancla 14 (de ellos, a caballo: 0)
+   producto: pulsación 1, vez 3: pregunta 1: NIEGA; pregunta 2: NADA
+   producto: pulsación 1, vez 4: pregunta 1: NIEGA; pregunta 2: NADA
+   producto: pulsación 1, vez 7: pregunta 1: NIEGA; pregunta 2: NADA
+   producto: pulsación 1, vez 8: pregunta 1: NIEGA; pregunta 2: NADA
+   producto: pulsación 1, vez 12: pregunta 1: NIEGA; pregunta 2: NADA
+   producto: pulsación 1, vez 13: pregunta 1: NIEGA; pregunta 2: NADA
+   producto: pulsación 1, vez 18: pregunta 1: NIEGA; pregunta 2: NADA
+   producto: pulsación 1, vez 19: pregunta 1: NIEGA; pregunta 2: NADA
+   producto: pulsación 1, vez 20: pregunta 1: NIEGA; pregunta 2: NADA
+   producto: pulsación 2, vez 2: pregunta 1: NIEGA; pregunta 2: NADA
+   producto: pulsación 2, vez 6: pregunta 1: NIEGA; pregunta 2: NADA
+   producto: pulsación 2, vez 11: pregunta 1: NIEGA; pregunta 2: NADA
+   producto: pulsación 2, vez 13: pregunta 1: NIEGA; pregunta 2: NADA
+   producto: pulsación 2, vez 15: pregunta 1: NIEGA; pregunta 2: PARCIAL (un solo lado por la regla del producto)
+   producto: pulsación 2, vez 16: pregunta 1: NIEGA; pregunta 2: PARCIAL (un solo lado por la regla del producto)
+   producto: pulsación 2, vez 18: pregunta 1: NIEGA; pregunta 2: NADA
+   producto: pulsación 2, vez 20: pregunta 1: NIEGA; pregunta 2: PARCIAL (un solo lado por la regla del producto)
+   producto: pulsación 2, vez 21: pregunta 1: NIEGA; pregunta 2: PARCIAL (un solo lado por la regla del producto)
+   ancla: pulsación 1, vez 3: pregunta 1: NIEGA; pregunta 2: NADA
+   ancla: pulsación 1, vez 4: pregunta 1: NIEGA; pregunta 2: NADA
+   ancla: pulsación 1, vez 7: pregunta 1: NIEGA; pregunta 2: NADA
+   ancla: pulsación 1, vez 8: pregunta 1: NIEGA; pregunta 2: NADA
+   ancla: pulsación 1, vez 12: pregunta 1: NIEGA; pregunta 2: NADA
+   ancla: pulsación 1, vez 13: pregunta 1: NIEGA; pregunta 2: NADA
+   ancla: pulsación 1, vez 18: pregunta 1: NIEGA; pregunta 2: NADA
+   ancla: pulsación 1, vez 19: pregunta 1: NIEGA; pregunta 2: NADA
+   ancla: pulsación 1, vez 20: pregunta 1: NIEGA; pregunta 2: NADA
+   ancla: pulsación 2, vez 2: pregunta 1: NIEGA; pregunta 2: NADA
+   ancla: pulsación 2, vez 6: pregunta 1: NIEGA; pregunta 2: NADA
+   ancla: pulsación 2, vez 11: pregunta 1: NIEGA; pregunta 2: NADA
+   ancla: pulsación 2, vez 13: pregunta 1: NIEGA; pregunta 2: NADA
+   ancla: pulsación 2, vez 18: pregunta 1: NIEGA; pregunta 2: NADA
+3 · LA BANDA DISPONIBLE: construir siempre; enterrar NO (más de 3 indecidibles)
+```
+
+**Lo fijado por el arquitecto ANTES de ver el número**, literal (sacado del registro de la conversación con un script):
+
+> **EL DEFECTO ES MÍO Y AL REGISTRO, CON FECHA DE HOY:** ayer derivé que «construir vale con cualquier número de indecidibles» porque los indecidibles sólo bajan el recuento. **Eso es cierto y es vacío**: no calculé que por encima de cierto número de indecidibles **el techo se hunde por debajo del corte** y construir deja de ser alcanzable. La regla era correcta en la dirección e inútil en la práctica. **Me faltaba una línea de aritmética y la hiciste tú.**
+>
+> **Y HAY UNA TENTACIÓN QUE RECHAZO, Y LA ESCRIBO PARA QUE CONSTE QUE LA VI:** por ancla hay 14 indecidibles, o sea 28 puntuables, y ahí construir con 24 de 28 **sí es alcanzable** (4,7 % con tasa 0,70; 85,8 % con 0,90). **El recuento que decide está muerto y el que se informa está vivo.** Cambiar cuál decide, ahora que sé cuál funciona, sería elegir el instrumento después de ver cuál me conviene. **No se cambia. Decide la regla del producto, como está prerregistrado.**
+>
+> ═══ LO QUE SE CONCLUYE, FIJADO ═══
+> - **Construir** si los positivos por la regla del producto son 24 de 24. Sigue siendo válido si sale: con el nulo es imposible.
+> - **Cualquier otro número: «no decide, y el motivo es el instrumento, no el fenómeno.»**
+> - **Enterrar no está disponible.** La pasada 2 no se entierra con esta tanda.
+> - Y la regla del desacuerdo sigue en pie: si los dos recuentos caen a lados distintos del 24, no se decide.
+
+**Segundo tiempo, la capa aprobada** (`decidir_x.mjs`, huella `55aa84614fd21a94`), literal, sin las líneas de detalle:
+```
+X · la pareja del §3.5 (NOR-10·4 ↔ CLI-12·6) · n = 42
+1 · LAS FALLIDAS: 0
+2 · LOS INDECIDIBLES, ANTES QUE NINGÚN POSITIVO: por la regla del producto 18, por ancla 14
+3 · LA BANDA DISPONIBLE: construir siempre; enterrar NO (más de 3 indecidibles)
+4 · LOS POSITIVOS: por la regla del producto 22 de 42 (decide) · por ancla 26 de 42 (al lado)
+5 · DECISIÓN: NO SE DECIDE — los dos recuentos caen a lados distintos del 24: la discrepancia es el hallazgo
+```
+- **Por la regla del producto, la que decide: 22 de 42.** Hay 24 puntuables, y de ellas 22 salen y 2 niegan. Queda por debajo
+  del techo, así que no llega a 24 de 24.
+- **Por ancla, la que se informa: 26 de 42.** Hay 28 puntuables, y de ellas 26 salen y 2 niegan.
+- **Decisión: NO SE DECIDE.** Hay dos motivos y cualquiera de los dos basta:
+  1. los dos recuentos caen a lados distintos del 24;
+  2. el recuento que decide no puede llegar a construir, y enterrar no está disponible.
+
+  Los dos motivos son del instrumento, no del fenómeno. **La pasada 2 ni se construye ni se entierra con esta tanda.**
+- **Las cifras del arquitecto sobre el techo, comprobadas en binomial exacta**: P(24 de 24) = 2,8 × 10⁻⁸ % con 0,40; 0,0192 % con
+  0,70; 7,98 % con 0,90; 29,20 % con 0,95. Por ancla, P(24 o más de 28) = 4,74 % con 0,70 y 85,79 % con 0,90.
+- **LA PREDICCIÓN DE FABLE («entre 26 y 32 de 42»), PUNTUADA**: por el recuento que decide, 22. **Queda fuera: FALLA.** Por ancla,
+  26, que queda dentro, en el borde bajo. Fable la escribió sobre su propia regla de la puerta, que no es ninguna de las dos.
+
+**LA LECTURA DE CODE, DESPUÉS DE LOS POSITIVOS. ESTA TANDA NO SE RECUENTA: esto es para diseñar la SIGUIENTE medición**
+(`nada_x.mjs`, `x_nada_lectura.txt`):
+- **Los 14 NADA son todos fallos del LECTOR, no del juez.** En las 14, el juez afirma el hallazgo con otras palabras:
+  - «HAY HALLAZGO», solo o con prefijo: 4 respuestas;
+  - «Sí, hay hallazgo» o «Sí hay hallazgo»: 5. El lector quita a propósito ese prefijo en la pregunta 2, porque ahí «sí» es
+    la polaridad contraria;
+  - «Sí, ambos son reglas, y no se pueden cumplir…»: 3. Llevan «sí» y «no» en la misma frase, y el lector las anula;
+  - «Hay hallazgo, de tipo…»: 1;
+  - «Por tanto, no se pueden cumplir…», donde el veredicto no está al principio de la línea: 1.
+
+  La pregunta 2 se formula como «¿se pueden cumplir?», con el hallazgo en el «no», y el juez contesta a menudo en el registro del
+  hallazgo («hay hallazgo») y no en el de la pregunta.
+- **Los 4 PARCIAL por la regla del producto son citas con GLOSA o con PUNTOS SUSPENSIVOS**: en dos, «la figura [de Coordinador de
+  Calidad] puede recaer…» del lado de NOR-10; en las otras dos, «...nunca por…» o «...sus funciones…» del lado de CLI-12. La regla de
+  `SQL_34_06` exige el texto literal; **la puerta del producto tiene un paso de glosa** (`glosa-de-cita.ts`). Es la diferencia
+  declarada en la decisión 4, y en esta tanda ha decidido el resultado.
+- **Las 2 que niegan en cada recuento son negativas explícitas**: «Sí, se pueden cumplir las dos a la vez».
