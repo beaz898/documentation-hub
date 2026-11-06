@@ -218,10 +218,11 @@ El dueño del proyecto NO es programador. Vercel deploya automáticamente al hac
   arquitectura. Si no, es una observación del código, y quien no observa no
   indica.
   ⚠️ **ESTO NO ES CORTESÍA NI DESCONFIANZA: ES LO ÚNICO QUE IMPIDE QUE UNA
-  DESCRIPCIÓN VUELVA CONVERTIDA EN HECHO.** La cadena tiene DOS intermediarios sin
-  repositorio —el arquitecto y Fable—, y los dos fabrican por la misma vía: cogen
-  la descripción que sale de una lectura y la devuelven en indicativo, con más
-  autoridad de la que salió.
+  DESCRIPCIÓN VUELVA CONVERTIDA EN HECHO.** La cadena tiene TRES intermediarios sin
+  repositorio —el arquitecto, Fable y el director—. Los dos primeros fabrican por
+  la misma vía: cogen la descripción que sale de una lectura y la devuelven en
+  indicativo, con más autoridad de la que salió. El director, por otra: **la
+  memoria dicha de pasada** (ver el corolario del 06/11, abajo).
   Los casos, y son de las dos direcciones. **Del arquitecto**, cuatro seguidos:
   «pushea 783c5ea2» sobre un commit que ya estaba en `origin`; «tu control
   positivo es unidireccional» sobre una aserción que es un bicondicional con las
@@ -239,6 +240,18 @@ El dueño del proyecto NO es programador. Vercel deploya automáticamente al hac
   para conservar lo que se dijo— es justo lo que le presta la autoridad. **La
   sospecha vale igual cuando lo que se da por existente lo propuso esta misma
   casa.** Promovida el 09/09/2026.
+  ⚠️ **Y SU COROLARIO DE LA MEMORIA (06/11/2026): LO QUE ALGUIEN RECUERDA DEL
+  ESTADO DEL CÓDIGO NO ES EL ESTADO DEL CÓDIGO. ANTES DE QUE ENTRE EN UNA
+  ESPECIFICACIÓN O EN UN ENCARGO, SE ABRE EL REPOSITORIO.** Una referencia que
+  Code no puede abrir no es una fuente, y un comentario tampoco lo es.
+  El caso que la paga: el director le dijo a Fable «creo que ya está montada»
+  hablando de la pasada 2, y la adenda de Fable del 04/11 la describió en
+  presente («el código arma parejas», «las tiradas se repiten»), cuando no
+  existía en `lib/`, `app/` ni `worker/`. El director, con sus palabras: «Se lo
+  dije, pero era porque yo pensaba que estaba montada. Me confundí.» El fallo
+  tiene dos mitades. A Fable le tocaba marcarlo como no verificado; a nosotros,
+  no decirlo sin comprobarlo. **Las dos son el mismo fallo de procedencia**
+  (F-130, defecto 8; `claude/Predicciones_34_Conflicto_Normativo.md`).
 - **TODO PARÁMETRO, UMBRAL, TOPE O CORTE LLEVA SU CASO DECISIVO: UN CASO DONDE
   CAMBIARLO CAMBIARÍA EL RESULTADO. UN PARÁMETRO SIN CASO DECISIVO NO ESTÁ
   PROBADO: ESTÁ DECORANDO.**
