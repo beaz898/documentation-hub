@@ -6314,8 +6314,14 @@ X · la pareja del §3.5 (NOR-10·4 ↔ CLI-12·6) · n = 42
   Los dos motivos son del instrumento, no del fenómeno. **La pasada 2 ni se construye ni se entierra con esta tanda.**
 - **Las cifras del arquitecto sobre el techo, comprobadas en binomial exacta**: P(24 de 24) = 2,8 × 10⁻⁸ % con 0,40; 0,0192 % con
   0,70; 7,98 % con 0,90; 29,20 % con 0,95. Por ancla, P(24 o más de 28) = 4,74 % con 0,70 y 85,79 % con 0,90.
-- **LA PREDICCIÓN DE FABLE («entre 26 y 32 de 42»), PUNTUADA**: por el recuento que decide, 22. **Queda fuera: FALLA.** Por ancla,
-  26, que queda dentro, en el borde bajo. Fable la escribió sobre su propia regla de la puerta, que no es ninguna de las dos.
+- ~~**LA PREDICCIÓN DE FABLE («entre 26 y 32 de 42»), PUNTUADA**: por el recuento que decide, 22. **Queda fuera: FALLA.** Por ancla,
+  26, que queda dentro, en el borde bajo. Fable la escribió sobre su propia regla de la puerta, que no es ninguna de las dos.~~
+  **CORREGIDO por el arquitecto el 06/11: LA PREDICCIÓN DE FABLE NO ES PUNTUABLE, porque el instrumento cambió después de que ella
+  predijera.** La escribió con la puerta de citas, y la puerta no se corrió. Ponerle nota con la regla de `SQL_34_06` sería lo que
+  el arquitecto no acepta que le hagan a él. Los dos recuentos, al lado: **22** por la regla del producto y **26** por ancla. **Los dos
+  quedan en el borde bajo de su banda**: su magnitud iba bien encaminada, y es la regla de contar la que decide si acierta o no. Es un
+  hallazgo sobre la fragilidad de las dos cosas. *(Code la había puntuado FALLA en `33a88e1b`; la corrección es del arquitecto, que la
+  firma como suya.)*
 
 **LA LECTURA DE CODE, DESPUÉS DE LOS POSITIVOS. ESTA TANDA NO SE RECUENTA: esto es para diseñar la SIGUIENTE medición**
 (`nada_x.mjs`, `x_nada_lectura.txt`):
@@ -6334,3 +6340,70 @@ X · la pareja del §3.5 (NOR-10·4 ↔ CLI-12·6) · n = 42
   `SQL_34_06` exige el texto literal; **la puerta del producto tiene un paso de glosa** (`glosa-de-cita.ts`). Es la diferencia
   declarada en la decisión 4, y en esta tanda ha decidido el resultado.
 - **Las 2 que niegan en cada recuento son negativas explícitas**: «Sí, se pueden cumplir las dos a la vez».
+
+### TRAS X · LAS DOS DECISIONES PARA LA SIGUIENTE MEDICIÓN, Y LO QUE CUESTA ACERCARSE A LA PUERTA (arquitecto y Code, 06/11/2026)
+Las decisiones del arquitecto, literales (sacadas del registro con un script):
+
+> ═══ Y LAS DOS DECISIONES PARA LA SIGUIENTE MEDICIÓN ═══
+>
+> **1 · EL LECTOR DE LA PREGUNTA 2 SE ARREGLA; EL PROMPT NO SE TOCA.**
+> Tu desglose de los 14 es inequívoco: el juez **afirma el hallazgo con otras palabras** —«HAY HALLAZGO», «Sí, hay hallazgo», «Sí, ambos son reglas, y no se pueden cumplir…»— y el lector no lo lee porque espera un «no».
+>
+> Y aquí hay un matiz que importa: **eso no es un capricho del juez, es que el prompt le enseña DOS vocabularios.** Pregunta «¿se pueden cumplir las dos a la vez?» y a la vez usa «hay hallazgo» en sus ejemplos. **El juez mezcla los dos porque el prompt los mezcla.**
+>
+> Aun así, **el prompt no se toca: es el tratamiento.** Se arregla el lector, y no es calibrar sobre una muestra: **«hay hallazgo» y «no se pueden cumplir» son el mismo enunciado en los dos vocabularios que el propio prompt enseña**, y la correspondencia es inequívoca. Describe la regla por los sinónimos que acepta, no por las 14 que arregla, y con mutantes: uno que no reconozca «hay hallazgo» tiene que salir en rojo, **y otro que lea «se pueden cumplir» como positivo también.**
+>
+> **2 · LA REGLA DE CITAS SE ACERCA A LA PUERTA, Y ESO ES REVOCAR MI DECISIÓN 4.**
+> Rechacé llamar a la puerta del producto para no escribir código nuevo. **La medición ha puesto precio a esa decisión: 4 respuestas de 42, y es justo lo que separa los dos recuentos y hace que no se decida.** Los 4 PARCIAL son citas con glosa o con puntos suspensivos, y la puerta del producto **ya tiene un paso de glosa** (`glosa-de-cita.ts`).
+>
+> **Así que Fable tenía razón en su regla y yo no.** Y no es código nuevo en el sentido que me preocupaba: es **reutilizar una función que existe**, que es exactamente el argumento que ella dio sobre el puente y la puerta de citas y que yo acepté en el defecto 3. Lo apliqué allí y no aquí.
+>
+> **Dime qué cuesta llamar a `glosa-de-cita.ts` desde el recuento**, y si se puede hacer sin tocar la puerta ni el producto. Si es reutilizar, se hace. Si exige cambiar la puerta, se queda como está y lo declaramos.
+>
+> **Y entonces desaparece el recuento doble**, porque los dos recuentos existían para acotar una diferencia que ya no habría. Eso simplifica la siguiente medición en vez de complicarla.
+>
+> ═══ LO QUE NO HAGO ═══
+> **No recuento esta tanda, no la amplío y no la repito todavía.** Las 42 respuestas quedan archivadas como son. **La siguiente medición es un prerregistro nuevo**, con el lector arreglado y la regla de citas decidida, y con su propio techo calculado **antes** de pulsar — que es la línea de aritmética que me faltó hoy.
+>
+> **Lo que sí quiero antes de escribirlo:** con el lector arreglado y la glosa dentro, **¿cuántos indecidibles habrían quedado en esta tanda?** No para recontarla, sino **para calcular el techo de la siguiente antes de prerregistrarla.** Esa cifra es legítima: es sobre el instrumento, no sobre el resultado.
+
+**LO QUE ENCONTRÓ CODE AL RESPONDER, Y CAMBIA LA PREMISA DE LA DECISIÓN 2: LA GLOSA SOLA NO RESCATA NINGUNA DE LAS 4.**
+- Se preguntó a la función del producto (`quitarGlosa`, `lib/analysis/glosa-de-cita.ts`) por cada una de las 42 citas de X
+  (`herramientas/glosas_x.test.ts`, scratchpad). Sólo 3 llevan glosa, y **sin ella tampoco son literales**: el juez escribió
+  «la figura [de Coordinador de Calidad] puede recaer…», y el texto dice «…de Calidad, figura QUE puede recaer…». Quitar el corchete
+  deja «la figura puede recaer», que no está en NOR-10.
+- **Las 4 PARCIAL, una por una:**
+  - **dos, las de puntos suspensivos** (pulsación 2, veces 16 y 20, del lado de CLI-12), **las rescata la NORMALIZACIÓN de la puerta**
+    (`normalize`, que quita la puntuación): normalizadas, salen literales en el §3.5;
+  - **dos, las de glosa** (veces 15 y 21, del lado de NOR-10), **sólo las rescata el TRAMO**, el paso 3 de la puerta, que sólo actúa
+    en contradicciones: un tramo literal de 43 de 52 y de 82 de 91 caracteres normalizados (83 % y 90 %), por encima de 40 y del 50 %.
+    La puerta publicaría la frase real del ancla, que es la del permiso.
+- **El coste**: `quitarGlosa` es pura y llamarla no toca la puerta ni el producto, pero **no basta**. Para acercarse a la puerta
+  hacen falta sus tres pasos: la normalización, la glosa y el tramo con la frase real. Son piezas en TypeScript, y el guion es
+  `.mjs` y no las puede importar (al cargarse bajo vitest se sale, porque mira `process.argv`). Reutilizarlas exige un recuento
+  nuevo que las llame desde una herramienta de vitest. **Es código de cuenta nuevo y tiene que aprobarse; no cambia ni la puerta ni
+  el producto.**
+
+**CUÁNTOS INDECIDIBLES HABRÍAN QUEDADO EN ESTA TANDA, POR ESCENARIO** (`techo_x.mjs`; sólo indecidibles, nunca positivos; **para el
+techo de la siguiente, NO para recontar X**). Los lectores arreglados son BOCETOS de escenario, no el lector que se aprobará:
+- «mínimo»: una línea que empieza por «hay hallazgo», con o sin «sí,» delante;
+- «amplio»: además, «no se pueden cumplir» en cualquier sitio de una frase sin «sí se pueden cumplir».
+
+**Control positivo**: el escenario «aprobado · sql» reproduce el 18 del guion aprobado, con 14 NADA y 4 PARCIAL.
+```
+escenario (lector · citas)            indecidibles   NADA   PARCIAL
+aprobado · sql                        18             14     4
+mínimo · sql                          10             4      6
+mínimo · glosa                        10             4      6
+mínimo · normalizada                  8              4      4
+mínimo · tramo                        4              4      0
+amplio · sql                          6              0      6
+amplio · glosa                        6              0      6
+amplio · normalizada                  4              0      4
+amplio · tramo                        0              0      0
+```
+- **La glosa sola no mueve nada en ningún escenario** (fila «glosa» igual a la fila «sql»).
+- **Con el lector mínimo, 2 de las 10 que pasa a leer caen en PARCIAL por la regla de citas**: el lector y la regla de citas no son
+  independientes.
+- **Sólo el escenario completo, lector amplio y tramo, deja 0.** El lector mínimo con el tramo deja 4: las 3 «Sí, ambos son reglas, y
+  no se pueden cumplir…» y la «Por tanto, no se pueden cumplir…».
