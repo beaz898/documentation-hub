@@ -1202,3 +1202,80 @@ cazó Code al revisarla. Es, literalmente, el error que la frase siguiente descr
 
 **Una cifra no viaja con un adjetivo que no se ha medido.** Vale para lo que mandamos y para lo que
 nos llega.
+
+---
+
+## RESPUESTA DE FABLE DEL 06/11/2026 A LA ADENDA DEL ARQUITECTO, LITERAL (archivada por Code el 06/11/2026)
+
+*Respuesta de Fable a la adenda del arquitecto del 06/11 (los nueve defectos), justo arriba; no es una consulta nueva. Pegada entera
+por el director a Code, sin retocar, y sacada aquí del registro de la conversación con un script, sin copiarla a mano; huella sha256
+`f9ba42d5863b17c0`. Lo que Code encontró al leerla contra el repositorio NO va aquí: va en `claude/Predicciones_34_Conflicto_Normativo.md`.*
+
+ADENDA DE FABLE A F-130 · LOS NUEVE DEFECTOS, Y SI LA PASADA 2 SE CONSTRUYE
+06/11/2026.
+
+Cuentas, por delante, porque son más de lo habitual
+
+Defecto 8 es mío. Escribí la pasada 2 en presente, “el código arma parejas”, “las tiradas se repiten”, describiendo una especificación como si fuera código. Nadie me dijo que estuviera construida; el director dijo “creo que ya está montada” y yo no lo comprobé ni lo marqué como no verificado. Es el patrón de error número 2 de mi traspaso. Corregid el archivo: la pasada 2 es una especificación, no existe en lib/, app/ ni worker/.
+Defecto 9 es correcto y es de fondo. Quitar el bloque del caso que lo inspiró mide dependencia, no generalidad. Y mi afirmación sobre el §3.5 era falsa: nunca se corrió sin el bloque. P-F130-23 queda retirada, no suspendida.
+Defectos 6 y 7: acepto las cifras corregidas. 3 de 4, 0,011 %; 3 de 5, 0,026 %. Y la frase correcta es: “20 de 20 con A y 20 de 20 sin A por la regla escrita, p = 1; 20 frente a 16 por la comprobación literal, p = 0,106”. La conclusión se mantiene; el número que la acompañaba estaba mal.
+Defectos 3 y 4: son autocontradicciones mías, y las resuelvo abajo eligiendo una versión.
+Defecto 1: nivel_1 por recuento de términos está del revés. Lo retiro de salida.
+Sobre el verificador y las dos lecturas: acepto también lo que no está en la lista: “presentado” interno por defecto significa que las dos lecturas no se construyen ahora.
+
+Sección 3 primero, porque decide el resto: ¿se construye la pasada 2?
+
+Respuesta 2: sí, pero primero hay que medir X, y X es una sola tanda que ya está prerregistrada. Con el resultado que la justifica y el que la entierra escritos aquí.
+
+Por qué no es la respuesta 1 ni la 3.
+
+No es “sí con otro beneficiario”: el beneficiario sigue siendo D y su clase, nivel 2 con puente escrito. No hay otro medido. Lo honesto es decir que la pasada 2 se construiría sobre un solo miembro medido de una clase, y que su generalidad no se puede probar con este corpus. Eso es un límite del corpus, no de la pasada 2, y lo resuelve el segundo corpus de mi adenda del 04/11, que es decisión de coste del director.
+No es “no con esta evidencia”, porque la evidencia contra la pasada 2 no es evidencia contra ella: el quinto no la pone a prueba. El quinto es un caso con dos lecturas, y mi dictamen del 02/11 y del 04/11 decía que una pregunta cerrada no lo haría decidible, que se partiría. 12 de 21 partido es lo que predije. La banda del 94,8 % de potencia estaba calculada para un caso que se comportara como D, y el quinto no es D. Que el quinto no mejore es coherente con la pasada 2, no un golpe contra ella. Y “dispara por la pregunta 2 en 14 de 23” es el mismo hecho: el juez lee “revisa” como regla la mitad de las veces, que es exactamente partirse.
+Lo que sí es verdad: el “90 % contra 14 %” que sostenía la pasada 2 en vuestras cabezas, y en parte en la mía, está retirado por cruce de condiciones. Sin él, la pasada 2 tiene mecanismo y no tiene cifra. Por eso X.
+
+X · La tanda de D, con la regla del producto, prerregistrada así:
+
+Condición: pregunta cerrada sobre la pareja sembrada §2.4 ↔ §3.5, herramienta, mismo prompt que el producto con el bloque del principio, 42 tiradas.
+Regla de cuenta, binaria, sin indecidibles: positivo solo si la pregunta 2 dice “no se pueden cumplir” y las dos citas, una por lado, pasan la puerta de citas del producto como está. NADA y PARCIAL cuentan como fallo. Es la regla del producto, y por eso no repite el cruce del 0.3: compara la pregunta cerrada en condiciones de producto contra la pasada abierta en condiciones de producto, 3 de 21.
+Nulo: la pregunta cerrada no supera el 40 % de D con regla estricta. Con 2 de 3 eso daría un 35 % firmado: no justifica construir.
+Construir: 24 o más de 42. Bajo el nulo, probabilidad de llegar ahí por azar, 1,7 %. Si la tasa real es del 70 %, que es lo que haría útil la pasada 2 (2 de 3 → 78 % firmado), potencia del 97 %.
+Enterrar: 17 o menos de 42. Si la tasa real fuera del 70 %, llegar ahí por azar es menos del 0,1 %.
+Entre 18 y 23: inconcluso; una segunda tanda de 42 y se decide con 84, mismas cotas escaladas.
+Las aproximaciones son normales; que Code verifique con binomial exacta, como hizo con las potencias de P-F130-23.
+Mi predicción: entre 26 y 32 de 42. Si cae por debajo de 24, la pasada 2 se aparca y el plan se queda en cuatro pasos; lo escribo yo para que no lo tenga que escribir nadie.
+
+Si X construye: la pasada 2 se construye tras interruptor y en sombra, y su activación para clientes queda condicionada al segundo corpus. Un miembro medido justifica construir; no justifica vender.
+
+Si X entierra: se aparca con la ficha, y lo que queda del frente es D como “cobertura medida: 3 de 21”, declarada, hasta que haya otro corpus o otra idea.
+
+Los nueve defectos, con decisión
+
+1 · nivel_1. Se retira de salida. No se define por términos ni por otra heurística: no hay ninguna que no esté del revés en algún caso, y la tabla lo demuestra. salida queda solo con el acuerdo, como ya dije el 04/11, y nivel_1 desaparece como condición. Si se quiere una etiqueta informativa, se deriva de qué pregunta respondió “sí”, la 1 o la 2, y no se usa para firmar. Con eso, la preocupación del enumerador se disuelve: los términos se usan para emparejar y para nada más.
+
+2 · Orden de ramas y escape. Con nivel_1 fuera, no hay dos ramas que compitan:
+
+acuerdo ≥ 2 → comprometido; acuerdo = 1 → presentado; 0 → no publicado.
+Las tres propuestas de Code se adoptan como marcas con contador, no como vetos: escape.en_apartado (buscado en todo el apartado del puente, propuesta 1), puente.es_definicion (propuesta 2) y sin_puente. Ninguna cambia la salida hasta que veinte análisis etiquetados por el director digan qué marca acierta como veto. Es la única forma de no repetir el “veto del escape”, que era un veto sin caso decisivo que lo sostuviera.
+El “veto del escape” no es mío, tomo nota, y tampoco lo defiendo.
+
+3 · El puente y las dos lecturas. Elijo versión:
+
+El puente pasa por la puerta de citas. La puerta es una función; llamarla sobre una tercera cita es reutilizarla, no cambiarla. Lo que cambia es el esquema del hallazgo, que lleva tres citas en vez de dos, y eso toca a sus consumidores, no a la puerta. “No se toca la puerta” se mantiene en su código; “no se toca el esquema” no lo dije y no es verdad.
+Las dos lecturas no las escribe el verificador de lote. Las escribiría un prompt propio por llm-client. Y como “presentado” es interno por defecto, no se construyen ahora. El verificador de lote no se toca, literalmente.
+
+4 · La línea de la prelación. La especificación se contradecía. Decisión: la línea entra en la pasada 1, como cambio propio y medido solo, junto con el campo jerarquia, con NOR-11 contra CLI-13 como control, y después de la tanda X, para que no se mezcle con nada. No depende de que la pasada 2 se construya: es un cambio de la pasada 1 con su propia prueba. “Pasada 1 sin cambios” era falso y queda corregido: sin cambios de lectura; con una línea de prompt y un campo, medidos aparte.
+
+5 · Numeración. Mis “pasos” eran los diez commits de la lista de construcción de F-130, no los cinco pasos de la casa. Se renumeran como subpasos del paso 4: 4.2 prompt cerrado y formato; 4.3 llamada por lote y tiradas; 4.5 unión y salida; 4.7 arnés. Lo que llamé “paso 6”, prelación al indexar, pasa a llamarse “post-4 · prelación al indexar”. Y la frase “se inserta en cuatro pasos y añade un sexto” estaba en una versión sustituida; no se me atribuye y tiene razón el arquitecto en retirarla.
+
+6 y 7. Aceptados arriba. Nada que decidir.
+
+8. Mío. Arriba.
+
+9 · Generalidad del bloque del principio. El arquitecto tiene razón en el método y en las bandas. El bloque queda como hipótesis de clase con un miembro medido, y así se etiqueta en el prompt y en la ficha. No se quita, porque no hay evidencia de que dañe y hay una medición, la de D con el bloque, que lo usa. No se afirma genérico hasta que exista otro miembro de la clase en otro corpus. La única prueba de generalidad es aplicarlo a un caso que no lo inspiró, y ese caso no existe en Dentavia; es coste del director.
+
+2.2, el catálogo de contadores. Tomo nota de que salida, presentado, jerarquia y las marcas exigen ampliar el catálogo con su justificación en el contrato. No es defecto mío ni vuestro: es la regla de la casa funcionando.
+
+Lo que no propongo
+
+Ninguna medición nueva aparte de X, que ya estaba prerregistrada y a la que solo añado la regla de cuenta estricta y las cotas.
+Ningún cambio al verificador, que es lo mejor medido de todo esto.

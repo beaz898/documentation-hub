@@ -5916,3 +5916,77 @@ confirma en el panel, con las otras tres.
   453 después, la MISMA lista en el MISMO orden.** (Habría diferencia con un enlace simbólico a una carpeta, que `stat` sigue y la
   entrada no; no hay ninguno: la lista es idéntica.)
 - La suite completa y el typecheck de raíz y worker, en verde. El tiempo en frío se verá cuando se vea.
+
+### LA RESPUESTA DE FABLE DEL 06/11, CONTRA EL REPOSITORIO; Y DOS RETIRADAS DEL ARQUITECTO (Code y arquitecto, 06/11/2026)
+La respuesta, literal, en F-130 («RESPUESTA DE FABLE DEL 06/11/2026»). Aquí, lo que el arquitecto archiva y lo que Code comprobó.
+
+**RETIRADA DEL ARQUITECTO, 06/11/2026, para el registro (literal):** «**La pasada 2 no tiene beneficiario medido**» era demasiado
+fuerte. Lo apoyaba en dos cosas: que D no se puede medir y que el quinto no mejoró. **El quinto nunca fue candidato a beneficiario**
+—es un caso de dos lecturas, Fable predijo que se partiría y 12 de 21 partido es lo que predijo—, así que esa mitad del argumento no
+valía. **Lo que queda en pie es sólo «D está sin medir»**, que es más flojo y es exactamente por lo que Fable pide X. Lo cazó Fable en
+su respuesta.
+
+**RETIRADA DEL ARQUITECTO, 06/11/2026, la condicional de su comprobación (c), que se cumple:** los **9 de 21 del quinto son
+PUBLICADOS por el producto** (`:939`, «frente a los 9 de 21 PUBLICADOS de la pasada abierta») y los **12 de 21 son de la
+herramienta**, sólo el juez. **El contraste de la semana 0 y de la adenda del 06/11 («contra su propia pasada abierta… no se
+distingue») llevaba el mismo cruce, y se reportó como limpio.** Lo había escrito ya la ENMIENDA 2 del 03/11 (`:937-947`: tres
+diferencias, no una; la tercera, sin puerta y sin verificador, sesga A FAVOR de la pregunta cerrada). ⚠️ **Y es también fallo de
+Code**: revisó la adenda del 06/11 en cuatro pasadas y no lo marcó. **La conclusión aguanta, y más fuerte**: con el sesgo a su favor,
+la pregunta cerrada tampoco se separó.
+
+**(a) LAS COTAS DE X, CON BINOMIAL EXACTA** (`binomial_x.mjs`, scratchpad, huella `c2fa9d0c0ad67258`; las tres zonas suman 1 en cada
+p, y una simulación de 200.000 tandas con semilla fija da lo mismo a la segunda cifra. Una primera versión con un generador
+congruencial daba 3,1 % en la simulación: era el generador, y se cambió antes de leer nada). n = 42:
+- p = 0,40 (el nulo): construir (≥ 24) **1,8347 %**; enterrar (≤ 17) **59,1005 %**; inconcluso (18-23) **39,0648 %**.
+- p = 0,70: construir **97,3642 %**; enterrar **0,0069 %**; inconcluso 2,6290 %.
+- Las cifras del arquitecto, las cinco, se sostienen. Las de Fable son aproximaciones correctas (1,7 %, 97 %, «menos del 0,1 %»).
+- 2 de 3 firmado: 35,2 % con p = 0,40 y 78,4 % con p = 0,70, como escribe Fable.
+- ⚠️ **La segunda tanda, leyendo «mismas cotas escaladas» como el doble (≥ 48 y ≤ 34 de 84)**: con el nulo, inconcluso **41,67 %**
+  otra vez. Con esa lectura, 84 no decide: el corte de enterrar está en el valor del nulo, así que la zona gris no se estrecha.
+  Si se quiere que 84 decida, hace falta un corte único a 84, escrito antes.
+
+**(b) LOS TRES NÚMEROS DEL CRUCE:**
+1. **Sí**: los dos documentos enteros, 21 de 21 en la línea base (`Estado…:1907`, `SQL_34_08`).
+2. **NO, tal como está**: el «+1,8 %» y el «+5,4 %» son **COSTE** del verificador sin marca (NOR-11 y NOR-10; `:860-861`), no
+   detección. Lo que se sabe de detección: su contador de rescates, **0 en 42 pasadas**, y `sin_veredicto` 0. **Y la pieza que
+   sí puede quitar es la puerta de citas**: la línea base es «3 de 21 (o 4 con la cota sin texto)» (`:310`).
+3. **Sí**: «la síntesis no pierde nada» (F-123, `F-123_2026-10-10_orden-de-ejecucion.md:101`).
+- ⚠️ **Y un cruce que ni la lista de Fable ni el «son dos diferencias» del arquitecto nombran, el más grande: la PAREJA.** X es la
+  pareja del §3.5; en la línea base **la D sembrada (§3.5) salió 0 de 21** y los 3 de 21 son D por el §3.1 (`:2348`). Esa
+  referencia ya se descartó el 04/11 por este mismo motivo (`:2346-2350`).
+
+**(d) EL PROMPT DE X:**
+- **El producto** mete `EXCEPCION_DE_LAS_REGLAS` entero en el juez (`lib/analysis/judge.ts:18, 911`), con la pregunta abierta.
+- **La herramienta**, incluida la ruta de D (`app/api/admin/medida-f130/d/route.ts:4, 24`), usa el recorte `CRITERIO_DEL_CUMPLIMIENTO`
+  (`criterio-del-cumplimiento.ts:65`), derivado de ese bloque. Sólo quita el arranque, la frase del campo, el ORDEN OBLIGATORIO y el
+  cierre del JSON, así que **el bloque del principio va dentro**. El bloque del juez no cambia desde `5c2d50c9` (27/10), y el recorte
+  no cambia desde `a58deaf8` (29/10, 00:33).
+- **Las 7 del §3.5** (29/10, 12:05 UTC) corrieron **con el recorte**, pero **con otra plantilla de pregunta**. La plantilla de
+  `63d729b0` decía «LAS DOS RESPUESTAS NO PUEDEN CITAR EL MISMO PAR DE FRASES». Después cambió en `3dcf0b95`, `60a24057` y `b3b4e9da`
+  («ESTA PREGUNTA SE CONTESTA SOLA… SOBRE FRASES»), y la de hoy lleva además el documento delante de cada texto.
+- **Conclusión: las 7 del 29/10 no están en las condiciones de X.** «El mismo prompt que el producto» no es posible con ninguna lectura:
+  X es la pregunta cerrada.
+
+**LO DE FABLE QUE CHOCA CON EL REPOSITORIO** (lectura de Code; sin decidir):
+- **X «ya está prerregistrada»: no tal cual.** La del 04/11 era otra:
+  - la regla (ii), con indecidibles y cotas;
+  - la referencia del quinto, 12 de 21, en condiciones idénticas, y no la base del producto;
+  - n = 42 en dos pulsaciones.
+
+  X cambia la regla, la referencia y las bandas: es un prerregistro nuevo.
+- **«Pasan la puerta de citas del producto como está»**: la herramienta no pasa por la puerta. El guion aprobado (`527b3ad22bb79110`)
+  cuenta con la regla de `SQL_34_06`, que no es la puerta: no tiene normalización de la puerta, ni glosa, ni tramo. Contar así exige
+  código nuevo, y aprobarlo.
+- **Sólo la pregunta 2 cuenta.** La regla (ii) daba «sale» si cualquiera de las dos era D, y en el producto la D de la pasada 19 la
+  confirmó el verificador por su pregunta del dato (`:630`).
+- **Defectos 1 y 2: el 04/11 Fable ya había dejado el acuerdo como único criterio de firma**, y el escape como marca con contador
+  (`F-130:730`). Nuestra adenda del 06/11 le mandó como defectos dos cosas que su adenda anterior ya había cambiado, y Code no lo vio
+  al revisarla.
+- **«Las tres propuestas de Code se adoptan como marcas»**: la 1 es `escape.en_apartado` y la 2 es `puente.es_definicion`. La 3 era
+  «`nivel_1` definido por otra cosa», no `sin_puente`. `sin_puente` es nueva.
+- **«Veinte análisis etiquetados por el director»** es una medición, sin banda ni potencia, y la misma respuesta dice «ninguna medición
+  nueva aparte de X».
+- **Sin choque**: los «diez commits» existen (`F-130:275`); `llm-client` existe; NOR-11 ↔ CLI-13 es el control de superficies, y
+  NOR-11 declara que prevalece (`Casos_Harness.md:249-263`).
+- **Defecto 8**: Fable dice que el director le dijo «creo que ya está montada». Eso es de conversación: lo puede confirmar el
+  director, no Code. Su texto del 04/11 se queda literal en F-130, y lo que lo corrige ya está en `:3301-3305`.
