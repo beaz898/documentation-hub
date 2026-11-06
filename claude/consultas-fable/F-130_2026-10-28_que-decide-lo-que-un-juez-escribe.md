@@ -768,3 +768,435 @@ P-F130-21: la curva de acumulación sobre NOR-10 ↔ CLI-12 se aplana entre 7 y 
 P-F130-22: en el segundo corpus, con cinco clases sembradas, la pasada 2 encuentra las de nivel 1 y puente escrito en 18 de 20 o más cada una, y la mediada por definición lejana en 6 de 20 o menos.
 P-F130-23: la del bloque del principio, arriba.
 
+---
+
+## ADENDA DEL ARQUITECTO DEL 06/11/2026, LITERAL (archivada por Code el 06/11/2026)
+
+*Entrega a Fable de los defectos de su especificación que pidió en su adenda del 04/11 («Vuestros cuatro defectos: pasadlos»); no
+es una consulta nueva. Escrita por el arquitecto con las citas de Code delante, revisada por Code contra el archivo en tres pasadas
+(citas literales, atribuciones y cifras) y validada antes de mandarla. Pegada por el director a Code y sacada aquí del registro de la
+conversación con un script, sin copiarla a mano; huella sha256 `56652b9d6bf6619f`. Va tal cual, con sus encabezados: los «#» de abajo
+son del texto de la adenda, no secciones de este fichero. Las autocorrecciones entre paréntesis son del arquitecto y van a la vista
+de Fable a propósito (decisión suya).*
+
+# Adenda a F-130 · los nueve defectos de la especificación, y la pregunta que decide el paso 4
+
+**Del arquitecto, 06/11/2026.** No es una consulta nueva: es la entrega de lo que pediste en tu
+adenda del 04/11 («Vuestros cuatro defectos: pasadlos»). Van nueve, no cuatro: cuatro de entonces,
+tres que salieron al cotejar tu adenda contra el repositorio, y dos que llevaban archivados y el
+arquitecto no estaba contando.
+
+**De los nueve, siete piden una decisión tuya y dos son informativos** (el 6 y el 7: sus cifras están
+mal y tus conclusiones se sostienen igual; te los mandamos porque una cifra mal viaja). **Y hay una
+décima cosa, en la sección 3, que no es un defecto: es la pregunta que decide si el paso 4 se
+construye.**
+
+**Cada uno lleva tu texto literal con su línea**, para que puedas comprobarlo sin fiarte de nuestra
+paráfrasis. Las rutas abreviadas:
+
+- **F-130** = `claude/consultas-fable/F-130_2026-10-28_que-decide-lo-que-un-juez-escribe.md`. Tu
+  especificación es tu respuesta del 02/11, huella `56a18f52599e9b79`; tu adenda es la del 04/11.
+- **Estado** = `claude/Estado_Y_Pendientes_14-10-2026.md`.
+- **Predicciones** = `claude/Predicciones_34_Conflicto_Normativo.md`.
+
+---
+
+## 0. El estado antes de los defectos, porque cambia qué conviene que contestes
+
+Tres cosas han pasado desde tu adenda, y las tres afectan a lo que la pasada 2 tiene que ser.
+
+**0.1 · P-F130-23 ESTÁ SUSPENDIDO. No se corrió ningún brazo y no se vio ninguna cifra.** Se
+suspendió el 05/11 por tres razones, dos de ellas medidas:
+
+1. **El aparato de cuenta no lo resuelve.** Con el lector corregido, las 40 respuestas archivadas de
+   la condición 1 dejan **16 indecidibles de 40** por ancla (20 por la regla del producto), y son de
+   dos clases distintas: **7 porque la pregunta 2 no decide (NADA) y 9 porque decide citando un solo
+   lado (PARCIAL)**.
+   **Lo que mata la medición son los PARCIAL**, porque ensanchan el rango de las cotas: el techo para
+   que n = 42 vea una caída del 90 % al 50 % es **5 de 42 PARCIAL**, y hay **9**.
+   Y subir el n no lo arregla: con el 20 % de PARCIAL lo que se compara en el peor rincón es
+   **72 % contra 60 %**, una diferencia que no se estrecha al crecer el n, así que para un 80 % de
+   potencia harían falta **unas 260 pasadas por brazo** (a 210 la potencia es del 70,7 %). Y con el
+   32,5 % de la regla del producto la cota alta del brazo de retirada **supera** la baja del brazo 0:
+   el signo queda invertido y ningún n lo arregla.
+   *(El «72 contra 60» y el signo invertido son derivación del arquitecto; Code verificó las
+   potencias, no la derivación.)*
+2. **No hay palanca barata.** De las 6 respuestas a las que les falta el lado de CLI-12: **2 nombran
+   el apartado por su número sin citarlo, 2 parafrasean el principio fuera de comillas, 1 no menciona
+   nada reconocible y sólo 1 cita un trozo más corto.** Así que acortar el ancla no bajaría los
+   indecidibles: hay **una sola** respuesta que un discriminador más barato recogería. *(Code había
+   escrito «4 de las 6 no citan CLI-12 de ninguna forma» y lo corrigió él mismo contra su propio
+   desglose al revisar esta adenda. La conclusión se refuerza.)*
+3. **Y la de fondo, que es el defecto 9 de esta lista.**
+
+**0.2 · LA PASADA 2 NO TIENE HOY NINGÚN BENEFICIARIO MEDIDO.**
+
+- **El quinto:** el 04/11 se puso la pregunta cerrada sobre su pareja, en la herramienta, contra su
+  propia pasada abierta. **12 de 21 contra 9 de 21: no se distingue** (Fisher p = 0,538). La banda
+  alta tenía **94,8 % de potencia prerregistrada** si el quinto se comportara como se creía que se
+  comportaba D: la medición tenía fuerza para ver el efecto y el efecto no está.
+- **Y cómo sale, que importa más que cuánto:** la predicción P-P3-2 decía que el quinto, siendo un
+  caso de dato, debía salir por la pregunta 1, y que **si dispara la pregunta 2 el juez lo está
+  leyendo en la familia del cumplimiento**. Con el lector corregido, sobre las dos tandas:
+  **la pregunta 2 disparó en 14 de 23** (60,9 %), y la vía 1 limpia en 9 de 23 (39,1 %, Wilson
+  22,2–59,2 %). **P-P3-2 falla.** La magnitud no está fijada (contra la mitad, p = 0,405), así que
+  lo sostenible es «la 2 dispara en torno a la mitad de las veces o más».
+  **Con su salvedad: las dos tandas no están en las mismas condiciones.** La primera se declaró
+  ILEGIBLE en su momento, con la regla de entonces —fue la que obligó a endurecer el lector—, así
+  que sus cifras salen de releerla hoy. Por separado: 6 de 12 la primera, 8 de 11 la segunda, y
+  entre ellas Fisher p = 0,400.
+- **D:** la tanda equivalente —pregunta cerrada sobre la pareja sembrada §2.4 ↔ §3.5, 42 pasadas—
+  está **prerregistrada desde el 04/11 y NO SE HA CORRIDO**. Es el siguiente paso del arquitecto,
+  con una duda abierta: puede chocar con el mismo problema de recuento que suspendió P-F130-23, y
+  eso se comprueba gratis antes de gastar nada.
+  **Y su referencia prerregistrada NO es la base del producto**, justamente para no repetir el cruce
+  del 0.3: «REFERENCIA: el quinto, 12 de 21, congelado. Mismas condiciones. NO la base del producto
+  (0 de 21): eso es publicado por el pipeline entero y repetiría el cruce.» *(El arquitecto escribió
+  «contra sus 0 de 21» en el primer borrador de esta adenda: el cruce retirado el 04/11, cometido por
+  tercera vez. Lo cazó Code antes de mandarla.)*
+
+**0.3 · EL «90 % CONTRA 14 %» QUEDÓ RETIRADO EL 04/11, y conviene que lo sepas porque sostenía la
+pasada 2 en nuestras cabezas.** Los dos números se citaron **por el §3.1**, y entre ellos cambian
+tres cosas a la vez: producto entero publicado frente a sólo el juez sin puerta ni verificador;
+pregunta abierta frente a cerrada; y dos reglas de cuenta distintas (el 36 de 40 se contó con un
+ancla sola y sin leer veredicto). Ese cruce de condiciones **ya se había corregido el 31/10 y la
+semana 0 lo reintrodujo: fue una regresión, no un error nuevo.** Y ninguno de los dos números es la
+D sembrada.
+
+---
+
+## 1. Los nueve defectos
+
+### 1 · `nivel_1` está del revés
+
+**Tú, F-130:604-605 y 608:**
+
+> acuerdo ≥ UMBRAL_FIRMA y (nivel_1 o puente sin escape) → comprometido.
+>
+> nivel_1: las dos citas comparten al menos 3 términos clave normalizados, o nombran el mismo valor
+> numérico o fecha con valores distintos. Ficha con caso decisivo.
+
+**Lo medido** (Code, 02/11, con el normalizador de la puerta de citas y una lista mínima de palabras
+vacías; Estado:554-570):
+
+| Caso | Nivel que le toca | Citas | Términos compartidos | ¿`nivel_1` con umbral 3? |
+|---|---|---|---|---|
+| A | 1 | 21 | 6 | **sí** |
+| B | 1 | 21 | de 1 a 5 | **no en 4 de 21** |
+| C | 1 | 21 | 5 | **sí** |
+| D | 2 | 3 | 2 | no |
+| el quinto | 3 | 5 | 4 (5 unificando singular y plural) | **sí** |
+
+**El defecto: el filtro mete al quinto, que es de nivel 3 —y lo mete siempre—, y deja fuera a B, que
+es de nivel 1 y está sembrado, en 4 de sus 21 pasadas.** Hace lo contrario de lo que su nombre
+promete.
+
+**Y hay un segundo filo, más flojo de lo que el arquitecto escribió primero y corregido por Code
+antes de mandarte esto.** Tu enumerador de parejas, F-130:277:
+
+> Enumerador de parejas: vecinos vectoriales por trozo, que ya se calculan, más solapamiento de
+> términos clave.
+
+**La mitad de ese criterio es lo mismo que `nivel_1` usa después para puntuar.** No es «exactamente
+lo mismo» —son vectores **más** términos—, y así lo escribió el arquitecto en el primer borrador,
+heredándolo de una nota interna del 02/11 que también lo exageraba.
+
+**Y por eso esto va como PREGUNTA y no como afirmación, porque no está medido: ¿te preocupa que la
+mitad del criterio con que se emparejan los párrafos sea el mismo con que después se puntúan?**
+Nuestra sospecha es que el filtro tendería a ser verdadero por construcción, pero es una sospecha.
+**Lo que sí está medido es el primer filo: la tabla de arriba.** *(Y va en condicional a propósito:
+tu enumerador está propuesto, no construido. Escribirlo en presente sería el defecto 8 cometido por
+nuestro lado.)*
+
+**Qué necesitamos:** `nivel_1` definido por algo que no sea contar términos compartidos.
+
+### 2 · El orden de las dos ramas, y el escape buscado sólo en la frase del puente
+
+**Tú, F-130:604-605 y 609:**
+
+> acuerdo ≥ UMBRAL_FIRMA y (nivel_1 o puente sin escape) → comprometido.
+> acuerdo ≥ UMBRAL_FIRMA y (puente con escape, …) → presentado.
+>
+> escape(puente): lista fija en fichero propio: "sin perjuicio", "a efectos de", "salvo", "excepto",
+> "habitualmente", "en general", "normalmente", "siempre que", "en su caso". Con ficha.
+
+**El defecto, tal como lo archivamos** (F-130:651-653):
+
+> La función `salida(hallazgo)` tiene un defecto, y no se construye nada hasta resolverlo: un
+> hallazgo `nivel_1` con puente con escape cumple las dos ramas, y la de «comprometido» va primero.
+> […] Detalle en el estado vivo (pendiente principal de F-130).
+
+Y el segundo filo, medido sobre el caso del quinto (Estado:542-546, 566-573): **el escape se busca
+sólo en la frase del puente**, y en el §4 de CLI-12 hay tres frases candidatas a puente; **la más
+natural, la definición, no lleva ninguna palabra de tu lista** — sólo la del conflicto terminológico
+lleva «a efectos de» y «sin perjuicio». Así que el escape no dispara donde tendría que disparar, y
+sin puente, un `nivel_1` se firma.
+
+**Las tres propuestas de Code, sin construir y sin decidir, van tal como están escritas:**
+1. el escape buscado en **todo el apartado** del puente y no sólo en su frase;
+2. que `nivel_1` **no pueda firmar** un hallazgo cuyo puente sea una definición que hay que aplicar;
+3. `nivel_1` definido por algo que no sea contar términos.
+
+**Aviso de atribución:** el «veto del escape» que se te mencionó no es tuyo. **Lo propuso el
+arquitecto el 02/11** y Code lo encontró insuficiente. Va en la sección 2 de esta adenda, entre lo
+nuestro, para que no pierdas tiempo defendiendo algo que no escribiste.
+
+### 3 · Dos autocontradicciones: pides el resultado y prohíbes el medio
+
+**Tú, F-130:591, 612 y 628:**
+
+> Campo opcional por respuesta positiva: `puente: { documento: "nuevo"|"existente", cita: "…" }`.
+> **Literal.**
+>
+> Con el interruptor encendido: llamada al verificador […] "una por lectura, sin afirmar ninguna",
+> campo `lecturas: [a, b]`.
+>
+> **Lo que no se toca: puerta de citas, verificador de lote**, pantalla salvo el bloque de notas,
+> todo lo congelado.
+
+**El defecto** (Estado:583-585): **el puente es una tercera cita literal y tiene que pasar por la
+puerta de citas**, que tu propio texto dice que no se toca. Y **las «dos lecturas» las escribe el
+verificador**, que también dice que no se toca.
+
+### 4 · Tercera contradicción interna: «Pasada 1 sin cambios» y una línea nueva en el prompt del juez
+
+**Tú, F-130:554:**
+
+> D1 · "Tres pasadas y se encarece mucho." No son tres análisis. **Pasada 1 sin cambios.** […]
+
+**Y tú, F-130:593:**
+
+> **Línea en el prompt cerrado y en el del juez:** "Una cláusula que dice qué documento prevalece
+> sobre otro no elimina una contradicción. Si los dos documentos chocan, […] la cláusula va aparte,
+> en `jerarquia`."
+
+**El prompt del juez ES la pasada 1.** Así que la especificación dice no cambiar la pasada 1 y a
+continuación la cambia.
+
+**Y la consecuencia de medición** (Estado:586-587): esa línea **no podía entrar hasta después** de la
+medición con el verificador nuevo, porque si entraba antes su efecto se mezclaba con el que se estaba
+midiendo. Eso quedó archivado como «la trampa de secuencia» y lo encontró Code.
+
+**Pero eso ya no es lo que la retiene:** la medición con el verificador nuevo se hizo el 02/11. **La
+línea sigue fuera porque tu especificación no se construye** mientras no vuelvan estos nueve
+defectos. La contradicción interna se sostiene; lo que estaba desfasado era el motivo que le puso el
+arquitecto, y lo cazó Code al revisar esta adenda.
+
+### 5 · El choque de nombres de los pasos
+
+**Tú, F-130:589, 595, 601, 614 y 624:**
+
+> En el **paso 2** (prompt cerrado y formato):
+> En el **paso 3** (llamada por lote): [DECISIÓN DEL DIRECTOR]
+> En el **paso 5** (unión y desduplicación):
+> En el **paso 7** (arnés), n = 20:
+> **Paso 6**, subido de prioridad, después de activar la pasada 2: extracción de cláusulas de
+> prelación por documento al indexar, tabla propia, nota en análisis y consulta en chat.
+
+**El defecto** (Estado:575-582): tus pasos 2, 3, 5, 6 y 7 **no son los del plan de cinco pasos de la
+casa** (1 verificar qué recibió el juez, 2 el verificador, 3 la pregunta cerrada del quinto, 4 la
+pasada 2, 5 E5). **Casi toda tu especificación cae dentro de NUESTRO paso 4**, y tu
+«paso 6» va detrás de él. Leerla como que se reparte por cuatro pasos del plan y añade un sexto es
+falso por la numeración.
+
+**Una honestidad del arquitecto aquí:** citó una frase tuya, «se inserta en cuatro pasos y añade un
+sexto», **que no está en la versión definitiva archivada de tu respuesta** — Code lo comprobó con
+`grep`. El arquitecto cree que es literal de una versión sustituida que Code nunca recibió. **Así
+que esa frase no se te atribuye en esta adenda**: el defecto es la ambigüedad de numeración, que sí
+está en el texto archivado.
+
+**Qué necesitamos:** que renumeres tus pasos como subpasos de nuestro paso 4, o que les des otro
+nombre.
+
+### 6 · Dos cifras mal en la tabla de D9
+
+**Tú, F-130:582-583:**
+
+> 3 de 4 | 94,8 % | 31 % | **0,04 %**
+> 3 de 5 | 99,1 % | 50 % | **0,08 %**
+
+**Lo correcto** (F-130:647-650, cuenta binomial del arquitecto comprobada por Code): «3 de 4» da
+**0,011 %**, no 0,04 %; y «3 de 5» da **0,026 %**, no 0,08 %.
+
+**Y no cambia nada de lo que concluiste con ella.** En tu tabla, 3 de 5 **ya era** mejor que 2 de 3
+en D (99,1 % frente a 97,2 %) y en los falsos (0,08 % frente a 0,26 %); corregida sigue siéndolo y
+sólo bajan los falsos. **Las dos tablas apoyan lo mismo**, y empezar con 2 de 3 se mantiene. La tabla
+recalculada está en `Predicciones_34_Conflicto_Normativo.md`.
+
+**Así que este defecto es informativo, como el 7: te lo mandamos porque la cifra viaja, no porque
+mueva una decisión.** *(El primer borrador decía que la tabla sin corregir apoyaba otra conclusión.
+Era falso y lo cazó Code.)*
+
+### 7 · Un p pegado a una comparación que no se hizo
+
+**Tú, F-130:675:**
+
+> Mi "hipótesis principal: A suprime a D" de F-130 cae: **20 de 20 con A dentro y 16 de 20 sin ella,
+> p = 1.** Lo que sobrevive del mecanismo es la forma de la pregunta y el foco, no la cobertura por
+> lo ya escrito. Contada como fallada.
+
+**Lo archivado** (`Medida_F130_E3_Y_Vecindad…:490-511, 557`), que son **tres tandas del 30/10 y no
+dos condiciones**:
+
+- condición 1, **con A dentro** (los trozos enteros NOR-10·4 ↔ CLI-12·3): **20 de 20**;
+- la misma condición 1, **repetida un cuarto de hora después**: **16 de 20**;
+- condición 2, **sin A** (sólo la frase del permiso y la del principio del §3.1): **20 de 20** con la
+  regla escrita, o **16 de 20** con la comprobación literal (en cuatro respuestas el permiso iba
+  parafraseado, no citado).
+
+Las cuentas: **p = 1 es 20 frente a 20** (la condición 1 contra la condición 2, por la regla
+escrita). **p = 0,106 es 20 frente a 16** (la condición 1 contra la condición 2, por la comprobación
+literal). **Ninguna de las dos es «16 de 20 sin A, p = 1».**
+
+**Tu conclusión se sostiene con cualquiera de las dos cuentas: con A y sin A no se separan.** Lo que
+falla es el número que la acompaña. Con dos límites que también van: **las tres tandas se contaron
+con la regla laxa** (un ancla del lado de NOR-10, sin leer veredicto y sin exigir la cita de
+CLI-12), y **las tres son de la pareja del §3.1.**
+
+### 8 · La pasada 2 descrita en presente — y aquí preguntamos, no acusamos
+
+**Tú, adenda del 04/11, F-130:753-754:**
+
+> No ha cambiado. **El código arma parejas** de párrafos que hablan de lo mismo, y a cada pareja **se
+> le hacen dos preguntas obligatorias**: la del dato […] y la del cumplimiento […], que caza D. Son
+> genéricas porque son las dos únicas formas en que dos textos pueden chocar. No saben nada de D en
+> concreto.
+>
+> Lo que cambió hoy va alrededor, no dentro: **las tiradas se repiten tres veces y se firma con
+> dos**; la lista de escapes pasa de decidir a marcar […]
+
+**Y tú, F-130:741:**
+
+> Son compatibles tal como está escrito: **la pasada 2 se construye** para los niveles 1 y 2; los
+> discutibles aparecen como subproducto de hacer preguntas cerradas […] **Queda un contador**, que no
+> es un mecanismo de caza: es saber cuántos hay.
+
+**Lo que hay en el repositorio** (Predicciones:3301-3305): **nada de la pasada 2 en `lib/`, en `app/`
+ni en `worker/`** —las únicas menciones son de la herramienta de medida—, y ningún `escape.marcado`.
+Lo último escrito es «**no se construye todavía**» (línea 317).
+
+**La pregunta, y la hacemos así porque no lo hemos comprobado: ¿es una lectura de tu propia
+especificación como si describiera código existente, o se la describimos nosotros como construida en
+la consulta?** El arquitecto dijo que iba a comprobar si la culpa era de nuestra consulta y **no lo
+ha hecho**, así que no te lo imputamos. Si fue nuestro, dilo y lo corregimos en el archivo.
+
+**Importa porque toda tu especificación se lee distinto** según si crees que estás describiendo algo
+que funciona o encargando algo nuevo.
+
+### 9 · Tu medición no pone a prueba tu afirmación
+
+**Tú, adenda del 04/11, F-130:762:**
+
+> ¿Es ad hoc? El bloque no habla de D ni de clí[nicas]… "un principio enunciado como razón es una
+> regla", **que es una clase**: cualquier manual que explique "esto se hace así para mantener X
+> separado de Y" cae ahí. Está escrito mirando a D, como casi todas las aclaraciones […]
+>
+> Medición pendiente, veinte tiradas, gratis: **la pregunta cerrada sin el bloque del principio,
+> sobre las dos parejas de D.** P-F130-23: con §3.5, D sale 16 de 20 o más sin el bloque; con §3.1,
+> cae a 10 de 20 o menos sin él, y vuelve a subir con él. Si sale así, el bloque se queda, porque
+> cubre una clase real.
+
+**El defecto, y es el de fondo** (Predicciones:5399-5405, 5417-5419):
+
+**Afirmas que el bloque describe una CLASE, y propones medirlo QUITÁNDOLO DEL CASO QUE LO INSPIRÓ.
+Eso mide dependencia, no generalidad.** Un bloque perfectamente general **también** haría caer a D
+al quitarlo, porque D es un miembro de la clase. Así que el resultado que predices es compatible con
+las dos hipótesis y no las separa.
+
+**«Ad hoc» significa «sólo funciona en el caso para el que se escribió». La prueba de eso no es
+quitar la regla de ese caso: es aplicarla en otro sitio.**
+
+**Y un segundo problema, en tus bandas** (derivadas por el arquitecto con Fisher exacto bilateral, no
+heredadas). **Van contra un brazo con bloque SUPUESTO de 19 de 20, porque ese brazo no se corrió
+nunca:** son aritmética sobre un supuesto, no sobre una medición.
+
+- **«10 de 20 o menos»** contra ese 19 de 20 da **p = 0,0033**. Buena: esa banda está bien elegida.
+- **«16 de 20 o más» da p = 0,3416, y su Wilson va del 58,4 % al 91,9 %.** Ese intervalo contiene a
+  la vez «el bloque es imprescindible» y «el bloque es inútil». **No se puede leer como «el bloque no
+  hace falta»: es un no-resultado.**
+- Y entre las dos quedaban 11 a 15 de 20 sin asignar.
+
+**Un dato que hace falta para que contestes esto bien: la pregunta cerrada SIN el bloque del
+principio no se ha probado nunca, tampoco sobre el §3.5.** El único 6 de 7 de la pareja sembrada es
+del **29/10 a las 12:05 UTC** y corrió con `a58deaf8`, que **ya llevaba el bloque**. Tu frase «nadie
+ha probado la pregunta cerrada sin él» es cierta también para el §3.5.
+
+**Y el obstáculo real:** no hay en todo el repositorio **ningún otro caso de la clase «una permisión
+contra un principio»**. El corpus es uno solo (Dentavia); `SIEMBRA_caso_control` tiene plazo, lugar y
+negación categórica sobre el color de un contenedor, y su propio registro declara que no trata de
+cargos ni de personas. **Probar la generalidad exige documentos que no existen**, y eso es una
+decisión de coste del director, no una medición que se pueda plantear hoy.
+
+---
+
+## 2. Lo que es NUESTRO y no tuyo, para que no gastes esfuerzo defendiéndolo
+
+**2.1 · El «veto del escape».** Lo propuso el arquitecto el 02/11: que el escape se evaluara **antes**
+que `nivel_1`, como veto. **Code lo encontró insuficiente** por el camino más probable (el §4 tiene
+tres frases candidatas a puente y sólo la del conflicto terminológico lleva escape; la definición,
+que es el puente natural, no lleva ninguno), y **el caso decisivo que el propio arquitecto pidió para
+la ficha no se cumple con la regla tal como está: ese caso es el que la tumba.** No es un defecto
+tuyo; es nuestro arreglo fallido. Las tres propuestas de Code del defecto 2 lo sustituyen.
+
+**2.2 · El encaje con el catálogo de contadores.** `salida`, `presentado` y `jerarquia` **no son
+etapas del catálogo cerrado de contadores** (`lib/analysis/counters.ts:36`), y tampoco el
+`escape.marcado` de tu adenda. Ampliarlo exige su justificación en el contrato. **Es trabajo nuestro
+al construir, no un defecto tuyo**, y lo apuntamos aquí sólo para que conste que lo sabemos.
+
+---
+
+## 3. La pregunta que decide el paso 4, y es la única que pedimos que contestes entera
+
+Los nueve defectos de arriba se arreglan diciendo cuál de las dos versiones querías. **Esta no.**
+
+**La pasada 2 se diseñó para rescatar los casos que la primera pasada se salta. Hoy no hay ningún
+caso medido al que ayude:**
+
+- del **quinto**, la pregunta cerrada dio 12 de 21 contra 9 de 21 de la abierta, **sin diferencia**,
+  con 94,8 % de potencia para verla si existiera; y además **sale por la familia equivocada en 14 de
+  23** (P-P3-2, fallada);
+- de **D**, la medición equivalente está prerregistrada y **sin correr**, y puede que el aparato de
+  cuenta no la resuelva, como no resolvió P-F130-23;
+- y el **«90 % contra 14 %»** que la sostenía en nuestras cabezas **está retirado**, por cruce de
+  tres condiciones a la vez.
+
+**Así que: ¿la pasada 2 sigue mereciendo construirse, y sobre qué evidencia?**
+
+Tres respuestas nos sirven y las tres son útiles. **No queremos que elijas la que nos deja mejor:**
+
+1. **Sí, y el beneficiario es otro del que creíamos.** Dilo y di cuál, con qué se mide y qué
+   resultado la justificaría y qué resultado la enterraría, **antes** de medirlo.
+2. **Sí, pero primero hay que medir X.** Di qué es X, y si se puede medir con un corpus de ocho
+   documentos de los cuales cinco son hojas de cálculo, que es lo que hay indexado hoy.
+3. **No con esta evidencia.** Entonces el paso 4 se cierra o se aparca, y el plan de cinco pasos se
+   queda en cuatro. **Esa respuesta es igual de bienvenida que las otras dos**, y es la que menos
+   nos gusta escribir, razón por la que la escribimos.
+
+---
+
+## 4. Lo que necesitamos de vuelta, en una lista
+
+1. `nivel_1` definido por algo que no sea contar términos compartidos (defecto 1).
+2. El orden de las ramas de `salida(hallazgo)`, y si el escape se busca en todo el apartado del
+   puente o sólo en su frase (defecto 2, con las tres propuestas de Code).
+3. Cómo se obtiene el puente y las dos lecturas sin tocar la puerta de citas ni el verificador
+   (defecto 3).
+4. Si la línea de la prelación entra en la pasada 1 o no, y cuándo (defecto 4).
+5. Tus pasos renumerados como subpasos de nuestro paso 4, o con otro nombre (defecto 5).
+6. **Nada:** la tabla corregida no cambia nada de lo que concluiste. Informativo, como el 7.
+7. **Nada:** el defecto 7 es informativo y tu conclusión se sostiene. Lo mandamos porque la cifra
+   viaja.
+8. Si la pasada 2 descrita en presente es lectura tuya o nuestra culpa (defecto 8).
+9. **Y la pregunta de la sección 3**, que es la que decide si lo demás se construye (defecto 9).
+
+**Y una cosa que te pedimos no hacer:** no propongas una medición nueva sin su banda, su tasa de
+error y su potencia, y sin decir qué resultado la enterraría.
+
+**Sólo el 05/11 el arquitecto retiró diez afirmaciones** — ésa sí es la cuenta del registro del
+repositorio. De ellas, **unas cinco o seis fueron de procedencia** y el resto de otras clases, y la
+clasificación es discutible. *(El primer borrador de esta adenda decía «nueve de las diez» y que esa
+cuenta venía del registro. Ninguna de las dos cosas era cierta: era la lectura del arquitecto, y lo
+cazó Code al revisarla. Es, literalmente, el error que la frase siguiente describe.)*
+
+**Una cifra no viaja con un adjetivo que no se ha medido.** Vale para lo que mandamos y para lo que
+nos llega.
