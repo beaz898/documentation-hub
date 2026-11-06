@@ -6053,3 +6053,12 @@ Las decisiones 1 a 5 del arquitecto, **literales** (sacadas del registro de la c
 > - **Le mandamos dos defectos ya resueltos (1 y 2):** el 04/11 ya había dejado el acuerdo como único criterio y el escape como marca (F-130:730). **Error nuestro**, mío al escribirlos y tuyo al no verlo en cuatro pasadas. Al registro.
 > - **`sin_puente` no es tu propuesta.** Tu tercera era definir `nivel_1` por otra cosa. Se corrige la atribución.
 > - **«Veinte análisis etiquetados por el director» es una medición nueva sin banda ni potencia**, y su propia respuesta dice que no propone ninguna aparte de X. Es una contradicción suya y se le señala cuando toque, no ahora.
+
+### DEFECTO 8, CERRADO: DE DÓNDE SALIÓ LA PASADA 2 EN PRESENTE (director y arquitecto, 06/11/2026)
+- **Fable** (respuesta del 06/11, F-130) dijo que el director le había dicho «creo que ya está montada». **El director lo confirma,
+  con sus palabras**: «Se lo dije, pero era porque yo pensaba que estaba montada. Me confundí.»
+- **La lectura del arquitecto**: no fue invención de Fable ni mala fe de nadie. **Fue un comentario de pasada en una conversación, y
+  acabó siendo una especificación escrita en presente.** A Fable le toca no haberlo marcado como no verificado; a nosotros, haberlo
+  dicho sin comprobarlo. **Las dos mitades son el mismo fallo de procedencia.**
+- El texto de Fable del 04/11 se queda literal en F-130. Lo que lo corrige está en `:3301-3305`, y la respuesta de Fable del 06/11
+  lo reconoce.
