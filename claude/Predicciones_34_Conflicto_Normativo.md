@@ -5519,7 +5519,7 @@ una variable que nadie lee.
 |---|---|
 | Variable | `RATE_LIMIT_ANALYZE` (Vercel), análisis rápidos por usuario y día |
 | **Valor viejo, REAL** | **9999** (leído por el director el 05/11/2026; no se sabe desde cuándo) |
-| **Valor nuevo** | **100**, derivado (arquitecto): lo mayor previsto es la curva E5, 60 rápidos, y el etiquetado, 20; un desboque de 100 son 500 créditos y unos 3 $ |
+| ~~**Valor nuevo**~~ | ~~**100**, derivado (arquitecto): lo mayor previsto es la curva E5, 60 rápidos, y el etiquetado, 20; un desboque de 100 son 500 créditos y unos 3 $~~ **RETIRADO el 09/11/2026 (arquitecto): el 100 está mal derivado.** Se ancló en la carga esperada (60) y no en la distancia entre el uso legítimo y el daño. Un tope de seguridad va muy por encima de cualquier uso legítimo y por debajo de donde el daño duele, no al 1,7× de la carga prevista. Un tope cerca de la carga muerde al usuario en vez de parar un bucle, y levantarlo exige variable y despliegue, que la regla prohíbe en medio de una tanda. **El valor nuevo queda SIN DERIVAR**: lo encargado a Code está abajo, en «RATE_LIMIT_ANALYZE: EL 100, RETIRADO». |
 | Fecha del cambio | — PENDIENTE (la pone el director al hacerlo) |
 | Fecha de la revisión | — PENDIENTE (la fija el arquitecto) |
 | Lo que protege de verdad hoy | el saldo de créditos (5 por rápido) y el cerrojo de un análisis activo por organización (`checkAndAcquireAnalysisLock`, 409) |
@@ -7129,9 +7129,29 @@ servirse un modelo distinto el 06/11, el 09/11 y el día de la tanda. Correr `d`
 - **REGLA DE PROCESO** (arquitecto): **el arquitecto no revisa código desde un pegado que le llega cortado.** Si vuelve a pasar, se le
   dan el fichero y la huella, no el cuerpo. Esta vez aprobó porque la huella de 446 caracteres y el `tsc` a cero demuestran el fichero
   mejor que un pegado roto.
-- **ESTE DESPLIEGUE ES EL DISPARADOR DE `RATE_LIMIT_ANALYZE`**: pasa de 9999 a **100**, el valor derivado que está archivado en «⚠️⚠️
-  RATE_LIMIT_ANALYZE VALE 9999…». Lo comprobó Code:
+- ~~**ESTE DESPLIEGUE ES EL DISPARADOR DE `RATE_LIMIT_ANALYZE`**: pasa de 9999 a **100**, el valor derivado que está archivado en «⚠️⚠️
+  RATE_LIMIT_ANALYZE VALE 9999…».~~ **RETIRADO el mismo 09/11 (arquitecto, a objeción del director): el 100 sale de la hoja y el
+  despliegue de d2 NO cambia la variable.** Ver «RATE_LIMIT_ANALYZE: EL 100, RETIRADO», abajo. Lo que comprobó Code sigue siendo cierto:
   - **una variable de Vercel sólo entra en el despliegue siguiente**, así que el director la cambia ANTES del push, y el despliegue
     del push la recoge;
   - **las pulsaciones no dependen de ella**: el limitador sólo se aplica a `/api/analyze-v2` (`lib/rate-limiter.ts:23`), y
     `d2/route.ts`, `leer-de-la-base.ts` y `preguntar-al-juez.ts` no llaman a `checkRateLimit`.
+
+### RATE_LIMIT_ANALYZE: EL 100, RETIRADO; EL 9999 SIGUE; EL DISPARADOR, «CUANDO ESTÉ DERIVADO EL NÚMERO» (arquitecto, 09/11/2026)
+- **Lo vio el director antes que nadie**, y el fallo es del arquitecto: sacó el pendiente del archivo y lo metió en la hoja del despliegue
+  de `d2` **sin preguntar de dónde venía su número**. Code lo copió también, como «el valor derivado que está archivado», y tampoco lo
+  preguntó.
+- **Por qué el 100 está mal** (arquitecto): se ancló en la carga esperada (60 análisis previstos). Un tope de seguridad va muy por
+  encima de cualquier uso legítimo y por debajo de donde el daño duele, no al 1,7× de lo previsto. **Un tope cerca de la carga muerde
+  al usuario en vez de parar un bucle**, y levantarlo exige variable y despliegue, que la regla prohíbe en medio de una tanda. Un
+  bucle hace miles; un humano pulsando botones hace decenas. El número tiene que estar entre las dos cosas.
+- **Lo que queda: el 9999 sigue.** La hoja del despliegue de `d2` vuelve a tres pasos (push, «Ready», los dos ensayos), sin variables
+  antes de una tanda. **El disparador ya no es «el siguiente despliegue»: es «cuando esté derivado el número».** Y no vuelve a entrar
+  en una hoja por estar archivado.
+- **LA DERIVACIÓN, ENCARGADA A CODE, SIN PRISA** (para cualquier despliegue futuro):
+  1. **cuánto cuesta un análisis de verdad, medido y no estimado**: coste y número de llamadas por análisis, con su reparto (mínimo,
+     mediana y máximo) sobre los análisis reales archivados;
+  2. **cuál es el día legítimo más caro que puede tener el piloto**: cuántos análisis caben si se indexan y analizan los 37 de la
+     bandeja más los 8 ya indexados, con reanálisis;
+  3. **el tope propuesto, con sus dos cotas escritas**: el daño en euros si un bucle lo agota, y el margen sobre el día legítimo más
+     caro. «Si de ahí sale 100, lo pongo yo mismo; si sale 400, también.»

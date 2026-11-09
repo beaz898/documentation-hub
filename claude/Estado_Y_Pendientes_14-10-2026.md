@@ -667,6 +667,10 @@ a ojo. El procedimiento, el coste y la consulta se plantean ANTES de pedírselo 
     *(⚠️ 05/11: **ESE LÍMITE NO EXISTÍA.** `RATE_LIMIT_ANALYZE` vale 9999 en Vercel (lo miró el director el 05/11); el 30 es
     sólo el respaldo del código. Se subió en algún momento, no se bajó y no se escribió, que es justo lo que esta regla
     prohíbe. El ledger y el valor nuevo, en `Predicciones_34_Conflicto_Normativo.md`, «RATE_LIMIT_ANALYZE VALE 9999».)*
+    *(⚠️ 09/11: **EL 100 QUEDA RETIRADO** (arquitecto, a objeción del director): estaba mal derivado, porque se ancló en la carga
+    esperada. **El 9999 sigue.** El disparador deja de ser «el siguiente despliegue» y pasa a ser **«cuando esté derivado el
+    número»**, con la derivación encargada a Code: «RATE_LIMIT_ANALYZE: EL 100, RETIRADO», en el mismo fichero de Predicciones.
+    **Que no vuelva a entrar en una hoja por estar archivado.**)*
     - **¿Se puede subir SÓLO para el usuario del director? HOY NO, sin cambiar código** (Code, leído el 02/11):
       `getLimit(endpoint, isExhaustive)` (`lib/rate-limiter.ts:130-139`) lee `RATE_LIMIT_ANALYZE` de las variables de entorno y
       **no recibe el usuario**; el usuario sólo se usa para CONTAR sus llamadas del día (`:90`). Un tope por usuario sería un
