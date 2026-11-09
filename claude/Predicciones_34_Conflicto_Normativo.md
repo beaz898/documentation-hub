@@ -7155,3 +7155,23 @@ servirse un modelo distinto el 06/11, el 09/11 y el día de la tanda. Correr `d`
      bandeja más los 8 ya indexados, con reanálisis;
   3. **el tope propuesto, con sus dos cotas escritas**: el daño en euros si un bucle lo agota, y el margen sobre el día legítimo más
      caro. «Si de ahí sale 100, lo pongo yo mismo; si sale 400, también.»
+
+### RATE_LIMIT_ANALYZE: EL PASO 0, Y DOS PREGUNTAS SOBRE EL CERROJO (arquitecto, 09/11/2026; sin prisa, después de la tanda)
+- **La retirada del arquitecto, y es peor que el 100** (sus palabras): defendió el tope con el escenario del bucle, y el bucle ya está
+  bloqueado por dos cosas distintas que la fila de debajo del ledger nombra, «el saldo de créditos (5 por rápido) y el cerrojo de un
+  análisis activo por organización (`checkAndAcquireAnalysisLock`, 409)». **Discutió si el guardia tenía que estar en 100 o en 400 sin
+  leer la línea que dice que ya hay dos guardias.**
+- **LA DERIVACIÓN EMPIEZA POR UN PASO 0, Y PUEDE ACABAR SIN NADA QUE DERIVAR**:
+  - **0 · ¿Añade `RATE_LIMIT_ANALYZE` algo que no den ya el cerrojo y el saldo?** Con el cerrojo, el peor desboque posible es
+    **secuencial**, de 15 a 25 s por análisis, y su total está acotado por el saldo. **Si un tope por día no cubre ningún caso que los
+    otros dos dejen pasar, el pendiente no se vuelve a derivar: se RETIRA.** Sólo si queda un hueco real se pasa a medir el coste
+    por análisis (los pasos 1 a 3 de arriba), con el SQL de lectura probado en PGlite.
+  - **Dos preguntas sobre el cerrojo, que se contestan LEYENDO EL CÓDIGO DE HOY, no el archivo**:
+    1. ¿sigue siendo uno por organización, y sigue devolviendo 409? Lo único que hay es una lectura archivada de Code, de otro día;
+    2. **¿se suelta el cerrojo si el análisis se cae o se pasa de tiempo?** Un cerrojo que se queda pillado no protege: bloquea, y
+       dejaría al director sin poder analizar nada hasta que alguien lo soltara a mano. **Si eso puede pasar, es más urgente que el
+       tope**, y entra en la lista con su propio motivo.
+- **El pendiente sigue como estaba**: 9999, el 100 retirado y el disparador en «cuando esté derivado». Ahora con el paso 0 y las dos
+  preguntas.
+- **Lo único comprobado hoy, porque toca a la tanda** (Code): **las rutas de la herramienta no toman el cerrojo.** No hay ningún uso de
+  `AnalysisLock` en `app/api/admin/medida-f130/`, así que un cerrojo pillado no bloquearía las pulsaciones.
