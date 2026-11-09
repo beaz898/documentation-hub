@@ -7121,3 +7121,17 @@ servirse un modelo distinto el 06/11, el 09/11 y el día de la tanda. Correr `d`
 - **Encontrado al pegar `d2/route.ts` entero**: su cabecera, copiada de `d`, decía que la negativa dura «la vigila una prueba sobre el
   texto de esta ruta (`medida-f130.test.ts`)», y esa prueba cubría `quinto` y `d`, no `d2`. Se amplió a `d2` (`46d21985`). Con el 409
   movido detrás del ensayo, la prueba sale en rojo.
+
+### ANTES DE SUBIR d2: LA HORA DE LOS ENSAYOS, EL PEGADO CORTADO Y EL DISPARADOR DE RATE_LIMIT_ANALYZE (arquitecto y Code, 09/11/2026)
+- **LOS ENSAYOS SIGUEN SIN HORA, POR DECISIÓN** (arquitecto, confirmada por escrito para que nadie lo reabra): ponérsela obligaría a
+  tocar la ruta `d`, y tocar `d` rompe la prueba (a), que es lo único que mantiene comparables el 06/11 y el 09/11. En los ensayos
+  bastan la medida y el prompt; la hora va en las tandas, y ahí está.
+- **REGLA DE PROCESO** (arquitecto): **el arquitecto no revisa código desde un pegado que le llega cortado.** Si vuelve a pasar, se le
+  dan el fichero y la huella, no el cuerpo. Esta vez aprobó porque la huella de 446 caracteres y el `tsc` a cero demuestran el fichero
+  mejor que un pegado roto.
+- **ESTE DESPLIEGUE ES EL DISPARADOR DE `RATE_LIMIT_ANALYZE`**: pasa de 9999 a **100**, el valor derivado que está archivado en «⚠️⚠️
+  RATE_LIMIT_ANALYZE VALE 9999…». Lo comprobó Code:
+  - **una variable de Vercel sólo entra en el despliegue siguiente**, así que el director la cambia ANTES del push, y el despliegue
+    del push la recoge;
+  - **las pulsaciones no dependen de ella**: el limitador sólo se aplica a `/api/analyze-v2` (`lib/rate-limiter.ts:23`), y
+    `d2/route.ts`, `leer-de-la-base.ts` y `preguntar-al-juez.ts` no llaman a `checkRateLimit`.
