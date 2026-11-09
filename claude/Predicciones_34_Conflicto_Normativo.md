@@ -6407,3 +6407,444 @@ amplio · tramo                        0              0      0
   independientes.
 - **Sólo el escenario completo, lector amplio y tramo, deja 0.** El lector mínimo con el tramo deja 4: las 3 «Sí, ambos son reglas, y
   no se pueden cumplir…» y la «Por tanto, no se pueden cumplir…».
+
+### X · EL INSTRUMENTO DE LA SIGUIENTE TANDA, APROBADO; LOS 4 INDECIDIBLES, ACEPTADOS; Y EL LECTOR APROBADO, MIRADO HACIA ATRÁS (09/11/2026)
+**APROBADO por el arquitecto el 09/11, con sus cuatro huellas**: `instrumento_x2.ts` `203bb5dde2e3bee8`; sus pruebas, 29 de 29,
+`9b10b9fa58eac8e6`; `trozos_d.json` `18065fb25f057dc0`, el pajar sacado con un script del ensayo de D del 04/11
+(`Medida_F130_E3_Y_Vecindad…:3334-3367`); y `mutar_x2.mjs` `8b8d5c8a1588391d`, con 16 mutantes de 16 en rojo, entre ellos los tres
+pedidos. El decisivo, «a primera vista no se pueden cumplir, pero en realidad sí», sale NEGATIVA, y sin el seguro saldría positiva.
+**Las citas pasan por la puerta de verdad** (`comprobadorDeLado` con `verifyQuote`, y `comprobarConRepliegues`), sin copiarla.
+El que lo corre, `correr_x2.test.ts`, es aparte y no cuenta nada (huella `365f11660d0b588a`): llama a
+`brazoX2` y a `decidirX`, imprime en dos tiempos y empieza cada salida por las huellas de lo que la escribió.
+
+**EL CONTROL SOBRE LAS 42 DE X: 4 INDECIDIBLES, NO 0** (sólo indecidibles; X no se recuenta). Las 4 son la misma cita mal transcrita,
+«la figura [de Coordinador de Calidad] puede recaer…», donde el original dice «…figura QUE puede recaer…». La puerta del producto la
+tira: sin la glosa sigue sin ser literal, y en el paso de tramo el resto («la figura») ni es literal ni llega a 40. **El producto
+tampoco la publicaría.**
+
+**AL REGISTRO, LAS DOS RETIRADAS DEL 09/11**:
+1. **El boceto de Code (`techo_x.mjs`), que daba 0 indecidibles con el lector amplio y el tramo.** Aceptaba un ancla de tramo sin
+   comprobar que el resto fuera literal y de 40 o más, que es lo que la puerta exige. Su tabla queda sustituida por el control del
+   instrumento aprobado.
+2. **La conclusión del arquitecto construida sobre ese 0**, y el «97,36 %» que celebró sobre la cifra que había escrito el último
+   mutante. Literal:
+
+> **Y las dos estimaciones quedan retiradas: tu boceto (0) y mi conclusión del viernes construida sobre él.** Al registro las dos, con fecha de hoy.
+
+**LA DECISIÓN DEL ARQUITECTO, Y EL AÑADIDO AL PRERREGISTRO DE X**, literales (sacados del registro con un script):
+
+> ═══ LA DECISIÓN SOBRE LOS 4 INDECIDIBLES: SE CORRE TAL CUAL ═══
+> ```
+> 4 indecidibles  ->  potencia 86,31 %   error I 0,330 %   enterrar NO disponible
+> ```
+> **Y NO muevo el tope de 3.** Lo derivé el viernes de un criterio que declaré —mantener el error de tipo II por debajo del 10 %— y a 4 indecidibles sale 13,7 %. **Moverlo ahora, justo cuando aprieta, es exactamente lo que no hacemos.** Que el tope moleste no es un argumento para subirlo; es lo que un tope hace.
+>
+> **Así que la siguiente tanda puede construir y no puede enterrar.** Lo acepto por tres razones:
+> 1. **Un 86,3 % de potencia para la decisión sobre la que actuaríamos** es suficiente. La que no podemos tomar es la que no nos hace actuar.
+> 2. Los 4 indecidibles son **la misma cita mal transcrita por el juez**, así que van a reaparecer en cualquier tanda: esperar a un instrumento que dé 0 es esperar a algo que no va a llegar.
+> 3. Y lo importante: **el producto tampoco publicaría esas 4 citas.** Tu propia observación. Contarlas como fallo no es un defecto del instrumento, **es el instrumento midiendo lo que el producto haría.**
+>
+> **Y AÑADO AL PRERREGISTRO, AHORA Y NO DESPUÉS:** si sale «no decide», **el recuento se informa igualmente con su intervalo de Wilson**, como tasa medida de D bajo la pregunta cerrada con el instrumento completo. No es una decisión y no se presenta como tal, pero es un dato y lo declaramos antes de verlo, para que no parezca un premio de consolación inventado después.
+>
+> **El resto del prerregistro de X no cambia:** corte en 24 sobre 42, los indecidibles como fallo, decide la regla del producto, y esta tanda no se recuenta.
+
+**EL DEFECTO DEL LECTOR APROBADO, MIRADO HACIA ATRÁS** (`falso_positivo_q2.mjs` y `falso_positivo_casos.mjs`, scratchpad). El defecto:
+en la pregunta 2, un «No…» que niega el hallazgo se lee como hallazgo. Se buscó por el mecanismo, no por la frase. Cada pregunta 2
+que el lector da por hallazgo se rastreó hasta la línea que lo decidió: el prefijo más corto de la sección con el que `veredicto` ya
+decide, sin reescribirlo. Se hizo sobre las 179 respuestas archivadas de la pregunta cerrada, de las once tandas.
+- **127** preguntas 2 se leyeron como hallazgo: **52** por «No (,) se pueden cumplir…» y **75** por otro «No…». Leídas una a una, 70
+  son hallazgos de verdad: «No.», «No. Hay hallazgo», «¿Se pueden cumplir? No.», «EL CUMPLIMIENTO: NO»…
+- **DISPARÓ 2 VECES, y las dos en las tandas del quinto:**
+  - **tanda 1, vez 13**: «No encuentro ningún par… Se pueden cumplir las dos a la vez.» Es una negativa leída como hallazgo.
+    **Efecto: ninguno.** `contar_quinto` la da como «salió» por la pregunta 1, sin anclas en la 2, así que en la columna 2 cuenta como
+    «la 1», que es lo que la lectura correcta también daría. Los 13 de 21 y los 6 de 12 no se mueven.
+  - **tanda 2, vez 12**: «Sí se pueden cumplir las dos a la vez… No hay hallazgo en ninguna de las dos preguntas.» El lector no lee la
+    primera línea, porque no empieza por «Sí», y decide por la última. `contar_quinto` la contó como **ILEGIBLE** («un ancla fuera de
+    comillas»). Leída bien, las dos preguntas niegan: **no salió.** **Efecto: los 12 de 21 no cambian; los ilegibles de esa tanda
+    pasan de 4 a 3, y su cota alta de 16 a 15.** No entra en la columna 2 ni en P-P3-2, porque no salió en ninguna de las dos
+    lecturas.
+- **ACERTÓ POR CASUALIDAD 3 VECES**: condición 1, vez 11, y X, pulsación 2, veces 12 y 17. El juez afirmaba el hallazgo en una línea
+  que el lector no lee («Sí, hay hallazgo»), y el lector lo dio por bueno por una línea final que no era veredicto: «No he encontrado
+  otros pares…», «No hay conflicto en los demás pares…». La respuesta es la correcta, y la razón no.
+- **Conclusión: el defecto es HISTÓRICO, pero no infló ninguna cifra publicada.** Movió una cota alta (la de la tanda 2 del quinto,
+  de 16 a 15) y acertó por casualidad tres veces. El instrumento nuevo no decide cuando el aprobado contradice una frase explícita de
+  la respuesta; en las 42 de X no se da ningún caso.
+
+**EL INSTRUMENTO, LITERAL** (scratchpad; las huellas se calculan sobre los ficheros, no sobre esta copia):
+
+`herramientas/instrumento_x2.ts` · huella `203bb5dde2e3bee8`
+```ts
+// EL INSTRUMENTO DE LA SIGUIENTE TANDA DE X (Code, 06/11/2026), para aprobar por su huella ANTES de que corra nada. El
+// prerregistro de X NO cambia: el mismo corte (24 de 42), los mismos errores, NADA y PARCIAL como fallo, y la regla (ii) de las dos
+// preguntas. Cambian dos piezas del instrumento (decisiones del arquitecto, 06/11, tras X):
+//   1 · LAS CITAS PASAN POR LA PUERTA DEL PRODUCTO, sus tres pasos y sin tocarla: la comprobación de siempre (literal o
+//       normalizada), la glosa y el tramo con la frase real. Se LLAMA a `comprobadorDeLado` + `comprobarConRepliegues`
+//       (pajar-de-la-cita.ts, repliegue-de-tramo.ts) con `verifyQuote` (judge.ts), con el trozo entregado ENTERO como pajar, que es
+//       como la herramienta se lo da al juez. De lo que la puerta da por bueno —la cita, o la frase real del ancla— se mira, como en
+//       SQL_34_06, a qué frase toca: del lado de NOR-10, la del permiso (D) y no la de A («a caballo» no cuenta); del lado de CLI-12,
+//       dentro del §3.5. Con el mínimo de 20 caracteres normalizados de SQL_34_06.
+//   2 · EL LECTOR AMPLIO DE LA PREGUNTA 2: primero el lector aprobado (contar_quinto, `veredicto`), sin cambiar nada de lo que ya
+//       decide; sólo si no decide, el amplio. Se describe por lo que acepta, no por los casos que arregla:
+//       · «hay hallazgo» → hallazgo; «no hay hallazgo» → no lo hay. En cualquier frase de la sección, fuera de citas y de preguntas.
+//       · «no se pueden cumplir» / «no pueden cumplirse» → hallazgo; «se pueden cumplir» / «pueden cumplirse» sin «no» → no lo hay.
+//         En plural: «la sustitución sí puede cumplirse» habla de una regla, no del par.
+//       · EL SEGURO: dentro de una frase, manda la cláusula que va DESPUÉS de «pero», «sin embargo» o «no obstante»; una cláusula
+//         con «a primera vista», «aparentemente», «en apariencia» o «literalmente» no da veredicto; y un «sí» suelto detrás de una
+//         adversativa, cuando antes se ha hablado de cumplir, es «sí se pueden». Así «a primera vista no se pueden cumplir, pero en
+//         realidad sí» es NEGATIVA.
+//       · De cada vía vale la ÚLTIMA frase que da veredicto (la conclusión). Si las dos vías dan veredictos distintos, no decide.
+// Los guiones aprobados se IMPORTAN sin tocarlos (contar_quinto 5210ea9a40ccf6c0, contar_brazos 527b3ad22bb79110): leen
+// process.argv al cargarse, así que se cargan con argv vacío y se restaura. La decisión es la de la capa aprobada (decidir_x
+// 55aa84614fd21a94, `decidirX`), con un solo recuento en las dos casillas: el recuento doble desaparece (arquitecto).
+import { readFileSync } from 'node:fs';
+import { createHash } from 'node:crypto';
+import { verifyQuote } from '@/lib/analysis/judge';
+import { comprobadorDeLado } from '@/lib/analysis/pajar-de-la-cita';
+import { comprobarConRepliegues, localizadorDeLado } from '@/lib/analysis/repliegue-de-tramo';
+import { normalize } from '@/lib/analysis/normalize';
+import type { StoredChunk } from '@/lib/read-chunks';
+
+export const S = 'C:/Users/beaz8/AppData/Local/Temp/claude/E--Doc-Hub/914469ea-1369-4763-8e6a-9aadf9158516/scratchpad/';
+const HUELLAS: Array<[string, string]> = [['contar_quinto.mjs', '5210ea9a40ccf6c0'], ['contar_brazos.mjs', '527b3ad22bb79110'], ['decidir_x.mjs', '55aa84614fd21a94'], ['trozos_d.json', 'TROZOS']];
+type Veredicto = 'sí' | 'no' | null;
+type Clase = 'D' | 'PARCIAL' | 'OTRO' | 'NIEGA' | 'NADA';
+interface Guiones {
+  secciones: (t: string) => { p1: string; p2: string } | null;
+  veredicto: (s: string, p: number) => Veredicto;
+  casilla: (c1: Clase, c2: Clase) => boolean | null;
+  TEXTOS: Record<string, string>;
+  decidirX: (b: unknown) => { decision: string; motivo: string; rP?: number; enterrarDisponible?: boolean };
+  N: number; MAX: number;
+}
+let guiones: Guiones | null = null;
+export async function cargar(huellaTrozos: string): Promise<Guiones> {
+  for (const [f, h] of HUELLAS) {
+    const real = createHash('sha256').update(readFileSync(S + f)).digest('hex').slice(0, 16);
+    const esperada = h === 'TROZOS' ? huellaTrozos : h;
+    if (real !== esperada) throw new Error(`${f} tiene huella ${real}, no la aprobada ${esperada}`);
+  }
+  if (guiones) return guiones;
+  const argv = process.argv; process.argv = argv.slice(0, 2);
+  try {
+    const q = await import(/* @vite-ignore */ 'file:///' + S + 'contar_quinto.mjs');
+    const b = await import(/* @vite-ignore */ 'file:///' + S + 'contar_brazos.mjs');
+    const d = await import(/* @vite-ignore */ 'file:///' + S + 'decidir_x.mjs');
+    guiones = { secciones: q.secciones, veredicto: q.veredicto, casilla: b.casilla, TEXTOS: b.TEXTOS, decidirX: d.decidirX, N: d.N, MAX: d.MAX_INDECIDIBLES_PARA_ENTERRAR };
+  } finally { process.argv = argv; }
+  return guiones;
+}
+
+// ── 1 · LAS CITAS, POR LA PUERTA ─────────────────────────────────────────────────────────────────────────────────────────────
+interface Trozo { chunkIndex: number; texto: string }
+export interface Puerta { nor: (cita: string) => 'D' | 'a caballo' | null; cli: (cita: string) => boolean }
+function lado(t: Trozo) {
+  const chunk: StoredChunk = { chunkIndex: t.chunkIndex, chunkType: 'text', text: t.texto, sheetName: null, tableId: null, rowIndex: null, cells: null, columnOrder: null };
+  const entregado = { texto: t.texto, trozos: [] as StoredChunk[] };
+  const comprobador = comprobadorDeLado(verifyQuote, entregado, [chunk], null);
+  const localizador = localizadorDeLado({ entregado, trozos: [chunk] });
+  // Lo que la puerta da por bueno: la cita (o sin su glosa) o, si la recompuso, la frase real del ancla. null si la tira.
+  return (cita: string): string | null => comprobarConRepliegues(comprobador, localizador, cita).verificada?.text ?? null;
+}
+export function puerta(g: Guiones, analizado: Trozo, candidato: Trozo): Puerta {
+  const nor = lado(analizado), cli = lado(candidato);
+  const P24 = normalize(g.TEXTOS.P24), P35 = normalize(g.TEXTOS.P35);
+  const d0 = P24.indexOf(normalize(g.TEXTOS.FRASE_D)), d1 = d0 + normalize(g.TEXTOS.FRASE_D).length - 1;
+  const a0 = P24.indexOf(normalize(g.TEXTOS.FRASE_A)), a1 = a0 + normalize(g.TEXTOS.FRASE_A).length - 1;
+  if (d0 < 0 || a0 < 0) throw new Error('las frases de D y A no están en el párrafo, normalizadas');
+  return {
+    nor: cita => {
+      const v = nor(cita); if (v === null) return null;
+      const n = normalize(v), i = P24.indexOf(n);
+      if (n.length < 20 || i < 0) return null;
+      const tD = i <= d1 && i + n.length - 1 >= d0, tA = i <= a1 && i + n.length - 1 >= a0;
+      return tD && tA ? 'a caballo' : tD ? 'D' : null;
+    },
+    cli: cita => { const v = cli(cita); if (v === null) return false; const n = normalize(v); return n.length >= 20 && P35.includes(n); },
+  };
+}
+
+// ── 2 · EL LECTOR AMPLIO DE LA PREGUNTA 2 ───────────────────────────────────────────────────────────────────────────────────
+const sinCitas = (s: string) => s.replace(/«[^»]*»|“[^”]*”|"[^"]*"/g, ' ');
+// Las tildes SE QUEDAN: «sí» (afirmación) y «si» (condicional o pregunta indirecta: «hay que comprobar si se pueden cumplir») son
+// palabras distintas, y quitarlas las confunde.
+const plano = (s: string) => s.toLowerCase().replace(/[*_`#]/g, '');
+const ADVERSATIVA = /(?<![\p{L}])(?:pero|sin embargo|no obstante)(?![\p{L}])/u;
+const RESERVA = /(?<![\p{L}])(?:a primera vista|aparentemente|en apariencia|literalmente)(?![\p{L}])/u;
+// «si se pueden cumplir» (sin tilde) es una condición o una pregunta indirecta, no un veredicto: no cuenta en ninguna polaridad.
+const CUMPLIR_NO = /(?<![\p{L}])(?<!(?<![\p{L}])si )no (?:se pueden cumplir|pueden cumplirse)(?![\p{L}])/u;
+const CUMPLIR = /(?<![\p{L}])(?<!(?<![\p{L}])si )(?<!(?<![\p{L}])si no )(?:se pueden cumplir|pueden cumplirse)(?![\p{L}])/u;
+const SI_SUELTO = /^[\s,;:]*(?:en realidad,?\s*)?sí(?=[\s.,;:!]*$)/u;
+export function frasesDeLaSeccion(sec: string): string[] {
+  return plano(sinCitas(sec)).split(/\n+|(?<=[.;:!?])\s+/).map(f => f.trim()).filter(f => f && !f.endsWith('?'));
+}
+/** El veredicto de una frase por la vía de «cumplir», con el seguro. */
+export function porCumplir(frase: string, cumplirAntes: boolean): Veredicto {
+  const clausulas = frase.split(ADVERSATIVA);
+  let v: Veredicto = null, hablo = cumplirAntes;
+  clausulas.forEach((c, k) => {
+    const tras = k > 0;
+    if (RESERVA.test(c)) { if (CUMPLIR.test(c)) hablo = true; return; }
+    if (CUMPLIR_NO.test(c)) { v = 'no'; hablo = true; return; }
+    if (CUMPLIR.test(c)) { v = 'sí'; hablo = true; return; }
+    if (tras && hablo && SI_SUELTO.test(c)) v = 'sí';
+  });
+  return v;
+}
+export function porHallazgo(frase: string): Veredicto {
+  if (/(?<![\p{L}])no hay (?:ningún )?hallazgo(?![\p{L}])/u.test(frase)) return 'sí';
+  if (/(?<![\p{L}])hay hallazgo(?![\p{L}])/u.test(frase)) return 'no';
+  return null;
+}
+/** El lector aprobado decide primero. Si no decide, decide el amplio. Si el aprobado decide y una frase EXPLÍCITA de la sección
+ *  («no hay hallazgo», «no se pueden cumplir»…) dice lo contrario, no decide: el aprobado lee «No hay hallazgo.» como «No», y en
+ *  la pregunta 2 «no» es el hallazgo. Así el lector nuevo nunca da un positivo que la propia respuesta niega. */
+export function lectorAmplio(g: Guiones, sec: string): Veredicto {
+  const v0 = g.veredicto(sec, 2);
+  let h: Veredicto = null, c: Veredicto = null, hablo = false;
+  for (const f of frasesDeLaSeccion(sec)) {
+    const vh = porHallazgo(f); if (vh) h = vh;
+    const vc = porCumplir(f, hablo); if (vc) c = vc;
+    if (CUMPLIR.test(f)) hablo = true;
+  }
+  if (h && c && h !== c) return null;
+  const amplio = h ?? c;
+  if (v0 !== null) return amplio !== null && amplio !== v0 ? null : v0;
+  return amplio;
+}
+
+// ── LA REGLA (ii), CON LAS DOS PIEZAS NUEVAS ────────────────────────────────────────────────────────────────────────────────
+const citas = (s: string) => [...s.matchAll(/«([^»]*)»|“([^”]*)”|"([^"]*)"/g)].map(m => m[1] ?? m[2] ?? m[3] ?? '');
+export function clase(p: Puerta, sec: string, v: Veredicto, afirma: 'sí' | 'no'): Clase {
+  if (v === null) return 'NADA';
+  if (v !== afirma) return 'NIEGA';
+  const cs = citas(sec), n = cs.map(p.nor), d = n.includes('D'), cab = n.includes('a caballo'), cli = cs.some(p.cli);
+  if (d && cli) return 'D';                 // DECISIÓN 2 del 05/11: una D limpia vale aunque otra cita vaya a caballo
+  if (!d && cab) return 'PARCIAL';
+  if (d || cli) return 'PARCIAL';
+  return 'OTRO';
+}
+export function contarUna(g: Guiones, p: Puerta, texto: string): { sale: boolean | null; clases: [Clase, Clase] } {
+  const s = g.secciones(texto);
+  if (!s) return { sale: null, clases: ['NADA', 'NADA'] };
+  const c1 = clase(p, s.p1, g.veredicto(s.p1, 1), 'sí'), c2 = clase(p, s.p2, lectorAmplio(g, s.p2), 'no');
+  return { sale: g.casilla(c1, c2), clases: [c1, c2] };
+}
+/** Un brazo con la forma que `decidirX` lee; un solo recuento en las dos casillas. */
+export function brazoX2(g: Guiones, p: Puerta, pulsaciones: Array<Array<{ vez?: number; respuesta?: string; error?: string }>>) {
+  const buenas: Array<{ id: string; r: ReturnType<typeof contarUna> }> = [], fallidas: string[] = [];
+  pulsaciones.forEach((rs, k) => rs.forEach(x => {
+    if (buenas.length >= g.N) return;
+    const id = `pulsación ${k + 1}, vez ${x.vez}`;
+    if (typeof x.respuesta !== 'string' || x.respuesta.trim() === '') fallidas.push(`${id}: ${x.error ?? 'texto vacío'}`);
+    else buenas.push({ id, r: contarUna(g, p, x.respuesta) });
+  }));
+  const rec = { sale: buenas.filter(b => b.r.sale === true).length, ilegibles: buenas.filter(b => b.r.sale === null).map(b => `${b.id}: pregunta 1: ${b.r.clases[0]}; pregunta 2: ${b.r.clases[1]}`) };
+  return { completas: buenas.length >= g.N, n: g.N, fallidas, producto: rec, ancla: rec };
+}
+```
+
+`herramientas/instrumento_x2.test.ts` · huella `9b10b9fa58eac8e6`
+```ts
+import { readFileSync, writeFileSync } from 'node:fs';
+import { describe, it, expect, beforeAll } from 'vitest';
+import { S, cargar, puerta, lectorAmplio, porCumplir, contarUna, brazoX2, type Puerta } from './instrumento_x2';
+
+// LAS PRUEBAS DEL INSTRUMENTO DE LA SIGUIENTE TANDA DE X (Code, 06/11/2026). Cada caso en una frontera, para que el diseño
+// equivocado suspenda: los tres mutantes que pidió el arquitecto (no reconocer «hay hallazgo»; leer «se pueden cumplir» como
+// positivo; y el decisivo, «a primera vista no se pueden cumplir, pero en realidad sí» → NEGATIVA) y los de la puerta. Y el
+// CONTROL sobre las 42 de X: sólo cuántos indecidibles, nunca positivos (x2_control.txt). Esta tanda NO se recuenta.
+const HUELLA_TROZOS = '18065fb25f057dc0';
+type G = Awaited<ReturnType<typeof cargar>>;
+let g: G, p: Puerta;
+const T = JSON.parse(readFileSync(S + 'trozos_d.json', 'utf8'));
+beforeAll(async () => {
+  g = await cargar(HUELLA_TROZOS);
+  p = puerta(g, { chunkIndex: T.analizado.trozo, texto: T.analizado.texto }, { chunkIndex: T.candidato.trozo, texto: T.candidato.texto });
+});
+const Q2 = (cuerpo: string) => `PREGUNTA 1 · EL DATO\nNo.\nPREGUNTA 2 · EL CUMPLIMIENTO\n${cuerpo}`;
+const sec2 = (cuerpo: string) => g.secciones(Q2(cuerpo))!.p2;
+// citas inventadas, literales de los trozos entregados
+const NOR = '«figura que puede recaer en el propio Director Clínico o en otro profesional designado por él»';
+const CLI = '«nunca por el Director Clínico del propio centro, precisamente para mantener la separación de funciones»';
+
+describe('el lector amplio de la pregunta 2 (hallazgo = «no»)', () => {
+  it('«HAY HALLAZGO.» → hallazgo (mutante: no reconocer «hay hallazgo»)', () => expect(lectorAmplio(g, sec2('Ambos son reglas.\nHAY HALLAZGO.'))).toBe('no'));
+  it('«Sí, hay hallazgo.» → hallazgo (el lector aprobado lo quita a propósito; el amplio lo lee)', () => expect(lectorAmplio(g, sec2('Sí, hay hallazgo.'))).toBe('no'));
+  it('«Por tanto, no hay hallazgo.» → no lo hay', () => expect(lectorAmplio(g, sec2('Lo he mirado con cuidado.\nPor tanto, no hay hallazgo.'))).toBe('sí'));
+  it('«No hay hallazgo.» sola: el aprobado lee «No» (= hallazgo) y la frase dice lo contrario → NO DECIDE, nunca positivo', () =>
+    expect(lectorAmplio(g, sec2('No hay hallazgo.'))).toBe(null));
+  it('«hay que comprobar SI se pueden cumplir» (sin tilde) no es veredicto: con «HAY HALLAZGO» → hallazgo', () =>
+    expect(lectorAmplio(g, sec2('Ambos son reglas, así que hay que comprobar si se pueden cumplir a la vez.\nHAY HALLAZGO.'))).toBe('no'));
+  it('«Por tanto, se pueden cumplir las dos a la vez.» → NO hay hallazgo (mutante: leer «se pueden cumplir» como positivo)', () =>
+    expect(lectorAmplio(g, sec2('Lo he mirado con cuidado.\nPor tanto, se pueden cumplir las dos a la vez.'))).toBe('sí'));
+  it('«Por tanto, no se pueden cumplir las dos a la vez.» → hallazgo', () => expect(lectorAmplio(g, sec2('Lo he mirado.\nPor tanto, no se pueden cumplir las dos a la vez.'))).toBe('no'));
+  it('«Sí, ambos son reglas, y no se pueden cumplir.» → hallazgo (el «sí» de «son reglas» no es veredicto)', () =>
+    expect(lectorAmplio(g, sec2('Sí, ambos son reglas, y no se pueden cumplir las dos a la vez.'))).toBe('no'));
+  it('EL DECISIVO: «A primera vista no se pueden cumplir, pero en realidad sí.» → NEGATIVA', () =>
+    expect(lectorAmplio(g, sec2('Lo he mirado.\nA primera vista no se pueden cumplir, pero en realidad sí.'))).toBe('sí'));
+  it('el decisivo, en dos frases: «A primera vista no se pueden cumplir. Pero en realidad sí.» → NEGATIVA', () =>
+    expect(lectorAmplio(g, sec2('Lo he mirado.\nA primera vista no se pueden cumplir. Pero en realidad sí.'))).toBe('sí'));
+  it('la reserva sin adversativa: «Aparentemente no se pueden cumplir.» sola → no decide', () =>
+    expect(lectorAmplio(g, sec2('Lo he mirado.\nAparentemente no se pueden cumplir.'))).toBe(null));
+  it('el orden inverso: «Literalmente, sí se pueden cumplir… Pero… Por tanto, no se pueden cumplir.» → hallazgo (manda la conclusión)', () =>
+    expect(lectorAmplio(g, sec2('Lo he mirado.\nLiteralmente, sí se pueden cumplir las dos.\nPero el principio no.\nPor tanto, no se pueden cumplir las dos a la vez.'))).toBe('no'));
+  it('una pregunta no es veredicto: «¿Se pueden cumplir las dos a la vez?» sola → no decide', () =>
+    expect(lectorAmplio(g, sec2('Lo he mirado.\n¿Se pueden cumplir las dos a la vez?'))).toBe(null));
+  it('«la sustitución sí puede cumplirse» (singular, una regla) no es veredicto del par', () =>
+    expect(lectorAmplio(g, sec2('Lo he mirado.\nLa sustitución sí puede cumplirse.'))).toBe(null));
+  it('las dos vías discrepan («hay hallazgo» y «se pueden cumplir las dos») → no decide', () =>
+    expect(lectorAmplio(g, sec2('Lo he mirado.\nHay hallazgo.\nPor tanto, se pueden cumplir las dos.'))).toBe(null));
+  it('lo que el lector aprobado ya decide no cambia: «No.» → hallazgo; «Sí, se pueden cumplir» → no', () => {
+    expect(lectorAmplio(g, sec2('No.'))).toBe('no');
+    expect(lectorAmplio(g, sec2('Sí, se pueden cumplir las dos a la vez.'))).toBe('sí');
+  });
+  it('porCumplir: una cláusula con reserva sola no da veredicto, y un «sí» suelto sin hablar antes de cumplir tampoco', () => {
+    expect(porCumplir('aparentemente no se pueden cumplir', false)).toBe(null);
+    expect(porCumplir('pero en realidad sí', false)).toBe(null);
+    expect(porCumplir('pero en realidad sí', true)).toBe('sí');
+    expect(porCumplir('pero en realidad si', true)).toBe(null); // sin tilde no es afirmación
+  });
+});
+
+describe('las citas, por la puerta del producto', () => {
+  it('literal: el permiso → D; CLI-12 del §3.5 → sí', () => { expect(p.nor(NOR.slice(1, -1))).toBe('D'); expect(p.cli(CLI.slice(1, -1))).toBe(true); });
+  it('normalizada: con puntos suspensivos delante → sí (mutante: sin la normalización de la puerta)', () =>
+    expect(p.cli('...nunca por el Director Clínico del propio centro, precisamente para mantener la separación de funciones')).toBe(true));
+  it('glosa: «figura [del centro] que puede recaer en el propio Director Clínico» → D (mutante: sin la glosa)', () =>
+    expect(p.nor('figura [del centro] que puede recaer en el propio Director Clínico o en otro profesional designado por él')).toBe('D'));
+  it('tramo: dos tramos literales de la frase del permiso empalmados → D, por la frase real (mutante: sin el tramo)', () =>
+    expect(p.nor('profesional designado por él, encargado de supervisar el cumplimiento documental del protocolo, Cada clínica cuenta con un Coordinador de Calidad, figura que puede recaer')).toBe('D'));
+  it('la puerta tira: una paráfrasis → nada; y glosa con palabra cambiada fuera del corchete → nada (el resto no es literal)', () => {
+    expect(p.nor('figura que podría recaer en el propio Director Clínico o en cualquier otro profesional')).toBe(null);
+    expect(p.nor('la figura [de Coordinador de Calidad] puede recaer en el propio Director Clínico')).toBe(null);
+  });
+  it('el mínimo de 20 de SQL_34_06 del lado de NOR-10: «puede recaer» (12, que la puerta, con su mínimo de 10, sí deja pasar) → nada', () =>
+    expect(p.nor('puede recaer')).toBe(null));
+  it('la frase de A sola → nada; las dos frases → a caballo', () => {
+    expect(p.nor('El Coordinador de Calidad no sustituye al Director Clínico en la responsabilidad última')).toBe(null);
+    expect(p.nor('experiencia diaria del centro. El Coordinador de Calidad no sustituye al Director Clínico')).toBe('a caballo');
+  });
+  it('del lado de CLI-12, una frase del trozo fuera del §3.5 no cuenta, y menos de 20 caracteres tampoco', () => {
+    expect(p.cli('del propio centro')).toBe(false);
+    expect(p.cli('El organigrama de calidad descrito en este apartado se revisa cada vez que se incorpora una nueva clínica')).toBe(false);
+  });
+});
+
+describe('la regla (ii) entera, con las dos piezas', () => {
+  it('la 2 dice «HAY HALLAZGO» con las dos citas → sale', () => expect(contarUna(g, p, Q2(`HAY HALLAZGO. ${NOR} ${CLI}`)).sale).toBe(true));
+  it('la 2 dice «HAY HALLAZGO» con una sola cita → indecidible (PARCIAL)', () => expect(contarUna(g, p, Q2(`HAY HALLAZGO. ${NOR}`)).sale).toBe(null));
+  it('la 2 dice «a primera vista no se pueden cumplir, pero en realidad sí» con las dos citas → NO sale', () =>
+    expect(contarUna(g, p, Q2(`Lo he mirado.\nA primera vista no se pueden cumplir, pero en realidad sí. ${NOR} ${CLI}`)).sale).toBe(false));
+});
+
+describe('el CONTROL sobre las 42 de X (no las recuenta: sólo cuenta indecidibles)', () => {
+  it('cuántos indecidibles deja el instrumento nuevo; el boceto dijo 0', () => {
+    const ps = ['x_pulsacion1.json', 'x_pulsacion2.json'].map(f => JSON.parse(readFileSync(S + f, 'utf8')).respuestas);
+    const b = brazoX2(g, p, ps);
+    writeFileSync(S + 'x2_control.txt', [`completas: ${b.completas} · fallidas: ${b.fallidas.length}`, `indecidibles: ${b.producto.ilegibles.length}`, ...b.producto.ilegibles.map(i => `   ${i}`)].join('\n') + '\n');
+    expect(b.completas).toBe(true);
+  });
+});
+```
+
+`mutar_x2.mjs` · huella `8b8d5c8a1588391d`
+```js
+// Herramienta de un solo uso (06/11): los MUTANTES del instrumento de la siguiente tanda de X. Cada mutante cambia UNA cosa de
+// herramientas/instrumento_x2.ts (la sustitución tiene que casar exactamente una vez), corre sus pruebas y restaura el original,
+// comprobando la huella al final. Un mutante que no pone ninguna prueba en rojo es un diseño equivocado que las pruebas no ven.
+import { readFileSync, writeFileSync } from 'node:fs';
+import { createHash } from 'node:crypto';
+import { execSync } from 'node:child_process';
+const S = 'C:/Users/beaz8/AppData/Local/Temp/claude/E--Doc-Hub/914469ea-1369-4763-8e6a-9aadf9158516/scratchpad/';
+const F = S + 'herramientas/instrumento_x2.ts';
+const original = readFileSync(F, 'utf8');
+const huella = s => createHash('sha256').update(s).digest('hex').slice(0, 16);
+const MUTANTES = [
+  ['1 · no reconocer «hay hallazgo» (pedido)', `if (/(?<![\\p{L}])hay hallazgo(?![\\p{L}])/u.test(frase)) return 'no';`, ``],
+  ['2 · leer «se pueden cumplir» como positivo (pedido)', `if (CUMPLIR.test(c)) { v = 'sí';`, `if (CUMPLIR.test(c)) { v = 'no';`],
+  ['3 · EL DECISIVO: sin la cláusula tras la adversativa (pedido)', `const clausulas = frase.split(ADVERSATIVA);`, `const clausulas = [frase];`],
+  ['4 · sin la reserva («a primera vista»…)', `if (RESERVA.test(c)) {`, `if (false) {`],
+  ['5 · sin el «sí» suelto tras la adversativa', `if (tras && hablo && SI_SUELTO.test(c)) v = 'sí';`, ``],
+  ['6 · «si se pueden cumplir» (condición) cuenta como veredicto', `(?<!(?<![\\p{L}])si )(?<!(?<![\\p{L}])si no )(?:se pueden cumplir`, `(?:se pueden cumplir`],
+  ['7 · el aprobado manda aunque la respuesta diga lo contrario', `return amplio !== null && amplio !== v0 ? null : v0;`, `return v0;`],
+  ['8 · sin el desacuerdo entre las dos vías', `if (h && c && h !== c) return null;`, ``],
+  ['9 · el amplio antes que el aprobado', `if (v0 !== null) return amplio !== null && amplio !== v0 ? null : v0;\n  return amplio;`, `return amplio ?? v0;`],
+  ['10 · las citas sin la puerta: literal en el trozo', `return (cita: string): string | null => comprobarConRepliegues(comprobador, localizador, cita).verificada?.text ?? null;`, `return (cita: string): string | null => (t.texto.includes(cita) ? cita : null);`],
+  ['11 · la puerta sin repliegues (ni glosa ni tramo)', `comprobarConRepliegues(comprobador, localizador, cita).verificada?.text ?? null;`, `comprobador.comprobar(cita)?.text ?? null;`],
+  ['12 · la puerta sin el tramo', `comprobarConRepliegues(comprobador, localizador, cita)`, `comprobarConRepliegues(comprobador, null, cita)`],
+  ['13 · sin el mínimo de 20', `if (n.length < 20 || i < 0) return null;`, `if (i < 0) return null;`],
+  ['14 · sin «a caballo»', `return tD && tA ? 'a caballo' : tD ? 'D' : null;`, `return tD ? 'D' : null;`],
+  ['15 · CLI-12 en cualquier sitio del trozo, no sólo en el §3.5', `return n.length >= 20 && P35.includes(n); },`, `return n.length >= 20; },`],
+  ['16 · la regla (ii) cuenta PARCIAL como sale', `if (d || cli) return 'PARCIAL';`, `if (d || cli) return 'D';`],
+];
+const rojo = [];
+try {
+  for (const [nombre, de, a] of MUTANTES) {
+    const n = original.split(de).length - 1;
+    if (n !== 1) { console.log(`NO CASA (${n}): ${nombre}`); rojo.push(null); continue; }
+    writeFileSync(F, original.replace(de, a));
+    let salida = '';
+    try { salida = execSync(`npx vitest run --config ${S}vitest.herramientas.mts instrumento_x2`, { cwd: 'E:/Doc-Hub', encoding: 'utf8', stdio: 'pipe' }); }
+    catch (e) { salida = (e.stdout ?? '') + (e.stderr ?? ''); }
+    const m = salida.match(/Tests\s+(?:(\d+) failed)?/);
+    const fallan = m && m[1] ? Number(m[1]) : 0;
+    console.log(`${fallan > 0 ? 'ROJO ' : 'VIVO '} · ${nombre} · ${fallan} pruebas en rojo`);
+    rojo.push(fallan > 0);
+  }
+} finally {
+  writeFileSync(F, original);
+  // EL ÚLTIMO EN ESCRIBIR x2_control.txt TIENE QUE SER EL ORIGINAL: la prueba de control lo reescribe en cada corrida, y la
+  // primera vez lo dejó escrito el mutante 16 (0 indecidibles, porque contaba PARCIAL como «sale»). Se vuelve a correr el original.
+  try { execSync(`npx vitest run --config ${S}vitest.herramientas.mts instrumento_x2`, { cwd: 'E:/Doc-Hub', stdio: 'pipe' }); }
+  catch { console.log('EL ORIGINAL NO PASA SUS PRUEBAS al volver a correrlo'); }
+}
+console.log(`mutantes en rojo: ${rojo.filter(x => x).length} de ${MUTANTES.length} · original restaurado: ${huella(readFileSync(F, 'utf8')) === huella(original)}`);
+```
+
+`herramientas/correr_x2.test.ts` · huella `365f11660d0b588a`
+```ts
+import { readFileSync, writeFileSync } from 'node:fs';
+import { createHash } from 'node:crypto';
+import { it } from 'vitest';
+import { S, cargar, puerta, brazoX2 } from './instrumento_x2';
+
+// EL QUE CORRE LA SIGUIENTE TANDA DE X CON EL INSTRUMENTO APROBADO (instrumento_x2.ts, 203bb5dde2e3bee8), EN DOS TIEMPOS (Code,
+// 09/11/2026). No cuenta nada por su cuenta: llama a brazoX2 y a decidirX. Sólo corre si se le pide (X2_PARTE), para que la suite
+// de herramientas no lo dispare.
+//   X2_FICHEROS=pulsación1.json,pulsación2.json[,pulsación3.json] X2_PARTE=1 → x2_parte1.txt: fallidas, indecidibles y banda.
+//   X2_PARTE=2 → x2_parte2.txt: los positivos, la decisión y, si no decide, la tasa con su Wilson (añadido del arquitecto del 09/11).
+// ⚠️ CADA SALIDA EMPIEZA POR LAS HUELLAS DE LO QUE LA ESCRIBIÓ (regla del 09/11: una salida de control no vale si no consta qué
+// versión la escribió).
+const huella = (f: string) => createHash('sha256').update(readFileSync(f)).digest('hex').slice(0, 16);
+const wilson = (k: number, n: number, z = 1.959964) => {
+  const p = k / n, d = 1 + (z * z) / n, c = p + (z * z) / (2 * n), m = z * Math.sqrt((p * (1 - p)) / n + (z * z) / (4 * n * n));
+  return [(c - m) / d, (c + m) / d];
+};
+const pc = (x: number) => (100 * x).toFixed(1).replace('.', ',') + ' %';
+const PARTE = process.env.X2_PARTE;
+it.runIf(PARTE === '1' || PARTE === '2')(`X2, parte ${PARTE}`, async () => {
+  const T = JSON.parse(readFileSync(S + 'trozos_d.json', 'utf8'));
+  const g = await cargar('18065fb25f057dc0');
+  const p = puerta(g, { chunkIndex: T.analizado.trozo, texto: T.analizado.texto }, { chunkIndex: T.candidato.trozo, texto: T.candidato.texto });
+  const ficheros = (process.env.X2_FICHEROS ?? '').split(',').filter(Boolean);
+  const b = brazoX2(g, p, ficheros.map(f => JSON.parse(readFileSync(f, 'utf8')).respuestas));
+  const L = [
+    `ESCRITO POR: instrumento_x2.ts ${huella(S + 'herramientas/instrumento_x2.ts')} · correr_x2.test.ts ${huella(S + 'herramientas/correr_x2.test.ts')} · trozos_d.json ${huella(S + 'trozos_d.json')}`,
+    `FICHEROS: ${ficheros.map(f => `${f.split(/[\\/]/).pop()} ${huella(f)}`).join(' · ')}`,
+    `1 · LAS FALLIDAS: ${b.fallidas.length}${b.fallidas.length ? ' — ' + b.fallidas.join(' · ') : ''}`,
+  ];
+  if (!b.completas) L.push(`NO PUNTUABLE: faltan respuestas buenas para ${b.n}; se pulsa una tercera vez y se cuenta en orden.`);
+  else if (PARTE === '1') {
+    L.push(`2 · LOS INDECIDIBLES, ANTES QUE NINGÚN POSITIVO: ${b.producto.ilegibles.length} de ${b.n}`, ...b.producto.ilegibles.map(i => `   ${i}`));
+    L.push(`3 · LA BANDA DISPONIBLE: construir con ${24} o más (techo: ${b.n - b.producto.ilegibles.length} puntuables); enterrar ${b.producto.ilegibles.length <= g.MAX ? 'SÍ' : `NO (más de ${g.MAX} indecidibles)`}`);
+  } else {
+    const d = g.decidirX(b);
+    const [lo, hi] = wilson(b.producto.sale, b.n);
+    L.push(`4 · LOS POSITIVOS: ${b.producto.sale} de ${b.n} (indecidibles ${b.producto.ilegibles.length}, contados como fallo)`);
+    L.push(`5 · DECISIÓN: ${d.decision} — ${d.motivo}`);
+    if (d.decision !== 'CONSTRUIR' && d.decision !== 'ENTERRAR')
+      L.push(`6 · NO ES UNA DECISIÓN, ES UN DATO (prerregistrado el 09/11): tasa de D bajo la pregunta cerrada con el instrumento completo, ${b.producto.sale} de ${b.n} = ${pc(b.producto.sale / b.n)}, Wilson del ${pc(lo)} al ${pc(hi)}`);
+  }
+  writeFileSync(S + `x2_parte${PARTE}.txt`, L.join('\n') + '\n');
+}, 120_000);
+```
