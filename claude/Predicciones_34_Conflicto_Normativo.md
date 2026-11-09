@@ -7031,3 +7031,70 @@ prerregistro**, literales (sacadas del registro de la conversación con un scrip
   - en total, **unos 0,0021 $ por llamada**, de 0,0014 a 0,0028 $. El 0,00213 $ del arquitecto cae dentro.
 - **Las dos rutas, `d` y `d2`, a 42 llamadas cada una: 84 llamadas, unos 0,18 $.** La plantilla de `d2` es algo más larga y
   añade unos céntimos de milésima por llamada. **Es calderilla.**
+
+### LA TANDA d CONTRA d2: LA PLANTILLA APROBADA, EL LECTOR Y LA BANDA, ANTES DE PULSAR (arquitecto y Code, 09/11/2026)
+**LA PLANTILLA, APROBADA** y en el código: `app/api/admin/medida-f130/lineas-de-hallazgo.ts` (bloque con huella `ae20948d748edca0`), y
+la ruta `d2` (`bf134225`). El bloque que la ruta `d2` añade detrás del prompt de `d`, tras una línea en blanco:
+```
+AL TERMINAR, ESCRIBE ESTAS DOS LÍNEAS, PONIENDO «SÍ» O «NO» EN LUGAR DE LO QUE VA ENTRE CORCHETES, Y NADA DETRÁS. Cada línea dice si HAY HALLAZGO en esa pregunta, no qué has contestado a la pregunta: en la 1, «SÍ» quiere decir que los dos textos dicen cosas distintas sobre el mismo dato; en la 2, «SÍ» quiere decir que NO se pueden cumplir las dos a la vez.
+HALLAZGO EN LA 1: [escribe SÍ o escribe NO]
+HALLAZGO EN LA 2: [escribe SÍ o escribe NO]
+```
+**La ruta `d` no cambia, y lo vigila una prueba**: con los trozos del ensayo de D archivado el 04/11, `construirPrompt` da el mismo prompt
+byte a byte. Es el prompt de los 4.155 tokens de las 84 llamadas del 06/11 y del 09/11.
+
+**EL CONFUNDIDO DEL DÍA, nombrado por Code** (arquitecto: «entra en el prerregistro con tu nombre»): detrás de `claude-haiku-5-5` puede
+servirse un modelo distinto el 06/11, el 09/11 y el día de la tanda. Correr `d` y `d2` en la misma sesión separa el prompt del día.
+
+**Lo que fija el arquitecto, literal** (sacado del registro con un script):
+
+> **La plantilla, APROBADA tal como la has escrito.** Los dos cambios están, la glosa de la 1 reusa las palabras de la pregunta 1 en vez de inventar un criterio —eso es disciplina y lo apunto—, y los corchetes con verbo dentro hacen la copia ruidosa. **No toques ni un carácter más.**
+>
+> **Y me corriges bien: «parejas de ocasión» no existen.** Era mío y era falso: 42 es UNA pareja, `NOR-10·4 ↔ CLI-12·6`, 21 veces por pulsación. Retirado.
+>
+> **Tu motivo para recorrer `d` otra vez es mejor que el mío.** Yo quería separar el prompt del veredicto; tú has visto que **también separa el prompt del DÍA**, porque detrás de `claude-haiku-5-5` puede haber otro modelo servido que el del 06/11 y el del 09/11. Ese confundido yo no lo había nombrado. Entra en el prerregistro con tu nombre.
+>
+> **Coste aceptado:** 84 llamadas, unos 0,18 $, y mi 0,00213 $ cae dentro de tu rango medido. Adelante.
+>
+> ═══ EL ORDEN DE LAS PULSACIONES: ALTERNADAS ═══
+> No `d, d, d2, d2` sino **`d, d2, d, d2`**. En bloque, una deriva a mitad de sesión caería entera sobre una de las dos rutas; alternadas cae por igual sobre las dos. Cuesta lo mismo y es estrictamente mejor.
+>
+> ═══ LO QUE FALTA EN EL LECTOR, Y UN CASO QUE SE PERDERÍA ═══
+> «Aceptará sólo exactamente «SÍ» o «NO»» tira respuestas que **no son ambiguas en absoluto**: `«SÍ»` con comillas (y la instrucción las lleva, así que las va a copiar), `SÍ.` con punto, `SI` sin tilde, `**NO**`. **Estricto con la ambigüedad, tolerante con el adorno.** Perder por un acento una respuesta clara es regalar potencia.
+>
+> **Y un caso que tu versión mata:** si el modelo repite la plantilla al empezar y contesta de verdad después, «cualquier corchete → `plantilla_copiada`» **tira una respuesta buena.** Así que los corchetes no descalifican la respuesta, descalifican **esa aparición**.
+>
+> El lector, con todos los casos en una casilla y sólo en una:
+>
+> ```
+> 1. Se buscan TODAS las apariciones de «HALLAZGO EN LA n:».
+> 2. Ninguna aparición            -> NADA en esa pregunta (categoría de hoy; la regla (ii) intacta)
+> 3. Se DESCARTA toda aparición con [ o ], y se cuenta aparte en
+>    `copia_presente` SIN hacer ilegible nada.
+> 4. Si no queda ninguna          -> `plantilla_copiada`      ILEGIBLE
+> 5. De las que quedan, normalizar lo que va tras los dos puntos:
+>    recortar espacios; quitar UN par envolvente de « » " " ' ' ** **;
+>    quitar . , ; : finales; mayusculas; SI -> SÍ
+> 6. Nada tras los dos puntos     -> `linea_vacia`            ILEGIBLE
+> 7. Aparecen SÍ y NO a la vez    -> `dos_palabras`           ILEGIBLE
+> 8. Dos apariciones validas con valores DISTINTOS
+>                                 -> `contradiccion_de_linea` ILEGIBLE
+> 9. Exactamente SÍ               -> HALLAZGO
+> 10. Exactamente NO              -> NO HALLAZGO
+> 11. Cualquier otra cosa         -> `linea_ilegible`         ILEGIBLE
+> ```
+>
+> **Primera coincidencia gana, y el orden es parte de la regla, no un detalle de implementación.** Las pruebas llevan una tabla con un caso por casilla, como la de 25 celdas de la regla (ii): `SÍ`, `«SÍ»`, `SI`, `**NO**`, `NO.`, vacío, `SÍ o NO`, copia sola, copia + respuesta buena detrás, dos apariciones iguales, dos distintas, y una línea con prosa detrás. **Doce casos, doce casillas.** Si un caso no cae en una sola, la regla no está escrita.
+>
+> Y **`linea_vacia` no es NADA**: en NADA el juez no dijo nada de esa pregunta; aquí escribió la línea y la dejó en blanco. Son fallos distintos y no se suman.
+>
+> ═══ LA BANDA DE `d` CONTRA `d2`, ANTES DE PULSAR ═══
+> Fisher exacto bilateral, 42 contra 42, α = 0,05. Y **lo que se hace con cada resultado, escrito ahora**:
+>
+> - **No se separan** → la línea no cambió el veredicto, sólo la lectura. **`d2` lleva la decisión** de construir/enterrar y los 22 de 42 de los dos días se leen al lado.
+> - **Se separan** → la línea cambió también lo que el juez concluye. **Entonces `d2` NO puede llevar la decisión**, porque lo que mide no es lo que hace el producto. La decisión vuelve a `d`, con su problema de ilegibles intacto, y la conclusión honesta de la tanda es **«no se puede medir esto sin cambiarlo»**.
+>
+> **Ese tercer final es un final posible y hay que verlo venir.** Si sale, no habremos perdido la tanda: habremos dejado de adivinar.
+>
+> ═══ UNA FRASE MÁS PARA EL PRERREGISTRO ═══
+> Junto a la que ya archivaste: **con 42 repeticiones de UN prompt sobre UNA pareja medimos la CONSISTENCIA del juez en ese ítem.** No distingue «encuentra D el 52 % de las veces» de «encontraría D siempre con otra redacción de la misma pareja». Es el límite de un diseño de un solo ítem y conviene que esté escrito antes de que alguien cite la cifra.
