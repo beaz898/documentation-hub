@@ -9,7 +9,7 @@ export default function MedidaF130() {
   const [salida, setSalida] = useState('');
   const [ocupado, setOcupado] = useState(false);
 
-  async function medir(ruta: 'vecindad' | 'pregunta' | 'limpia?ensayo=1' | 'limpia' | 'quinto?ensayo=1' | 'quinto' | 'd?ensayo=1' | 'd') {
+  async function medir(ruta: 'vecindad' | 'pregunta' | 'limpia?ensayo=1' | 'limpia' | 'quinto?ensayo=1' | 'quinto' | 'd?ensayo=1' | 'd' | 'd2?ensayo=1' | 'd2') {
     setOcupado(true);
     setSalida(`Midiendo ${ruta}…`);
     try {
@@ -45,6 +45,11 @@ export default function MedidaF130() {
       <p>
         <button disabled={ocupado} onClick={() => medir('d?ensayo=1')}>D · ensayo: los dos trozos como están guardados (sin modelo, no gasta)</button>{' '}
         <button disabled={ocupado} onClick={() => medir('d')}>D · la tanda: NOR-10 §2.4 ↔ CLI-12 §3.5, 21 veces (gasta en la API)</button>
+      </p>
+      <p>La D con las dos líneas de hallazgo (09/11): la misma pareja y el mismo prompt, con dos líneas al final. Sólo cuando el arquitecto la haya liberado:</p>
+      <p>
+        <button disabled={ocupado} onClick={() => medir('d2?ensayo=1')}>D2 · ensayo: el prompt con las dos líneas (sin modelo, no gasta)</button>{' '}
+        <button disabled={ocupado} onClick={() => medir('d2')}>D2 · la tanda: la misma pareja con las dos líneas de hallazgo, 21 veces (gasta en la API)</button>
       </p>
       <p>Copia todo lo que salga abajo y pégaselo a Claude Code.</p>
       <pre style={{ whiteSpace: 'pre-wrap', background: '#f4f4f4', padding: '1rem', minHeight: '10rem' }}>{salida}</pre>
