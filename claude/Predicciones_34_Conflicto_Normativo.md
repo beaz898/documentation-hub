@@ -7098,3 +7098,26 @@ servirse un modelo distinto el 06/11, el 09/11 y el día de la tanda. Correr `d`
 >
 > ═══ UNA FRASE MÁS PARA EL PRERREGISTRO ═══
 > Junto a la que ya archivaste: **con 42 repeticiones de UN prompt sobre UNA pareja medimos la CONSISTENCIA del juez en ese ítem.** No distingue «encuentra D el 52 % de las veces» de «encontraría D siempre con otra redacción de la misma pareja». Es el límite de un diseño de un solo ítem y conviene que esté escrito antes de que alguien cite la cifra.
+
+### LA HUELLA APROBADA DEL BLOQUE DE d2, EN EL PRERREGISTRO Y NO SÓLO EN LA PRUEBA (arquitecto y Code, 09/11/2026)
+- **La huella del texto aprobado es `ae20948d748edca0` (446 caracteres).** Se calcula sobre el bloque del mensaje de Code que el
+  arquitecto aprobó «tal como la has escrito», sacado del registro de la conversación con un script. **No se calcula sobre el
+  fichero.**
+- **La comparación, en una sola orden y una sola salida** (09/11):
+  - el bloque del mensaje aprobado, sacado del registro: `ae20948d748edca0`;
+  - el bloque archivado en este fichero (`234bf2a4`): `ae20948d748edca0`;
+  - la constante `LINEAS_DE_HALLAZGO` de `app/api/admin/medida-f130/lineas-de-hallazgo.ts`: `ae20948d748edca0`;
+  - «los tres iguales: true».
+- **Por qué va aquí** (arquitecto): la prueba de `lineas-de-hallazgo.test.ts` lleva la misma huella, pero se calculó DESDE el fichero.
+  Sólo protege el fichero de cambios futuros, y vive en el repositorio, donde se puede editar en el mismo commit que el fichero que
+  vigila. **Una huella que viaja con la cosa que vigila no vigila nada.** La de aquí sale del texto aprobado.
+- **El grep de imports, repetido con los ficheros nuevos ya creados** (`medida-f130` en `app`, `lib`, `worker` y `components`, fuera de
+  la carpeta): **0**. El producto sigue sin importar nada de la herramienta.
+- **Lo que lleva cada salida** (lo pidió el arquitecto para comprobar la alternancia en el papel):
+  - **en las tandas**, `d` y `d2` llevan `medida` y `cuando` (la hora ISO). La medida de `d2` lleva «CON LAS DOS LÍNEAS DE HALLAZGO» y
+    la de `d` no;
+  - **los ensayos** llevan `medida`, pero **NO llevan hora**: es el código de la ruta `d`, que no se toca;
+  - **los 409** no llevan ni medida ni hora.
+- **Encontrado al pegar `d2/route.ts` entero**: su cabecera, copiada de `d`, decía que la negativa dura «la vigila una prueba sobre el
+  texto de esta ruta (`medida-f130.test.ts`)», y esa prueba cubría `quinto` y `d`, no `d2`. Se amplió a `d2` (`46d21985`). Con el 409
+  movido detrás del ensayo, la prueba sale en rojo.
