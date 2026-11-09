@@ -624,6 +624,17 @@ El dueño del proyecto NO es programador. Vercel deploya automáticamente al hac
   de A sale A, una de D sale D, una corta no cuenta—. Sin eso, «0 descartadas»
   no distinguía una regla que no encuentra nada de una que no sabe descartar.
   Promovida por el arquitecto el 05/11/2026.
+  ⚠️ **Y SU HERMANA: UNA SALIDA DE CONTROL NO VALE SI NO CONSTA QUÉ VERSIÓN LA
+  ESCRIBIÓ.** Un fichero de salida que comparten la versión buena y las rotas
+  no es un control: es lo que dejó el último que pasó por ahí. El caso, del
+  06-09/11/2026: la prueba de control del instrumento de X reescribía
+  `x2_control.txt` cada vez que corría, y la tanda de mutantes la corrió con
+  cada versión rota. El último mutante, que contaba PARCIAL como «sale»,
+  dejó escrito «0 indecidibles». La versión aprobada da 4, y sobre ese 0 se
+  llegó a calcular un 97,36 % de potencia. Lo cazó Code antes de informar.
+  **La cura tiene dos partes**: el guion de mutantes vuelve a correr el
+  original al final, y cada salida empieza por las huellas de lo que la
+  escribió. Promovida por el arquitecto el 09/11/2026.
   ⚠️ **Y NO ES SOLO EL CERO: es cualquier cifra que se lea como medida.** El caso,
   del 06/09 y a un día de promover la regla: una consulta titulada «cota inferior
   de documentos cortados por longitud» devolvió **5**, y lo que contaba eran
