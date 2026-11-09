@@ -6985,3 +6985,49 @@ FICHEROS: x2_pulsacion1.json a90a0ff607b63ca9 · x2_pulsacion2.json e4627e415864
   - **que haya hallazgo no se lee de un sí o un no: es que haya un elemento en `contradictions`.**
 
   **El problema de la prosa es, pues, del medidor y no del producto.**
+
+### LA TANDA CON LA LÍNEA DE HALLAZGO: LO QUE YA ESTÁ PRERREGISTRADO ANTES DE ESCRIBIR LA HERRAMIENTA (arquitecto y Code, 09/11/2026)
+**LA FRASE QUE TIENE QUE SOBREVIVIR A TODO LO QUE SALGA DE AQUÍ** (arquitecto, con sus palabras): **X mide la capacidad del juez sobre
+la pareja aislada de D bajo una pregunta cerrada, no la tasa a la que el producto encuentra D. Nadie cita la cifra de X como tasa del
+producto.**
+
+**El techo, como intervalo** (`techo_intervalo.mjs`, huella `4ff4ebcc536f90b2`): enterrar está disponible el 64,7 % de las veces con la
+tasa observada de PARCIAL (6 de 84), y entre el 11,6 % y el **95,0 %** con los extremos de su Wilson. **El arquitecto había escrito
+95,1 %, calculado en la conversación y sin huella; adopta el 95,0 % del script.**
+
+**Las reglas del lector de la línea, con sus contadores; la retirada del arquitecto y el diseño de las dos rutas; y las dos cosas para el
+prerregistro**, literales (sacadas del registro de la conversación con un script):
+
+> ═══ CAMBIO 3 · LO QUE EXIGE EL LECTOR, Y QUE CADA FALLO TENGA SU CONTADOR ═══
+> Cuatro reglas, y las tres primeras con **contador propio y nombre propio en la salida**:
+> - Se lee **la ÚLTIMA aparición** de cada línea, no la primera.
+> - La misma línea dos veces con valores distintos → `contradiccion_de_linea`, ILEGIBLE.
+> - Copia literal del hueco → `plantilla_copiada`, ILEGIBLE.
+> - **Línea ausente → NADA en esa pregunta**, la categoría de hoy, para que la regla (ii) no se toque ni un carácter.
+>
+> **Que cada uno se imprima con su nombre, no sumado al total de ilegibles.** Un ilegible sin motivo es un ilegible que no sabremos arreglar la vez siguiente.
+
+> ═══ Y AHORA EL DEFECTO MÍO, QUE ES EL QUE IMPORTA ═══
+> Yo escribí «la línea arregla los NADA y no arregla los PARCIAL». **Eso da por supuesto que la línea sólo toca la legibilidad, y no lo sé.** Pedir un veredicto final puede hacer al juez más decidido: la tanda nueva puede diferir **en lo que concluye**, no sólo en lo que podemos leer. **Retiro esa implicación.**
+>
+> Y el confundido no se deshace mirando el resultado: 22 de 42 bajo un prompt y otra cifra bajo otro prompt no se pueden comparar si además han cambiado las parejas de ocasión.
+>
+> **Lo que lo separa es barato: correr la ruta `d` (la de hoy, congelada) y la ruta `d2` sobre LAS MISMAS parejas en la misma sesión.** Entonces la diferencia entre las dos ES el prompt y nada más. Dos pulsaciones, mismo par, mismas veces.
+
+> ═══ DOS COSAS MÁS PARA EL PRERREGISTRO ═══
+> 1. **Lector secundario, declarado antes de pulsar:** el lector de prosa corre también sobre el texto archivado de `d2`, **se registra y no sustituye nunca.** El dato son las líneas. El secundario es observación.
+> 2. **Una frase que tiene que sobrevivir a todo lo que salga de aquí:** X mide **la capacidad del juez sobre la pareja aislada de D bajo una pregunta cerrada**, no la tasa a la que el producto encuentra D. **Nadie cita la cifra de X como tasa del producto.** Ponla en el fichero con esas palabras.
+
+**QUÉ ES EL 42, Y CUÁNTO CUESTA** (Code, leído del código y de lo archivado):
+- **El 42 es UNA sola pareja, 21 veces por pulsación, en dos pulsaciones.** La pareja es `PAREJA_DE_D` (NOR-10·4 ↔ CLI-12·6,
+  `medida-f130.ts:166`) y las 21 veces son `VECES_DE_D` (`:167`). La ruta arma un solo prompt y lo manda 21 veces
+  (`d/route.ts:53`).
+- **No hay «parejas de ocasión»: las 42 llamadas son la misma pareja con el mismo prompt.** Lo que puede cambiar entre dos días no es
+  la pareja: es el día, o sea el modelo que haya detrás. Correr `d` y `d2` en la misma sesión separa el prompt de eso.
+- **El coste por llamada**, medido sobre las 84 llamadas archivadas (06/11 y 09/11) con los precios de Haiku 5.5 del repositorio
+  (`lib/observability/llm-pricing.ts:36-41`: 0,10 $ el millón de entrada y 0,50 $ el de salida):
+  - entrada fija de 4.155 tokens, unos 0,00042 $;
+  - salida media de 3.337 tokens (de 1.937 a 4.855), unos 0,00167 $;
+  - en total, **unos 0,0021 $ por llamada**, de 0,0014 a 0,0028 $. El 0,00213 $ del arquitecto cae dentro.
+- **Las dos rutas, `d` y `d2`, a 42 llamadas cada una: 84 llamadas, unos 0,18 $.** La plantilla de `d2` es algo más larga y
+  añade unos céntimos de milésima por llamada. **Es calderilla.**
