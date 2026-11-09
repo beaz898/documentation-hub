@@ -6848,3 +6848,19 @@ it.runIf(PARTE === '1' || PARTE === '2')(`X2, parte ${PARTE}`, async () => {
   writeFileSync(S + `x2_parte${PARTE}.txt`, L.join('\n') + '\n');
 }, 120_000);
 ```
+
+### ACERTAR POR EL MOTIVO EQUIVOCADO, Y EL QUINTO CON LA COTA CORREGIDA (arquitecto y Code, 09/11/2026)
+- **Una clase aparte** (arquitecto): las tres veces que el lector aprobado acertó por casualidad (condición 1, vez 11; X, pulsación 2,
+  veces 12 y 17). **El veredicto era correcto y el camino no.** El juez afirmaba el hallazgo en una línea que el lector no mira, y el
+  lector tomó como veredicto un «No he encontrado otros pares…» del final.
+- **Dos de los 22 positivos de X se alcanzaron así**, y también están entre los 26 por ancla. Lo comprobó Code con el guion aprobado:
+  las veces 12 y 17 de la pulsación 2 salen «sale» en los dos recuentos, con la pregunta 1 en NIEGA y la 2 en D. El número sigue
+  siendo correcto, porque el juez sí afirmaba. X es «no decide» y no sostiene nada, así que se apunta y no se replantea.
+- **La regla** sale de aquí y va a `CLAUDE.md`, fundida con «una observación no es prueba si la hipótesis contraria habría dado la
+  misma observación»: un acierto por el camino equivocado no es un acierto del instrumento.
+- **El quinto con la cota corregida** (aritmética del arquitecto, comprobada por Code con el Fisher del guion aprobado):
+  - 12 de 21 contra 9 de 21: p = 0,5377, que no cambia;
+  - la cota alta pasa de 16 (p = 0,0578) a 15 (p = 0,1180).
+
+  **La corrección refuerza la conclusión del arquitecto** (el quinto se aleja de la significación), y por eso se comprobó antes de
+  aceptarla.

@@ -616,6 +616,16 @@ El dueño del proyecto NO es programador. Vercel deploya automáticamente al hac
   prueba sólo acredita un diseño si el diseño equivocado la suspende**; se
   sustituyó por un caso que los separa, buscado con un guion. El contador a
   cero, abajo, es el caso particular.
+  **Y SU CARA EN UNA SOLA RESPUESTA: UN ACIERTO POR EL CAMINO EQUIVOCADO NO ES
+  UN ACIERTO DEL INSTRUMENTO, ES UNA COINCIDENCIA QUE SE REPETIRÁ CUANDO EL
+  CAMINO CAMBIE.** Un veredicto correcto sacado de la línea equivocada es la
+  misma observación que habría dado el instrumento roto. El caso, del 09/11:
+  al buscar hacia atrás el defecto del lector aprobado, tres respuestas
+  (condición 1, vez 11; X, pulsación 2, veces 12 y 17) salían bien porque el
+  juez afirmaba el hallazgo en una línea que el lector no mira, y el lector
+  tomaba como veredicto un «No he encontrado otros pares…» del final. Dos de
+  los 22 positivos de X se alcanzaron así. Promovida por el arquitecto el
+  09/11/2026.
   ⚠️ **SU FORMA PARA LAS REGLAS QUE DESCARTAN: UN CONTADOR A CERO SÓLO VALE SI
   ANTES SE HA DEMOSTRADO QUE EL CONTADOR SABE SUBIR.** El caso, del 05/11/2026:
   antes de informar de que la regla «a caballo» de `SQL_34_06` no descartaba
