@@ -6959,3 +6959,29 @@ FICHEROS: x2_pulsacion1.json a90a0ff607b63ca9 · x2_pulsacion2.json e4627e415864
 - **El instrumento sigue siendo el factor que decide la tanda, no el fenómeno**: lo que falta en el lector es vocabulario de
   hallazgo («hallazgo:» sin «hay», «hay conflicto») y la lista de reservas, y el defecto del «Sí, son reglas» del aprobado ya no es
   sólo latente.
+
+### TRAS LA SEGUNDA TANDA DE X: LOS DOS DENOMINADORES, Y EL CAMBIO DE DISEÑO DEL DIRECTOR (arquitecto y Code, 09/11/2026)
+- **EL DATO SE INFORMA CON LOS DOS DENOMINADORES, etiquetados, porque contestan preguntas distintas** (arquitecto):
+  - **sobre 42: 52,4 %**, Wilson del 37,7 al 66,6 %. Es la tasa que alcanzaría el PRODUCTO, porque lo ilegible no se publica;
+  - **sobre 34: 64,7 %**, Wilson del 47,9 al 78,5 %. Es la tasa del JUEZ cuando se le puede leer.
+- **AL REGISTRO, DEFECTO DEL ARQUITECTO EN EL PRERREGISTRO DEL 09/11**: decía «la tasa con su Wilson» y no fijaba el denominador. Es
+  un defecto del prerregistro, no del resultado. No se eligió el denominador después de ver el número: van los dos.
+- **LA REGLA DEL TECHO, A `CLAUDE.md`** (arquitecto): una tasa medida sobre una muestra no fija el techo de la siguiente; lo fija
+  su intervalo.
+- **EL CAMBIO DE DISEÑO, DEL DIRECTOR**: se deja de arreglar el lector y se resuelve en la pregunta. **Se mantiene la prosa y se
+  añade una ÚLTIMA LÍNEA OBLIGATORIA de veredicto, y el lector lee sólo esa línea.** El arquitecto descarta las otras dos vías:
+  - un traductor, porque es otra llamada al modelo, con su coste y su propia tasa de error que habría que medir;
+  - seguir arreglando el lector, porque es un problema sin fondo: «Hallazgo:» sin «hay», «hay conflicto», reservas nuevas…
+
+  Y lo decide que **el producto pedirá formato de todas formas**: la especificación de Fable tiene un paso de formato. **La
+  siguiente tanda será una línea base nueva**: los 22 de 42 de los dos días no se arrastran, y el prerregistro llevará el techo como
+  intervalo.
+- **CÓMO LEE HOY EL PRODUCTO AL JUEZ** (Code, contra el código):
+  - **en JSON, no en prosa.** El prompt del juez termina con «Responde con este JSON (sin bloques de código, sin texto adicional)»
+    (`lib/analysis/judge.ts:927`), y la llamada es `callLLMJson` (`judge.ts:942`);
+  - el cliente añade un sufijo estricto de «sólo JSON» (`lib/llm/anthropic-client.ts:373`), y lo lee con `tryParseJson`, que
+    sanea y repara el JSON cortado (`:302-357`);
+  - **es JSON pedido por instrucción, no un esquema forzado por la API**: el cliente no usa herramientas ni formato de respuesta;
+  - **que haya hallazgo no se lee de un sí o un no: es que haya un elemento en `contradictions`.**
+
+  **El problema de la prosa es, pues, del medidor y no del producto.**

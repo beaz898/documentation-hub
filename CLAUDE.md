@@ -665,6 +665,16 @@ El dueño del proyecto NO es programador. Vercel deploya automáticamente al hac
   reutilizar un número cuyo contexto ya no se sostiene.** Por eso la defensa no es
   revisar la aritmética: es **preguntar de qué medición sale**, y si la respuesta es
   «de algo que dijimos antes», no sale de ninguna.
+  ⚠️ **Y SU FORMA PARA LOS TECHOS: UNA TASA MEDIDA SOBRE UNA MUESTRA NO FIJA UN
+  TECHO PARA LA SIGUIENTE; LO FIJA SU INTERVALO. Un techo que sale de una
+  estimación puntual hereda su incertidumbre, y la potencia se escribe como un
+  rango, no como una cifra.** El caso, del 06-09/11/2026: el control del
+  instrumento de X dio 4 indecidibles de 42, y sobre ese 4 se calculó un
+  86,31 % de potencia como si fuera el techo de la tanda siguiente. La tanda
+  dio 8 (Fisher p = 0,3502 contra 4: no se distinguen), y la potencia real fue
+  del 55,45 %. El intervalo del 4, que nadie calculó, iba del 3,8 al 22,1 %, es
+  decir, de 2 a 9 indecidibles. El adjetivo sin medir era «el techo es 4».
+  Promovida por el arquitecto el 09/11/2026.
 - **UNA REGLA DE CLASIFICACIÓN NO ESTÁ ESCRITA HASTA QUE TODOS LOS CASOS
   POSIBLES CAEN EN UNA CASILLA Y SÓLO EN UNA. Se comprueba ENUMERANDO el espacio
   de casos, no leyendo la regla.**
