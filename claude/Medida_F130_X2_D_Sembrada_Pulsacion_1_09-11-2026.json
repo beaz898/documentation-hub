@@ -1,0 +1,623 @@
+{
+  "estadoHttp": 200,
+  "medida": "F-130 · la pregunta cerrada sobre la pareja de D de la siembra (§2.4 ↔ §3.5), los dos trozos enteros, 21 veces",
+  "cuando": "2026-11-09T15:39:31.089Z",
+  "modelo": "claude-haiku-5-5",
+  "respuestas": [
+    {
+      "pareja": "NOR-10_protocolo-esterilizacion-instrumental.docx · trozo 4 ↔ CLI-12_manual-calidad-clinica.docx · trozo 6",
+      "vez": 1,
+      "respuesta": "**PREGUNTA 1 · EL DATO: No.**\nAmbos textos hablan de la figura del Coordinador de Calidad, pero no dan valores distintos a un mismo dato. El NOR-10 dice quién puede ocupar el cargo en condiciones normales. El CLI-12 dice quién puede sustituirlo temporalmente. Son datos diferentes.\n\n**PREGUNTA 2 · EL CUMPLIMIENTO: No se pueden cumplir las dos a la vez.**\n\nAmbos trozos son reglas. La de NOR-10 permite algo, así que aplico la pregunta sobre el permiso:\n\n- **NOR-10, apartado 2.4:** «Cada clínica cuenta con un Coordinador de Calidad, figura que puede recaer en el propio Director Clínico o en otro profesional designado por él».\n- **CLI-12, apartado 3.5:** «sus funciones son asumidas temporalmente por el Coordinador de Calidad de otra clínica de la red, nunca por el Director Clínico del propio centro, precisamente para mantener la separación de funciones descrita en el apartado 3.1».\n\nSi se hace lo que NOR-10 permite, y el Director Clínico ocupa también la coordinación de calidad, la separación de funciones que CLI-12 quiere mantener deja de existir: la misma persona concentra la dirección clínica y el control documental y de auditoría. CLI-12 enuncia ese principio de separación, y NOR-10 permite justo lo que lo excluye. No hace falta suponer ningún hecho nuevo, porque el permiso está en el propio texto de NOR-10.\n\nEtiqueta: **norma_contra_norma**. Ninguna de las dos frases es falsa por sí misma; el choque surge al combinar el permiso de una con el principio de la otra. Nota: el contenido exacto del apartado 3.1 de CLI-12 no aparece en el trozo, así que el alcance del principio se deduce de cómo lo invoca el propio 3.5."
+    },
+    {
+      "pareja": "NOR-10_protocolo-esterilizacion-instrumental.docx · trozo 4 ↔ CLI-12_manual-calidad-clinica.docx · trozo 6",
+      "vez": 2,
+      "respuesta": "**PREGUNTA 1 · EL DATO**\n\nNo. Ambos textos regulan quién ejerce la función de Coordinador de Calidad, pero no dan valores distintos a un mismo dato. NOR-10 §2.4 dice quién puede *ocupar el cargo con carácter ordinario* (el Director Clínico u otro profesional que designe). CLI-12 §3.5 dice quién *sustituye temporalmente* al Coordinador en su ausencia. Son situaciones distintas, y no hay ninguna cifra, fecha ni atribución que los dos documentos fijen de forma incompatible.\n\n**PREGUNTA 2 · EL CUMPLIMIENTO**\n\nSí, se pueden cumplir las dos a la vez. Son reglas, así que aplico la pregunta a los pares de frases relevantes:\n\n- NOR-10 §2.4 permite que el Director Clínico sea también el Coordinador de Calidad. Si se hace, CLI-12 §3.5 sigue cumplida: en ausencia del Coordinador, la sustitución la asume el Coordinador de *otra* clínica, \"nunca el Director Clínico del propio centro\". No hay ninguna situación permitida por una regla que haga imposible cumplir la otra.\n- CLI-12 §3.5 invoca \"la separación de funciones descrita en el apartado 3.1\". Esa separación no aparece en el texto que tengo. Para convertirla en conflicto habría que suponer que excluye que una misma persona ocupe ambos cargos, y NOR-10 sí lo permite. Esa suposición no está en ninguno de los dos textos, así que no la uso.\n- NOR-10 §2.5 (Dirección de Operaciones) y CLI-12 §3.6 (revisión del organigrama cada dos años) mandan sobre cosas distintas y no se solapan.\n\nNo hay hallazgo en esta pregunta."
+    },
+    {
+      "pareja": "NOR-10_protocolo-esterilizacion-instrumental.docx · trozo 4 ↔ CLI-12_manual-calidad-clinica.docx · trozo 6",
+      "vez": 3,
+      "respuesta": "**PREGUNTA 1 · EL DATO**\n\n**No.** Los dos textos no dan valores distintos sobre el mismo dato. El Texto 1 dice quién puede ser Coordinador de Calidad en situación ordinaria. El Texto 2 dice quién puede sustituirlo temporalmente. Son dos datos distintos, aunque se refieran al mismo cargo.\n\n**PREGUNTA 2 · EL CUMPLIMIENTO**\n\nLos dos textos son reglas, así que aplico la pregunta de cumplimiento.\n\n**No se pueden cumplir las dos a la vez, en el sentido de que el principio que enuncia el Texto 2 queda vaciado por lo que permite el Texto 1.** Hay hallazgo.\n\n- Frase del Texto 1 (permite): «figura que puede recaer en el propio Director Clínico o en otro profesional designado por él».\n- Frase del Texto 2 (enuncia el principio): «nunca por el Director Clínico del propio centro, precisamente para mantener la separación de funciones descrita en el apartado 3.1».\n\nEl Texto 2 enuncia un principio, la separación de funciones entre el Director Clínico y el Coordinador de Calidad, y lo usa como razón de su propia regla. El Texto 1 permite justo lo que ese principio excluye: que el Director Clínico sea también el Coordinador de Calidad. Si se hace lo que el Texto 1 permite, la separación que el Texto 2 quiere mantener deja de existir en ese centro. No basta con decir que el Texto 2 se cumple en su literalidad, porque su propósito declarado no se cumple.\n\nUna limitación: el contenido exacto de la separación de funciones está en el apartado 3.1, que no se incluye en el trozo 6. La conclusión se apoya en lo que el propio Texto 2 dice de ese principio, sin suponer nada que no esté en los textos.\n\n**Etiqueta: \"norma_contra_norma\".**"
+    },
+    {
+      "pareja": "NOR-10_protocolo-esterilizacion-instrumental.docx · trozo 4 ↔ CLI-12_manual-calidad-clinica.docx · trozo 6",
+      "vez": 4,
+      "respuesta": "**PREGUNTA 1 · EL DATO**\nNo. Los dos textos no dan valores distintos a un mismo dato. NOR-10 dice quién puede ser Coordinador de Calidad, y CLI-12 dice quién lo sustituye en su ausencia. Son datos diferentes.\n\n**PREGUNTA 2 · EL CUMPLIMIENTO**\nLos dos textos son reglas, así que hay que hacer esta pregunta.\n\nNo se pueden cumplir las dos a la vez, porque una enuncia un principio que la otra permite incumplir:\n\n- NOR-10, apartado 2.4: «figura que puede recaer en el propio Director Clínico o en otro profesional designado por él».\n- CLI-12, apartado 3.5: «nunca por el Director Clínico del propio centro, precisamente para mantener la separación de funciones descrita en el apartado 3.1».\n\nCLI-12 enuncia el principio de separación de funciones entre el Director Clínico y el Coordinador de Calidad de cada centro. Lo enuncia como razón de su regla de sustitución, pero el principio existe. NOR-10 permite justo el estado que ese principio excluye: que la misma persona sea Director Clínico y Coordinador de Calidad. Si se hace lo que NOR-10 permite, la separación de funciones que CLI-12 quiere mantener deja de existir en ese centro.\n\nEs importante precisar que la regla de sustitución de CLI-12, tomada aislada, sí se puede cumplir cuando el Director Clínico es también el Coordinador: basta con que la sustitución la asuma otra clínica. El conflicto está entre el permiso de NOR-10 y el principio que CLI-12 enuncia, no entre dos mandatos literales.\n\n**Resultado: HAY HALLAZGO, de tipo \"norma_contra_norma\".**"
+    },
+    {
+      "pareja": "NOR-10_protocolo-esterilizacion-instrumental.docx · trozo 4 ↔ CLI-12_manual-calidad-clinica.docx · trozo 6",
+      "vez": 5,
+      "respuesta": "**PREGUNTA 1 · EL DATO: no.** Los dos textos no dan valores distintos a un mismo dato. El texto 1 dice que el Coordinador de Calidad *puede* ser el Director Clínico. El texto 2 no dice lo contrario: sólo prohíbe que el Director Clínico *sustituya* al Coordinador en su ausencia.\n\n**PREGUNTA 2 · EL CUMPLIMIENTO: sí, hay hallazgo.**\n\nNo se pueden cumplir las dos a la vez sin dejar una sin efecto. Las frases en juego son:\n\n- Texto 1 (permiso): «la figura [de Coordinador de Calidad] puede recaer en el propio Director Clínico o en otro profesional designado por él».\n- Texto 2 (principio y regla): «En ausencia programada o imprevista del Coordinador de Calidad (vacaciones, baja), sus funciones son asumidas temporalmente por el Coordinador de Calidad de otra clínica de la red, nunca por el Director Clínico del propio centro, precisamente para mantener la separación de funciones descrita en el apartado 3.1».\n\nEl texto 2 enuncia un principio, la separación de funciones entre Director Clínico y Coordinador de Calidad. El texto 1 permite justo lo que ese principio excluye: que una misma persona ocupe ambos papeles en el mismo centro. Si se hace lo que el texto 1 permite, las funciones del Coordinador y del Director quedan acumuladas, y la separación que el texto 2 exige ya no existe.\n\nEtiqueta: **norma_contra_norma**.\n\nHay una matización. Si sólo se mira la regla de sustitución, literalmente se puede cumplir: cuando el Coordinador (que es también el Director) está ausente, lo sustituye el Coordinador de otra clínica. El choque aparece por el principio de separación, que el texto 2 enuncia sin definir su alcance exacto, porque la referencia al apartado 3.1 no está en el trozo disponible. Si el apartado 3.1 define la separación de forma más amplia, el hallazgo se refuerza; si la limita sólo a la sustitución, el conflicto sería más débil."
+    },
+    {
+      "pareja": "NOR-10_protocolo-esterilizacion-instrumental.docx · trozo 4 ↔ CLI-12_manual-calidad-clinica.docx · trozo 6",
+      "vez": 6,
+      "respuesta": "**PREGUNTA 1 · EL DATO: no.**\n\nLos dos textos hablan de la misma figura, el Coordinador de Calidad, y del Director Clínico, pero no dan valores distintos del mismo dato. El NOR-10 regula quién *puede ocupar* el cargo de Coordinador. El CLI-12 regula quién *sustituye* temporalmente al Coordinador en su ausencia. Son datos distintos.\n\n**PREGUNTA 2 · EL CUMPLIMIENTO: sí.**\n\nAmbos textos son reglas y se pueden cumplir a la vez. Si el Director Clínico ocupa el cargo de Coordinador (permitido por el NOR-10), en una ausencia suya la sustitución la asume el Coordinador de otra clínica (lo que exige el CLI-12). Ninguna de las dos reglas impide cumplir la otra.\n\nHay un punto que señalo sin convertirlo en hallazgo. El CLI-12 justifica su regla con «la separación de funciones descrita en el apartado 3.1», y ese apartado no está en los trozos que se me han dado. Podría leerse que el principio de separación excluye que el Director sea también Coordinador, y en ese caso el NOR-10 chocaría con él. Pero afirmarlo exigiría suponer el contenido del apartado 3.1, que no tengo. Si ese apartado dijera expresamente que el Director Clínico y el Coordinador de Calidad deben ser personas distintas, la respuesta a la pregunta 2 sería «no», con norma_contra_norma."
+    },
+    {
+      "pareja": "NOR-10_protocolo-esterilizacion-instrumental.docx · trozo 4 ↔ CLI-12_manual-calidad-clinica.docx · trozo 6",
+      "vez": 7,
+      "respuesta": "**PREGUNTA 1 · EL DATO: No.**\n\nLos dos textos regulan quién puede ser Coordinador de Calidad, pero no dicen cosas distintas sobre el mismo dato. El NOR-10 regula quién puede ocupar el cargo de forma permanente. El CLI-12 regula quién lo sustituye en ausencia temporal, y ese supuesto no lo trata el NOR-10.\n\n**PREGUNTA 2 · EL CUMPLIMIENTO: Sí, hay hallazgo.**\n\n¿Se pueden cumplir las dos a la vez? No.\n\n- Frase de NOR-10 (2.4), que permite el caso: «figura que puede recaer en el propio Director Clínico o en otro profesional designado por él».\n- Frase de CLI-12 (3.5), que enuncia un principio: «nunca por el Director Clínico del propio centro, precisamente para mantener la separación de funciones descrita en el apartado 3.1».\n\nEl CLI-12 justifica su regla de sustitución con un principio: la separación de funciones entre el Director Clínico y el Coordinador de Calidad. El NOR-10 permite justo lo que ese principio excluye, que una misma persona sea Director Clínico y Coordinador de Calidad. Si se hace lo que el NOR-10 permite, el principio de separación queda incumplido en ese centro. No basta con decir «que no designen al Director»: eso dejaría sin efecto el permiso del NOR-10.\n\nEtiqueta: **norma_contra_norma**."
+    },
+    {
+      "pareja": "NOR-10_protocolo-esterilizacion-instrumental.docx · trozo 4 ↔ CLI-12_manual-calidad-clinica.docx · trozo 6",
+      "vez": 8,
+      "respuesta": "**PREGUNTA 1 · EL DATO: No.**\n\nAmbos textos tratan de quién ejerce la coordinación de calidad, pero en situaciones distintas. El texto 1 dice quién puede ser el Coordinador de forma permanente, y el texto 2 dice quién puede asumir sus funciones de forma temporal. No dan valores distintos a un mismo dato.\n\n**PREGUNTA 2 · EL CUMPLIMIENTO: No se pueden cumplir las dos a la vez. Hay hallazgo.**\n\nAmbos trozos son reglas. Las reglas literales son compatibles: si el Director Clínico es también Coordinador, la sustitución puede hacerse por el Coordinador de otra clínica, y así se cumplen las dos. El conflicto aparece en el principio que enuncia el texto 2.\n\n- Texto 1: «[el Coordinador de Calidad] es una figura que puede recaer en el propio Director Clínico o en otro profesional designado por él».\n- Texto 2: «sus funciones son asumidas temporalmente por el Coordinador de Calidad de otra clínica de la red, nunca por el Director Clínico del propio centro, precisamente para mantener la separación de funciones descrita en el apartado 3.1».\n\nEl texto 2 enuncia el principio de separación de funciones entre Director Clínico y Coordinador de Calidad, y lo invoca como razón de su regla. El texto 1 permite justo lo que ese principio excluye: que ambas funciones recaigan en la misma persona. Por tanto, la regla del texto 1 choca con el principio que el texto 2 enuncia.\n\nEtiqueta: **norma_contra_norma**"
+    },
+    {
+      "pareja": "NOR-10_protocolo-esterilizacion-instrumental.docx · trozo 4 ↔ CLI-12_manual-calidad-clinica.docx · trozo 6",
+      "vez": 9,
+      "respuesta": "**PREGUNTA 1 · EL DATO: No.**\n\nLos textos no dan valores distintos a un mismo dato. NOR-10 dice quién *puede* ocupar el cargo de Coordinador de Calidad. CLI-12 dice quién *sustituye* al Coordinador durante una ausencia. NOR-10 no dice nada sobre sustituciones.\n\n**PREGUNTA 2 · EL CUMPLIMIENTO: No se pueden cumplir las dos a la vez. Hay hallazgo.**\n\nAmbos textos son reglas, así que aplico la pregunta de cumplimiento.\n\n- NOR-10 §2.4 permite: «figura que puede recaer en el propio Director Clínico o en otro profesional designado por él».\n- CLI-12 §3.5 enuncia un principio al explicar su regla: «nunca por el Director Clínico del propio centro, precisamente para mantener la separación de funciones descrita en el apartado 3.1».\n\nEl principio de separación de funciones entre Director Clínico y Coordinador de Calidad excluye que una misma persona ocupe ambos cargos. NOR-10 permite justo ese estado, al admitir que el Coordinador sea el propio Director Clínico. Si se usa ese permiso, el centro incumple el principio que CLI-12 enuncia para justificar su regla.\n\nPor eso es un conflicto normativo, aunque ninguna frase diga «nunca» en el sentido contrario. Cumplir CLI-12 literalmente (sustituir por otro coordinador) no basta: el principio que la sostiene se rompe en cuanto NOR-10 se aplica.\n\n- Frase de NOR-10: «figura que puede recaer en el propio Director Clínico o en otro profesional designado por él».\n- Frase de CLI-12: «nunca por el Director Clínico del propio centro, precisamente para mantener la separación de funciones descrita en el apartado 3.1».\n- Etiqueta: **norma_contra_norma**"
+    },
+    {
+      "pareja": "NOR-10_protocolo-esterilizacion-instrumental.docx · trozo 4 ↔ CLI-12_manual-calidad-clinica.docx · trozo 6",
+      "vez": 10,
+      "respuesta": "## PREGUNTA 1 · EL DATO\n\n**No.** Los dos textos hablan de cosas distintas. NOR-10 (apartado 2.4) dice quién puede ocupar el cargo de Coordinador de Calidad de forma permanente: «puede recaer en el propio Director Clínico o en otro profesional designado por él». CLI-12 (apartado 3.5) regula otra cosa: quién asume las funciones de ese cargo durante una ausencia temporal, y dice que «nunca» lo hace el Director Clínico del propio centro. NOR-10 no dice nada sobre sustituciones, así que no hay un dato con dos valores.\n\n## PREGUNTA 2 · EL CUMPLIMIENTO\n\nAmbos textos contienen reglas (reparten responsabilidades y fijan procedimientos), así que aplica la pregunta.\n\n**¿Se pueden cumplir las dos a la vez? Sí.**\n\n- NOR-10 permite que el Director Clínico sea también Coordinador de Calidad. Si ocurre, y ese Director se ausenta, CLI-12 exige que lo sustituya el Coordinador de otra clínica de la red. Eso se puede hacer sin incumplir nada de NOR-10, que no regula sustituciones.\n- CLI-12 menciona «la separación de funciones descrita en el apartado 3.1», pero ese apartado no está en los textos. No puedo suponer su contenido para construir un conflicto, y lo que sí se ve en el trozo 6 se limita al caso de la sustitución, que no choca con lo que NOR-10 permite.\n- Los apartados 2.5 (Dirección de Operaciones) y 3.6 (revisión del organigrama cada dos años) no se solapan en lo que mandan.\n\nNo hay hallazgo en esta pregunta."
+    },
+    {
+      "pareja": "NOR-10_protocolo-esterilizacion-instrumental.docx · trozo 4 ↔ CLI-12_manual-calidad-clinica.docx · trozo 6",
+      "vez": 11,
+      "respuesta": "**PREGUNTA 1 · EL DATO**\n\nNo. Los dos textos no dicen cosas distintas sobre el mismo dato. El NOR-10 regula quién puede ser Coordinador de Calidad, y el CLI-12 regula quién lo sustituye en su ausencia. Ninguno contradice al otro en esos puntos.\n\n**PREGUNTA 2 · EL CUMPLIMIENTO**\n\nLos dos textos son reglas, así que hay que preguntar si se pueden cumplir a la vez.\n\nLa regla de NOR-10 permite algo: que el Coordinador de Calidad sea el propio Director Clínico. Si se hace lo que permite, ¿se puede cumplir la otra?\n\nEl CLI-12 enuncia un principio al explicar su regla de sustitución: que el Director Clínico y el Coordinador de Calidad de un mismo centro deben estar separados. Cito:\n\n- NOR-10, apartado 2.4: «Cada clínica cuenta con un Coordinador de Calidad, figura que **puede recaer en el propio Director Clínico** o en otro profesional designado por él».\n- CLI-12, apartado 3.5: «sus funciones son asumidas temporalmente por el Coordinador de Calidad de otra clínica de la red, **nunca por el Director Clínico del propio centro, precisamente para mantener la separación de funciones** descrita en el apartado 3.1».\n\nSi el Director Clínico ejerce también de Coordinador, que es lo que permite NOR-10, la separación de funciones que CLI-12 invoca como principio deja de cumplirse dentro del mismo centro. La regla de sustitución en sí sí podría cumplirse, pero el principio que la justifica no. Según el criterio que se aplica a los principios enunciados en la razón de otra regla, hay conflicto.\n\nAdvierto una limitación: el contenido exacto del apartado 3.1 no aparece en el trozo, así que el principio se deduce de cómo lo usa el apartado 3.5.\n\nHallazgo: **«norma_contra_norma»**."
+    },
+    {
+      "pareja": "NOR-10_protocolo-esterilizacion-instrumental.docx · trozo 4 ↔ CLI-12_manual-calidad-clinica.docx · trozo 6",
+      "vez": 12,
+      "respuesta": "**PREGUNTA 1 · EL DATO**\n\nNo. Ambos textos regulan aspectos distintos: el TEXTO 1 dice quién puede ocupar el cargo de Coordinador de Calidad, y el TEXTO 2 dice quién puede sustituirlo temporalmente. No dan valores contradictorios sobre el mismo dato.\n\n**PREGUNTA 2 · EL CUMPLIMIENTO**\n\nAmbos son reglas, así que hago la segunda pregunta.\n\nUn punto de partida: el TEXTO 2 enuncia un principio, la separación de funciones entre el Director Clínico y el Coordinador de Calidad. Lo enuncia al justificar su propia regla de sustitución («precisamente para mantener la separación de funciones descrita en el apartado 3.1»).\n\nEl TEXTO 1 permite justo lo que ese principio excluye: que el Coordinador de Calidad sea el propio Director Clínico.\n\nSi se hace lo que el TEXTO 1 permite, el Director Clínico ejerce también de Coordinador de Calidad. Eso deja sin efecto la separación de funciones que el TEXTO 2 declara como principio. Por tanto, no se pueden cumplir las dos a la vez sin renunciar al permiso del TEXTO 1, y eso no vale como cumplimiento.\n\n**HAY HALLAZGO** (conflicto normativo, etiqueta \"norma_contra_norma\")\n\n- TEXTO 1, apartado 2.4: «figura que puede recaer en el propio Director Clínico o en otro profesional designado por él»\n- TEXTO 2, apartado 3.5: «nunca por el Director Clínico del propio centro, precisamente para mantener la separación de funciones descrita en el apartado 3.1»"
+    },
+    {
+      "pareja": "NOR-10_protocolo-esterilizacion-instrumental.docx · trozo 4 ↔ CLI-12_manual-calidad-clinica.docx · trozo 6",
+      "vez": 13,
+      "respuesta": "**PREGUNTA 1 · EL DATO: no.**\nLos dos textos no dan valores distintos a un mismo dato. NOR-10 regula *quién puede ser* Coordinador de Calidad (puede ser el Director Clínico). CLI-12 regula *quién sustituye* al Coordinador en su ausencia (nunca el Director Clínico del propio centro). Son datos distintos.\n\n**PREGUNTA 2 · EL CUMPLIMIENTO: hallazgo, \"norma_contra_norma\".**\n\nLas dos frases que lo muestran son:\n\n- NOR-10, apartado 2.4: «Cada clínica cuenta con un Coordinador de Calidad, figura que puede recaer en el propio Director Clínico o en otro profesional designado por él».\n- CLI-12, apartado 3.5: «sus funciones son asumidas temporalmente por el Coordinador de Calidad de otra clínica de la red, nunca por el Director Clínico del propio centro, precisamente para mantener la separación de funciones descrita en el apartado 3.1».\n\nLa segunda frase enuncia un principio: las funciones del Director Clínico y del Coordinador de Calidad deben estar separadas. La primera permite justo lo que ese principio excluye, que una sola persona ocupe ambos cargos. Si se hace lo que NOR-10 permite, el centro incumple el principio que CLI-12 enuncia como razón de su propia regla.\n\nAdvierto dos matices. Primero, las reglas concretas sí son compatibles entre sí: si el Director es también Coordinador y está ausente, la sustitución se hace por otra clínica, como manda CLI-12. El conflicto está en el principio de separación, no en la mecánica de la sustitución. Segundo, CLI-12 no desarrolla qué es esa separación de funciones, porque la describe en el apartado 3.1, que no aparece en el trozo. Por eso el hallazgo se apoya en la formulación del principio tal como aparece en el texto."
+    },
+    {
+      "pareja": "NOR-10_protocolo-esterilizacion-instrumental.docx · trozo 4 ↔ CLI-12_manual-calidad-clinica.docx · trozo 6",
+      "vez": 14,
+      "respuesta": "**PREGUNTA 1 · EL DATO**\n\nNo. Los dos textos no afirman valores distintos sobre un mismo dato. NOR-10 dice quién puede ser Coordinador de Calidad, y CLI-12 dice quién lo sustituye en su ausencia. Son cuestiones diferentes.\n\n**PREGUNTA 2 · EL CUMPLIMIENTO**\n\nAmbos textos contienen reglas, así que procede la segunda pregunta.\n\nSi se consideran solo las reglas como órdenes, sí pueden cumplirse a la vez: el Director Clínico puede ser Coordinador, y en su ausencia lo sustituye el Coordinador de otra clínica.\n\nSin embargo, CLI-12 enuncia un principio. Su frase \"nunca por el Director Clínico del propio centro, precisamente para mantener la separación de funciones descrita en el apartado 3.1\" establece que las funciones del Director Clínico y del Coordinador de Calidad deben estar separadas. NOR-10 permite justo lo contrario: que una misma persona ocupe ambos cargos en el mismo centro. Como ese estado es el que el principio excluye, hay conflicto normativo.\n\n- Frase de NOR-10 (2.4): «figura que puede recaer en el propio Director Clínico o en otro profesional designado por él»\n- Frase de CLI-12 (3.5): «nunca por el Director Clínico del propio centro, precisamente para mantener la separación de funciones descrita en el apartado 3.1»\n\nEtiqueta: **norma_contra_norma**.\n\nAdvertencia: el apartado 3.1 no aparece en el trozo recibido, así que el alcance exacto de la \"separación de funciones\" solo puede inferirse de la frase citada. Si el 3.1 la definiera de otro modo, por ejemplo solo para la sustitución, la conclusión cambiaría."
+    },
+    {
+      "pareja": "NOR-10_protocolo-esterilizacion-instrumental.docx · trozo 4 ↔ CLI-12_manual-calidad-clinica.docx · trozo 6",
+      "vez": 15,
+      "respuesta": "## PREGUNTA 1 · EL DATO\n\n**No.** Los dos textos regulan cosas distintas. El TEXTO 1 dice quién puede ser Coordinador de Calidad en el día a día, y el TEXTO 2 dice quién puede sustituirle temporalmente. No dan valores distintos a un mismo dato.\n\n## PREGUNTA 2 · EL CUMPLIMIENTO\n\nLos dos textos contienen reglas, así que aplico la pregunta.\n\n**No se pueden cumplir las dos a la vez, si se usa el permiso del TEXTO 1 y se mantiene el principio del TEXTO 2.** Hay hallazgo.\n\n- **TEXTO 1 (permiso):** «figura que puede recaer en el propio Director Clínico o en otro profesional designado por él».\n- **TEXTO 2 (principio):** «nunca por el Director Clínico del propio centro, precisamente para mantener la separación de funciones descrita en el apartado 3.1».\n\nEl TEXTO 2 enuncia un principio: la separación de funciones entre el Director Clínico y el Coordinador de Calidad debe mantenerse. El TEXTO 1 permite justo lo contrario, que ambos cargos recaigan en la misma persona. Si se hace lo que el TEXTO 1 permite, la separación que el TEXTO 2 declara como objetivo deja de existir.\n\nTipo: **norma_contra_norma**."
+    },
+    {
+      "pareja": "NOR-10_protocolo-esterilizacion-instrumental.docx · trozo 4 ↔ CLI-12_manual-calidad-clinica.docx · trozo 6",
+      "vez": 16,
+      "respuesta": "**PREGUNTA 1 · EL DATO**\n\nNo. Los dos textos no afirman valores distintos sobre un mismo dato. El texto 1 regula quién puede ocupar el cargo de Coordinador de Calidad. El texto 2 regula quién puede sustituirlo temporalmente. Son cuestiones distintas.\n\n**PREGUNTA 2 · EL CUMPLIMIENTO**\n\n¿Se pueden cumplir las dos a la vez? **No.** Hay hallazgo de tipo **\"norma_contra_norma\"**.\n\n- Texto 1, permiso: «figura que puede recaer en el propio Director Clínico o en otro profesional designado por él».\n- Texto 2, principio y regla: «nunca por el Director Clínico del propio centro, precisamente para mantener la separación de funciones descrita en el apartado 3.1».\n\nEl texto 2 enuncia un principio, la separación de funciones entre el Director Clínico y el Coordinador de Calidad, y lo invoca como razón de su regla de sustitución. El texto 1 permite justo lo que ese principio excluye: que el Director Clínico sea también el Coordinador. Si se usa ese permiso, la separación de funciones deja de existir, y el principio del texto 2 no se cumple.\n\nLa regla de sustitución en sí puede aplicarse en ese escenario, porque en ausencia del Coordinador se recurre a otra clínica. Pero eso no salva el conflicto, porque el principio que la fundamenta queda vacío cuando el permiso del texto 1 se utiliza."
+    },
+    {
+      "pareja": "NOR-10_protocolo-esterilizacion-instrumental.docx · trozo 4 ↔ CLI-12_manual-calidad-clinica.docx · trozo 6",
+      "vez": 17,
+      "respuesta": "**PREGUNTA 1 · EL DATO: No.**\n\nLos dos textos no dicen cosas distintas sobre el mismo dato. El NOR-10 regula quién puede ser Coordinador de Calidad en el régimen ordinario, y no dice nada sobre quién lo sustituye. El CLI-12 regula quién lo sustituye en ausencia temporal. Son situaciones distintas, así que no hay dos valores para un mismo dato.\n\n**PREGUNTA 2 · EL CUMPLIMIENTO: Sí, se pueden cumplir las dos a la vez.**\n\nAmbos textos contienen reglas, así que aplica esta pregunta:\n\n- NOR-10, 2.4: el cargo de Coordinador \"puede recaer en el propio Director Clínico\". Es un permiso.\n- CLI-12, 3.5: en ausencia del Coordinador, sus funciones \"nunca\" las asume \"el Director Clínico del propio centro\". Es una prohibición, pero limitada a la sustitución.\n\nSi se hace lo que NOR-10 permite (que el Director Clínico sea también Coordinador), CLI-12 sigue cumpliéndose: en la ausencia de ese Coordinador, la sustitución la asume el Coordinador de otra clínica, nunca el Director del propio centro. Ninguna de las dos reglas exige renunciar a lo que permite la otra.\n\nTampoco encuentro otro par de frases en conflicto:\n\n- NOR-10 2.5 (Dirección de Operaciones) no interviene en la operativa diaria, y no choca con ninguna regla de CLI-12 3.5 ni 3.6.\n- CLI-12 3.6 fija una revisión del organigrama al menos cada dos años. El NOR-10 no fija plazo alguno, así que no hay valores contrarios.\n\nHay una cuestión que no puedo cerrar del todo. CLI-12 3.5 justifica la prohibición \"para mantener la separación de funciones descrita en el apartado 3.1\". Si ese principio exige que el Director Clínico y el Coordinador de Calidad sean personas distintas en todo momento, entonces el permiso del NOR-10 2.4 chocaría con él. Sin embargo, el trozo de 3.1 no aparece en el par, y el principio sólo se enuncia en el texto visible como motivo de la regla de sustitución. Con lo que hay en los dos textos, no puedo suponer un alcance general de ese principio. Si el 3.1 lo establece de forma general, la respuesta cambiaría y habría que revisarla con ese apartado delante."
+    },
+    {
+      "pareja": "NOR-10_protocolo-esterilizacion-instrumental.docx · trozo 4 ↔ CLI-12_manual-calidad-clinica.docx · trozo 6",
+      "vez": 18,
+      "respuesta": "**PREGUNTA 1 · EL DATO: no.**\n\nLos dos textos hablan de situaciones distintas. El NOR-10 (2.4) regula quién puede ocupar el cargo de Coordinador de Calidad con carácter ordinario: \"puede recaer en el propio Director Clínico o en otro profesional designado por él\". El CLI-12 (3.5) regula quién asume las funciones de forma temporal durante una ausencia: \"nunca por el Director Clínico del propio centro\". Una designación permanente y una sustitución temporal no son el mismo dato.\n\n**PREGUNTA 2 · EL CUMPLIMIENTO: sí, se pueden cumplir las dos a la vez.**\n\nAmbos textos son reglas. Para comprobar si chocan, hay que mirar si alguna frase de un texto excluye lo que permite la otra.\n\n- La frase del NOR-10 es un permiso: el Director Clínico puede ser el Coordinador de Calidad. Si se hace, el CLI-12 sigue cumpliéndose: cuando el Coordinador esté ausente, lo sustituye el Coordinador de otra clínica de la red, nunca el Director del centro.\n- El CLI-12 menciona \"la separación de funciones descrita en el apartado 3.1\", pero ese apartado no aparece en los textos. Para afirmar que la separación excluye que el Director sea Coordinador habría que suponer un contenido que no está en ninguno de los dos documentos, y eso no basta para declarar un hallazgo.\n\nNo hay ninguna frase de un texto que impida cumplir la otra. Tampoco encuentro otro par de frases que choque: el resto (responsabilidad última del Director, funciones de Dirección de Operaciones, revisión del organigrama) regula materias distintas y se complementa.\n\nComo observación, no como hallazgo: si el apartado 3.1 del CLI-12 define la separación de funciones como una incompatibilidad entre Director y Coordinador, el permiso del NOR-10 sí tensaría con ella. Eso solo podría comprobarse con el texto de 3.1, que no se ha aportado."
+    },
+    {
+      "pareja": "NOR-10_protocolo-esterilizacion-instrumental.docx · trozo 4 ↔ CLI-12_manual-calidad-clinica.docx · trozo 6",
+      "vez": 19,
+      "respuesta": "**PREGUNTA 1 · EL DATO**\n\nNo. Los dos textos no dicen cosas distintas sobre el mismo dato. NOR-10 regula quién puede ser Coordinador de Calidad y qué funciones tiene. CLI-12 regula quién lo sustituye en ausencias. Ninguno de los dos fija un valor que el otro contradiga.\n\n**PREGUNTA 2 · EL CUMPLIMIENTO**\n\nSí, se pueden cumplir las dos a la vez.\n\n- NOR-10 §2.4 permite que el Coordinador de Calidad sea el propio Director Clínico. CLI-12 §3.5 no prohíbe esa situación. Sólo fija quién sustituye al Coordinador cuando está ausente.\n- Si el Coordinador es el Director Clínico de la clínica A y se ausenta, CLI-12 §3.5 exige que lo sustituya el Coordinador de otra clínica de la red. Eso se cumple sin problema, porque el Director de A no ocupa el papel de sustituto.\n- CLI-12 §3.5 enuncia un principio de separación de funciones, pero sólo lo aplica a la sustitución, y la separación descrita en su apartado 3.1 no aparece en los textos. No puedo deducir de ahí que ese principio excluya que el Director sea también Coordinador, porque sería suponer un hecho que ninguno de los dos textos establece.\n- NOR-10 §2.4 aclara además que el Coordinador no sustituye al Director en su responsabilidad última. Eso tampoco entra en conflicto con CLI-12.\n\nNo hay hallazgo en la pregunta 2."
+    },
+    {
+      "pareja": "NOR-10_protocolo-esterilizacion-instrumental.docx · trozo 4 ↔ CLI-12_manual-calidad-clinica.docx · trozo 6",
+      "vez": 20,
+      "respuesta": "**PREGUNTA 1 · EL DATO**\n\nNo. Ambos textos regulan la figura del Coordinador de Calidad, pero no dicen cosas distintas sobre el mismo dato.\n\n- NOR-10 §2.4 regula quién puede ocupar la figura de forma ordinaria: «puede recaer en el propio Director Clínico o en otro profesional designado por él».\n- CLI-12 §3.5 regula quién asume las funciones **en ausencia** del Coordinador: «nunca por el Director Clínico del propio centro».\n\nUno habla de la titularidad y el otro de la sustitución temporal, así que no se contradicen en ningún dato.\n\n**PREGUNTA 2 · EL CUMPLIMIENTO**\n\nSí, se pueden cumplir las dos a la vez.\n\nAmbos trozos son reglas. Si se hace lo que NOR-10 permite (que el Director Clínico sea también Coordinador de Calidad), CLI-12 sigue cumpliéndose: en la ausencia de ese Coordinador, sus funciones pasan al Coordinador de otra clínica de la red, que es lo que CLI-12 exige. No hace falta renunciar al permiso para cumplir CLI-12.\n\nSobre el principio de separación de funciones: CLI-12 lo invoca al remitir al apartado 3.1, que no está en el material que se me ha dado. En los trozos disponibles, el principio se aplica solo a la sustitución temporal, y ese supuesto no choca con ninguna situación que NOR-10 permita. No puedo suponer lo que diga el apartado 3.1, así que no extiendo el principio más allá de lo que dice el texto.\n\nNo hay hallazgo."
+    },
+    {
+      "pareja": "NOR-10_protocolo-esterilizacion-instrumental.docx · trozo 4 ↔ CLI-12_manual-calidad-clinica.docx · trozo 6",
+      "vez": 21,
+      "respuesta": "**PREGUNTA 1 · EL DATO**\n\nNo. Ambos textos hablan del Coordinador de Calidad, pero no dan valores distintos a un mismo dato. NOR-10 dice quién puede ser Coordinador en situación normal, y CLI-12 dice quién lo sustituye en una ausencia temporal. Son datos diferentes. Tampoco se contradicen sobre el número de clínicas ni sobre el papel de Dirección de Operaciones, porque CLI-12 no dice nada sobre eso.\n\n**PREGUNTA 2 · EL CUMPLIMIENTO**\n\nSí, los dos son reglas, así que hay que comprobar si se pueden cumplir a la vez.\n\nUna de las frases permite algo: NOR-10 permite que el Coordinador sea el propio Director Clínico. Por eso la pregunta es: si se hace lo que esa frase permite, ¿se puede cumplir la otra?\n\n- NOR-10, §2.4: «Cada clínica cuenta con un Coordinador de Calidad, figura que puede recaer en el propio Director Clínico o en otro profesional designado por él».\n- CLI-12, §3.5: «sus funciones son asumidas temporalmente por el Coordinador de Calidad de otra clínica de la red, nunca por el Director Clínico del propio centro, precisamente para mantener la separación de funciones descrita en el apartado 3.1».\n\nSi el Director Clínico es también el Coordinador, la sustitución en su ausencia sí puede cumplirse: la hace el Coordinador de otra clínica. Por tanto, la regla de sustitución en sí es compatible con la permisión.\n\nEl problema está en el principio que CLI-12 enuncia como razón: la «separación de funciones» entre el Director Clínico y el Coordinador de Calidad. Esa razón no es solo una explicación de la regla de sustitución, sino que establece que ambas funciones deben estar separadas. NOR-10 permite justo lo contrario, que las dos recaigan en la misma persona. Ese principio queda incumplido en cuanto se usa la permisión, sin necesidad de suponer ningún hecho que no esté en los textos.\n\nMatiz: el apartado 3.1 al que remite CLI-12 no aparece en el trozo, así que no puedo confirmar el alcance exacto de esa separación. Con lo que sí está a la vista, el conflicto se sostiene.\n\n**HALLAZGO** (norma_contra_norma)\n\n- NOR-10, §2.4: «figura que puede recaer en el propio Director Clínico».\n- CLI-12, §3.5: «nunca por el Director Clínico del propio centro, precisamente para mantener la separación de funciones»."
+    }
+  ],
+  "registro": {
+    "peticiones": [
+      {
+        "n": 1,
+        "etapa": "juez",
+        "pareja": "facac5fd-ca7a-4f04-abf9-4926bb955e0a",
+        "modelo": "claude-haiku-5-5",
+        "vuelta": 1,
+        "intento": 1,
+        "resultado": "ok",
+        "estadoHttp": 200,
+        "latenciaMs": 13384,
+        "esperaMs": 0,
+        "comienzoMs": 4,
+        "tokens": {
+          "entrada": 4155,
+          "salida": 2901,
+          "escrituraCache": 0,
+          "lecturaCache": 0
+        },
+        "parametros": {
+          "maxTokens": 16000,
+          "temperatura": "sin_enviar",
+          "esfuerzo": "medium"
+        }
+      },
+      {
+        "n": 2,
+        "etapa": "juez",
+        "pareja": "facac5fd-ca7a-4f04-abf9-4926bb955e0a",
+        "modelo": "claude-haiku-5-5",
+        "vuelta": 1,
+        "intento": 1,
+        "resultado": "ok",
+        "estadoHttp": 200,
+        "latenciaMs": 14733,
+        "esperaMs": 0,
+        "comienzoMs": 1,
+        "tokens": {
+          "entrada": 4155,
+          "salida": 3144,
+          "escrituraCache": 0,
+          "lecturaCache": 0
+        },
+        "parametros": {
+          "maxTokens": 16000,
+          "temperatura": "sin_enviar",
+          "esfuerzo": "medium"
+        }
+      },
+      {
+        "n": 3,
+        "etapa": "juez",
+        "pareja": "facac5fd-ca7a-4f04-abf9-4926bb955e0a",
+        "modelo": "claude-haiku-5-5",
+        "vuelta": 1,
+        "intento": 1,
+        "resultado": "ok",
+        "estadoHttp": 200,
+        "latenciaMs": 16658,
+        "esperaMs": 0,
+        "comienzoMs": 4,
+        "tokens": {
+          "entrada": 4155,
+          "salida": 3613,
+          "escrituraCache": 0,
+          "lecturaCache": 0
+        },
+        "parametros": {
+          "maxTokens": 16000,
+          "temperatura": "sin_enviar",
+          "esfuerzo": "medium"
+        }
+      },
+      {
+        "n": 4,
+        "etapa": "juez",
+        "pareja": "facac5fd-ca7a-4f04-abf9-4926bb955e0a",
+        "modelo": "claude-haiku-5-5",
+        "vuelta": 1,
+        "intento": 1,
+        "resultado": "ok",
+        "estadoHttp": 200,
+        "latenciaMs": 18021,
+        "esperaMs": 0,
+        "comienzoMs": 3,
+        "tokens": {
+          "entrada": 4155,
+          "salida": 3974,
+          "escrituraCache": 0,
+          "lecturaCache": 0
+        },
+        "parametros": {
+          "maxTokens": 16000,
+          "temperatura": "sin_enviar",
+          "esfuerzo": "medium"
+        }
+      },
+      {
+        "n": 5,
+        "etapa": "juez",
+        "pareja": "facac5fd-ca7a-4f04-abf9-4926bb955e0a",
+        "modelo": "claude-haiku-5-5",
+        "vuelta": 1,
+        "intento": 1,
+        "resultado": "ok",
+        "estadoHttp": 200,
+        "latenciaMs": 11823,
+        "esperaMs": 0,
+        "comienzoMs": 18026,
+        "tokens": {
+          "entrada": 4155,
+          "salida": 2560,
+          "escrituraCache": 0,
+          "lecturaCache": 0
+        },
+        "parametros": {
+          "maxTokens": 16000,
+          "temperatura": "sin_enviar",
+          "esfuerzo": "medium"
+        }
+      },
+      {
+        "n": 6,
+        "etapa": "juez",
+        "pareja": "facac5fd-ca7a-4f04-abf9-4926bb955e0a",
+        "modelo": "claude-haiku-5-5",
+        "vuelta": 1,
+        "intento": 1,
+        "resultado": "ok",
+        "estadoHttp": 200,
+        "latenciaMs": 14055,
+        "esperaMs": 0,
+        "comienzoMs": 18026,
+        "tokens": {
+          "entrada": 4155,
+          "salida": 3110,
+          "escrituraCache": 0,
+          "lecturaCache": 0
+        },
+        "parametros": {
+          "maxTokens": 16000,
+          "temperatura": "sin_enviar",
+          "esfuerzo": "medium"
+        }
+      },
+      {
+        "n": 7,
+        "etapa": "juez",
+        "pareja": "facac5fd-ca7a-4f04-abf9-4926bb955e0a",
+        "modelo": "claude-haiku-5-5",
+        "vuelta": 1,
+        "intento": 1,
+        "resultado": "ok",
+        "estadoHttp": 200,
+        "latenciaMs": 15027,
+        "esperaMs": 0,
+        "comienzoMs": 18025,
+        "tokens": {
+          "entrada": 4155,
+          "salida": 3206,
+          "escrituraCache": 0,
+          "lecturaCache": 0
+        },
+        "parametros": {
+          "maxTokens": 16000,
+          "temperatura": "sin_enviar",
+          "esfuerzo": "medium"
+        }
+      },
+      {
+        "n": 8,
+        "etapa": "juez",
+        "pareja": "facac5fd-ca7a-4f04-abf9-4926bb955e0a",
+        "modelo": "claude-haiku-5-5",
+        "vuelta": 1,
+        "intento": 1,
+        "resultado": "ok",
+        "estadoHttp": 200,
+        "latenciaMs": 15850,
+        "esperaMs": 0,
+        "comienzoMs": 18024,
+        "tokens": {
+          "entrada": 4155,
+          "salida": 3340,
+          "escrituraCache": 0,
+          "lecturaCache": 0
+        },
+        "parametros": {
+          "maxTokens": 16000,
+          "temperatura": "sin_enviar",
+          "esfuerzo": "medium"
+        }
+      },
+      {
+        "n": 9,
+        "etapa": "juez",
+        "pareja": "facac5fd-ca7a-4f04-abf9-4926bb955e0a",
+        "modelo": "claude-haiku-5-5",
+        "vuelta": 1,
+        "intento": 1,
+        "resultado": "ok",
+        "estadoHttp": 200,
+        "latenciaMs": 11192,
+        "esperaMs": 0,
+        "comienzoMs": 33876,
+        "tokens": {
+          "entrada": 4155,
+          "salida": 2440,
+          "escrituraCache": 0,
+          "lecturaCache": 0
+        },
+        "parametros": {
+          "maxTokens": 16000,
+          "temperatura": "sin_enviar",
+          "esfuerzo": "medium"
+        }
+      },
+      {
+        "n": 10,
+        "etapa": "juez",
+        "pareja": "facac5fd-ca7a-4f04-abf9-4926bb955e0a",
+        "modelo": "claude-haiku-5-5",
+        "vuelta": 1,
+        "intento": 1,
+        "resultado": "ok",
+        "estadoHttp": 200,
+        "latenciaMs": 13642,
+        "esperaMs": 0,
+        "comienzoMs": 33874,
+        "tokens": {
+          "entrada": 4155,
+          "salida": 3072,
+          "escrituraCache": 0,
+          "lecturaCache": 0
+        },
+        "parametros": {
+          "maxTokens": 16000,
+          "temperatura": "sin_enviar",
+          "esfuerzo": "medium"
+        }
+      },
+      {
+        "n": 11,
+        "etapa": "juez",
+        "pareja": "facac5fd-ca7a-4f04-abf9-4926bb955e0a",
+        "modelo": "claude-haiku-5-5",
+        "vuelta": 1,
+        "intento": 1,
+        "resultado": "ok",
+        "estadoHttp": 200,
+        "latenciaMs": 14221,
+        "esperaMs": 0,
+        "comienzoMs": 33875,
+        "tokens": {
+          "entrada": 4155,
+          "salida": 3049,
+          "escrituraCache": 0,
+          "lecturaCache": 0
+        },
+        "parametros": {
+          "maxTokens": 16000,
+          "temperatura": "sin_enviar",
+          "esfuerzo": "medium"
+        }
+      },
+      {
+        "n": 12,
+        "etapa": "juez",
+        "pareja": "facac5fd-ca7a-4f04-abf9-4926bb955e0a",
+        "modelo": "claude-haiku-5-5",
+        "vuelta": 1,
+        "intento": 1,
+        "resultado": "ok",
+        "estadoHttp": 200,
+        "latenciaMs": 15098,
+        "esperaMs": 0,
+        "comienzoMs": 33876,
+        "tokens": {
+          "entrada": 4155,
+          "salida": 3334,
+          "escrituraCache": 0,
+          "lecturaCache": 0
+        },
+        "parametros": {
+          "maxTokens": 16000,
+          "temperatura": "sin_enviar",
+          "esfuerzo": "medium"
+        }
+      },
+      {
+        "n": 13,
+        "etapa": "juez",
+        "pareja": "facac5fd-ca7a-4f04-abf9-4926bb955e0a",
+        "modelo": "claude-haiku-5-5",
+        "vuelta": 1,
+        "intento": 1,
+        "resultado": "ok",
+        "estadoHttp": 200,
+        "latenciaMs": 11312,
+        "esperaMs": 0,
+        "comienzoMs": 48977,
+        "tokens": {
+          "entrada": 4155,
+          "salida": 2570,
+          "escrituraCache": 0,
+          "lecturaCache": 0
+        },
+        "parametros": {
+          "maxTokens": 16000,
+          "temperatura": "sin_enviar",
+          "esfuerzo": "medium"
+        }
+      },
+      {
+        "n": 14,
+        "etapa": "juez",
+        "pareja": "facac5fd-ca7a-4f04-abf9-4926bb955e0a",
+        "modelo": "claude-haiku-5-5",
+        "vuelta": 1,
+        "intento": 1,
+        "resultado": "ok",
+        "estadoHttp": 200,
+        "latenciaMs": 16297,
+        "esperaMs": 0,
+        "comienzoMs": 48976,
+        "tokens": {
+          "entrada": 4155,
+          "salida": 3455,
+          "escrituraCache": 0,
+          "lecturaCache": 0
+        },
+        "parametros": {
+          "maxTokens": 16000,
+          "temperatura": "sin_enviar",
+          "esfuerzo": "medium"
+        }
+      },
+      {
+        "n": 15,
+        "etapa": "juez",
+        "pareja": "facac5fd-ca7a-4f04-abf9-4926bb955e0a",
+        "modelo": "claude-haiku-5-5",
+        "vuelta": 1,
+        "intento": 1,
+        "resultado": "ok",
+        "estadoHttp": 200,
+        "latenciaMs": 16761,
+        "esperaMs": 0,
+        "comienzoMs": 48975,
+        "tokens": {
+          "entrada": 4155,
+          "salida": 3710,
+          "escrituraCache": 0,
+          "lecturaCache": 0
+        },
+        "parametros": {
+          "maxTokens": 16000,
+          "temperatura": "sin_enviar",
+          "esfuerzo": "medium"
+        }
+      },
+      {
+        "n": 16,
+        "etapa": "juez",
+        "pareja": "facac5fd-ca7a-4f04-abf9-4926bb955e0a",
+        "modelo": "claude-haiku-5-5",
+        "vuelta": 1,
+        "intento": 1,
+        "resultado": "ok",
+        "estadoHttp": 200,
+        "latenciaMs": 17262,
+        "esperaMs": 0,
+        "comienzoMs": 48975,
+        "tokens": {
+          "entrada": 4155,
+          "salida": 3774,
+          "escrituraCache": 0,
+          "lecturaCache": 0
+        },
+        "parametros": {
+          "maxTokens": 16000,
+          "temperatura": "sin_enviar",
+          "esfuerzo": "medium"
+        }
+      },
+      {
+        "n": 17,
+        "etapa": "juez",
+        "pareja": "facac5fd-ca7a-4f04-abf9-4926bb955e0a",
+        "modelo": "claude-haiku-5-5",
+        "vuelta": 1,
+        "intento": 1,
+        "resultado": "ok",
+        "estadoHttp": 200,
+        "latenciaMs": 11752,
+        "esperaMs": 0,
+        "comienzoMs": 66238,
+        "tokens": {
+          "entrada": 4155,
+          "salida": 2647,
+          "escrituraCache": 0,
+          "lecturaCache": 0
+        },
+        "parametros": {
+          "maxTokens": 16000,
+          "temperatura": "sin_enviar",
+          "esfuerzo": "medium"
+        }
+      },
+      {
+        "n": 18,
+        "etapa": "juez",
+        "pareja": "facac5fd-ca7a-4f04-abf9-4926bb955e0a",
+        "modelo": "claude-haiku-5-5",
+        "vuelta": 1,
+        "intento": 1,
+        "resultado": "ok",
+        "estadoHttp": 200,
+        "latenciaMs": 13764,
+        "esperaMs": 0,
+        "comienzoMs": 66239,
+        "tokens": {
+          "entrada": 4155,
+          "salida": 2919,
+          "escrituraCache": 0,
+          "lecturaCache": 0
+        },
+        "parametros": {
+          "maxTokens": 16000,
+          "temperatura": "sin_enviar",
+          "esfuerzo": "medium"
+        }
+      },
+      {
+        "n": 19,
+        "etapa": "juez",
+        "pareja": "facac5fd-ca7a-4f04-abf9-4926bb955e0a",
+        "modelo": "claude-haiku-5-5",
+        "vuelta": 1,
+        "intento": 1,
+        "resultado": "ok",
+        "estadoHttp": 200,
+        "latenciaMs": 16231,
+        "esperaMs": 0,
+        "comienzoMs": 66237,
+        "tokens": {
+          "entrada": 4155,
+          "salida": 3428,
+          "escrituraCache": 0,
+          "lecturaCache": 0
+        },
+        "parametros": {
+          "maxTokens": 16000,
+          "temperatura": "sin_enviar",
+          "esfuerzo": "medium"
+        }
+      },
+      {
+        "n": 20,
+        "etapa": "juez",
+        "pareja": "facac5fd-ca7a-4f04-abf9-4926bb955e0a",
+        "modelo": "claude-haiku-5-5",
+        "vuelta": 1,
+        "intento": 1,
+        "resultado": "ok",
+        "estadoHttp": 200,
+        "latenciaMs": 19218,
+        "esperaMs": 0,
+        "comienzoMs": 66238,
+        "tokens": {
+          "entrada": 4155,
+          "salida": 4077,
+          "escrituraCache": 0,
+          "lecturaCache": 0
+        },
+        "parametros": {
+          "maxTokens": 16000,
+          "temperatura": "sin_enviar",
+          "esfuerzo": "medium"
+        }
+      },
+      {
+        "n": 21,
+        "etapa": "juez",
+        "pareja": "facac5fd-ca7a-4f04-abf9-4926bb955e0a",
+        "modelo": "claude-haiku-5-5",
+        "vuelta": 1,
+        "intento": 1,
+        "resultado": "ok",
+        "estadoHttp": 200,
+        "latenciaMs": 17547,
+        "esperaMs": 0,
+        "comienzoMs": 85456,
+        "tokens": {
+          "entrada": 4155,
+          "salida": 3885,
+          "escrituraCache": 0,
+          "lecturaCache": 0
+        },
+        "parametros": {
+          "maxTokens": 16000,
+          "temperatura": "sin_enviar",
+          "esfuerzo": "medium"
+        }
+      }
+    ],
+    "sinEtapa": 0,
+    "fueraDelDetalle": null
+  }
+}

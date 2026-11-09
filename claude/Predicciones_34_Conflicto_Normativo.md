@@ -6864,3 +6864,98 @@ it.runIf(PARTE === '1' || PARTE === '2')(`X2, parte ${PARTE}`, async () => {
 
   **La corrección refuerza la conclusión del arquitecto** (el quinto se aleja de la significación), y por eso se comprobó antes de
   aceptarla.
+
+### X · LA SEGUNDA TANDA, CON EL INSTRUMENTO APROBADO: NO DECIDE (09/11/2026)
+**Las fugas, al registro**: el director pegó las 42 respuestas en bruto al arquitecto y a Code. El arquitecto lo declaró antes de
+pedir nada. Code las tuvo delante en el mensaje y no contó positivos a mano: el recuento sale sólo del corredor aprobado.
+**La metadata, comprobada por script** (`extraer_x2.mjs`) antes de contar:
+- la misma `medida` y el mismo modelo, y la misma pareja en las 42;
+- 21 + 21 respuestas con texto, todas con `ok`, 200, intento 1 y `sinEtapa` 0;
+- 15:39:31 y 15:42:37 UTC, 186,8 s entre arranques;
+- **4.155 tokens de entrada en las 84 llamadas, las 42 del 06/11 y las 42 de hoy, sin excepción**: el prompt es idéntico al de la
+  tanda que no decidió, y entre una y otra sólo cambió el instrumento de cuenta.
+
+Las salidas, en `claude/Medida_F130_X2_D_Sembrada_Pulsacion_{1,2}_09-11-2026.json`.
+
+**PRIMER TIEMPO, la parte 1 del corredor, literal:**
+```
+ESCRITO POR: instrumento_x2.ts 203bb5dde2e3bee8 · correr_x2.test.ts 365f11660d0b588a · trozos_d.json 18065fb25f057dc0
+FICHEROS: x2_pulsacion1.json a90a0ff607b63ca9 · x2_pulsacion2.json e4627e4158646b22
+1 · LAS FALLIDAS: 0
+2 · LOS INDECIDIBLES, ANTES QUE NINGÚN POSITIVO: 8 de 42
+   pulsación 1, vez 5: pregunta 1: NIEGA; pregunta 2: PARCIAL
+   pulsación 1, vez 8: pregunta 1: NIEGA; pregunta 2: PARCIAL
+   pulsación 1, vez 11: pregunta 1: NIEGA; pregunta 2: NADA
+   pulsación 1, vez 13: pregunta 1: NIEGA; pregunta 2: NADA
+   pulsación 2, vez 6: pregunta 1: NIEGA; pregunta 2: NADA
+   pulsación 2, vez 15: pregunta 1: NIEGA; pregunta 2: NADA
+   pulsación 2, vez 18: pregunta 1: NIEGA; pregunta 2: NADA
+   pulsación 2, vez 21: pregunta 1: NIEGA; pregunta 2: NADA
+3 · LA BANDA DISPONIBLE: construir con 24 o más (techo: 34 puntuables); enterrar NO (más de 3 indecidibles)
+```
+
+**LO FIJADO POR EL ARQUITECTO ANTES DEL NÚMERO, con su regla**, literal (sacado del registro con un script). Code comprobó sus
+cifras con el Fisher del guion y en binomial exacta: Fisher p = 0,3502; Wilson del 3,8 al 22,1 % y del 10,0 al 33,3 %; y
+0,03 %, 55,45 %, 93,80 % y 99,97 %. Todas cuadran.
+
+> **EL CONTROL NO SE EQUIVOCÓ. ME EQUIVOQUÉ YO AL USARLO.**
+>
+> 4 de 42 contra 8 de 42: **Fisher p = 0,3502. No se distinguen.** Los dos son muestras compatibles con la misma tasa de fondo. Y la clave está en los intervalos, que yo nunca calculé:
+>
+> ```
+> 4 de 42  =  9,5 %   Wilson  3,8 % – 22,1 %
+> 8 de 42  = 19,0 %   Wilson 10,0 % – 33,3 %
+> ```
+>
+> **El control decía «4», y su propio intervalo iba del 3,8 % al 22,1 % — o sea, de 2 a 9 indecidibles en una tanda de 42.** Yo cogí el 4 como si fijara el techo y calculé un 86,31 % de potencia sobre él. **Si hubiera calculado ese intervalo el viernes, habría sabido que el techo podía caer en cualquier parte entre 0 y 9**, y que la potencia iba con él.
+>
+> **Al registro, con fecha de hoy, y la regla que sale:** «Una tasa medida sobre una muestra no fija un techo para la siguiente: lo fija su intervalo. Un techo derivado de una estimación puntual hereda su incertidumbre, y hay que escribir la potencia como un rango, no como una cifra.» Es la tercera cara de «una cifra no viaja con un adjetivo que no se ha medido»: aquí el adjetivo no medido era **«el techo es 4»**.
+>
+> ═══ LO QUE QUEDA FIJADO, ANTES DEL NÚMERO ═══
+> Con 34 puntuables y el corte en 24 sobre 42:
+>
+> ```
+> P(>= 24 | tasa 40 %)  =  0,03 %    <- construir sigue siendo seguro
+> P(>= 24 | tasa 70 %)  = 55,45 %    <- una moneda al aire
+> P(>= 24 | tasa 80 %)  = 93,80 %
+> P(>= 24 | tasa 90 %)  = 99,97 %
+> ```
+>
+> - **CONSTRUIR si llega a 24.** Su error no se ha movido: 0,03 %. Si sale, vale.
+> - **Cualquier otro número: «no decide»**, y se informa la tasa entre las 34 puntuables con su Wilson, como estaba declarado desde antes de pulsar.
+> - **Enterrar no está disponible.** Por el tope de 3, que no muevo.
+>
+> **Y lo que significará cada salida, escrito ahora para no interpretarlo después:**
+> - **Un «construir» querrá decir que la tasa está en el 70 % o por encima, y probablemente más**, porque a 80 % este test acierta el 93,8 % de las veces y a 70 % sólo el 55,5 %.
+> - **Un «no llega a 24» NO distinguirá el 70 % del 50 %.** A esa potencia, no llegar es compatible con que la pasada 2 sirva. Así que «no decide» significará exactamente eso, y **no se leerá como una pista en contra.**
+
+**SEGUNDO TIEMPO, la parte 2 del corredor, literal:**
+```
+ESCRITO POR: instrumento_x2.ts 203bb5dde2e3bee8 · correr_x2.test.ts 365f11660d0b588a · trozos_d.json 18065fb25f057dc0
+FICHEROS: x2_pulsacion1.json a90a0ff607b63ca9 · x2_pulsacion2.json e4627e4158646b22
+1 · LAS FALLIDAS: 0
+4 · LOS POSITIVOS: 22 de 42 (indecidibles 8, contados como fallo)
+5 · DECISIÓN: NO DECIDE — por debajo del 24, pero con 8 indecidibles (más de 3) enterrar no está disponible: el motivo es el instrumento, no el fenómeno
+6 · NO ES UNA DECISIÓN, ES UN DATO (prerregistrado el 09/11): tasa de D bajo la pregunta cerrada con el instrumento completo, 22 de 42 = 52,4 %, Wilson del 37,7 % al 66,6 %
+```
+- **22 de 42**: de las 34 puntuables, salen 22 y niegan 12. **NO DECIDE**: no llega a 24, y enterrar no está disponible.
+- ⚠️ **EL DENOMINADOR DEL DATO, PENDIENTE DEL ARQUITECTO**: el corredor aprobado informa la tasa sobre 42, con los indecidibles como
+  fallo (52,4 %, Wilson del 37,7 al 66,6 %). El arquitecto escribió hoy «la tasa entre las 34 puntuables», que sería 22 de 34
+  (64,7 %, Wilson del 47,9 al 78,5 %). El prerregistro del 09/11 no fija el denominador. Se archivan las dos; elige el arquitecto.
+
+**LA LECTURA DE CODE DE LOS 8 INDECIDIBLES, DESPUÉS DE LOS POSITIVOS. ESTA TANDA NO SE RECUENTA: es para diseñar la siguiente**
+(`herramientas/lectura_x2.test.ts`, `x2_lectura.txt`):
+- **Los 2 PARCIAL** (pulsación 1, veces 5 y 8) son la misma familia que los 4 del control: el juez reescribe el comienzo de la frase
+  del permiso, «la figura [de Coordinador de Calidad] puede recaer…» y «[el Coordinador de Calidad] es una figura que puede
+  recaer…», y la puerta del producto la tira. Del lado de CLI-12 las dos citas pasan.
+- **Los 6 NADA son todos fallos del LECTOR, no del juez.** En los seis el juez afirma el hallazgo, y en los seis las citas pasan la
+  puerta por los dos lados (NOR-10 en D y CLI-12 en el §3.5). Las formas que el lector amplio no acepta:
+  - **«Hallazgo: …» o «hallazgo, …» sin «hay»**, y «hay conflicto»: pulsación 1, veces 11 y 13; pulsación 2, vez 6;
+  - **una reserva que no está en la lista**: «vista solo como reglas, las dos sí pueden cumplirse», junto a «sí, hay hallazgo»
+    (pulsación 2, vez 15). Las dos vías discrepan, y no decide;
+  - **el aprobado lee «Sí son reglas…» como veredicto negativo**: pulsación 2, veces 18 y 21. El amplio encuentra «no se pueden
+    cumplir…», el seguro de la contradicción deja la respuesta sin decidir, y **no la cuenta como negativa**. Sin ese seguro, las dos
+    habrían sido falsos negativos.
+- **El instrumento sigue siendo el factor que decide la tanda, no el fenómeno**: lo que falta en el lector es vocabulario de
+  hallazgo («hallazgo:» sin «hay», «hay conflicto») y la lista de reservas, y el defecto del «Sí, son reglas» del aprobado ya no es
+  sólo latente.
