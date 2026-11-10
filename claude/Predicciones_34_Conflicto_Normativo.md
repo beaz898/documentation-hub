@@ -7270,3 +7270,42 @@ cosas estaban archivadas, y lo retira):
 - **EL CORREDOR, cambiado en consecuencia** (`correr_d2.test.ts`): sin decisión en el tiempo 3, cada cifra con su fecha, y el punto de la
   dispersión en el tiempo 2. Comprobado **con respuestas inventadas** (`inventar_d2.mjs`; los ficheros, borrados), y con la alternancia
   en orden equivocado: «PARAR Y MIRAR».
+
+### LA TANDA d CONTRA d2 DEL 10/11: METADATOS, EL NO-OP DE HOY Y EL TIEMPO 1 (Code, 10/11/2026)
+**Las fugas, al registro**: las cuatro salidas llegaron enteras al arquitecto y a Code; ninguno contó a mano. Las salidas, sacadas del registro con un script, en `claude/Medida_F130_D_contra_D2_Pulsacion_{1..4}_{d|d2}_10-11-2026.json`.
+**Los metadatos, por script** (`extraer_d2.mjs`), literales:
+```
+bloques JSON: 4
+pulsación 1 · d · 2026-11-10T08:21:02.134Z · huella d1f7f83b1f6e3fb7 · estadoHttp 200 · respuestas 21 (con texto 21, con error 0)
+   entrada 4155 · resultado ok · http 200 · intento 1 · espera 0 · caché escrita 0 leída 0 · parámetros {"maxTokens":16000,"temperatura":"sin_enviar","esfuerzo":"medium"} · modelo pedido claude-haiku-5-5 · pareja facac5fd-ca7a-4f04-abf9-4926bb955e0a
+   concurrencia 4-4-4-4-4-1 · latencia 11.6–20.1 s · sinEtapa 0
+pulsación 2 · d2 · 2026-11-10T08:22:55.802Z · huella e2955de8d0c3d271 · estadoHttp 200 · respuestas 21 (con texto 21, con error 0)
+   entrada 4421 · resultado ok · http 200 · intento 1 · espera 0 · caché escrita 0 leída 0 · parámetros {"maxTokens":16000,"temperatura":"sin_enviar","esfuerzo":"medium"} · modelo pedido claude-haiku-5-5 · pareja facac5fd-ca7a-4f04-abf9-4926bb955e0a
+   concurrencia 4-4-4-4-4-1 · latencia 11.0–18.0 s · sinEtapa 0
+pulsación 3 · d · 2026-11-10T08:25:01.633Z · huella 2bc29307e3c55df5 · estadoHttp 200 · respuestas 21 (con texto 21, con error 0)
+   entrada 4155 · resultado ok · http 200 · intento 1 · espera 0 · caché escrita 0 leída 0 · parámetros {"maxTokens":16000,"temperatura":"sin_enviar","esfuerzo":"medium"} · modelo pedido claude-haiku-5-5 · pareja facac5fd-ca7a-4f04-abf9-4926bb955e0a
+   concurrencia 4-4-4-3-1-4-1 · latencia 13.4–22.9 s · sinEtapa 0
+pulsación 4 · d2 · 2026-11-10T08:26:49.412Z · huella dc1d4e4dff64bcaa · estadoHttp 200 · respuestas 21 (con texto 21, con error 0)
+   entrada 4421 · resultado ok · http 200 · intento 1 · espera 0 · caché escrita 0 leída 0 · parámetros {"maxTokens":16000,"temperatura":"sin_enviar","esfuerzo":"medium"} · modelo pedido claude-haiku-5-5 · pareja facac5fd-ca7a-4f04-abf9-4926bb955e0a
+   concurrencia 4-4-4-4-4-1 · latencia 10.4–17.3 s · sinEtapa 0
+alternancia: d, d2, d, d2 · horas estrictamente crecientes: true · de la primera a la última: 5.8 min
+entrada de d en sus 42: 4155 · de d2 en sus 42: 4421 · diferencia: 266
+```
+- **Cuadra con la lectura del arquitecto en todo.** El «4-4-4-3-1-4-1» de la pulsación 3 es un artefacto del script, que agrupa por segundos redondeando: la quinta tanda arranca a 49.498, 49.499, 49.499 y 49.500 ms, y la última cae en el corte del redondeo. Es una sola tanda de 4.
+**El no-op de `sinLineas` sobre las 42 respuestas de `d` de hoy** (`herramientas/noop_hoy.test.ts`), literal:
+```
+respuestas de d de hoy: 42 · con el rótulo «HALLAZGO EN LA n:»: 0 · con la palabra «HALLAZGO» suelta (no es el rótulo): 37 · las que sinLineas cambia en algún byte: 0
+```
+**EL TIEMPO 1** (`correr_d2.test.ts`, huella aprobada `cdcbbf4b1e4a95b0`), literal:
+```
+ESCRITO POR: instrumento_d2.ts 8890221dc46ee725 · lector_lineas.ts bd97227c2a05ed0f · instrumento_x2.ts 203bb5dde2e3bee8 · correr_d2.test.ts cdcbbf4b1e4a95b0
+FICHEROS, en el orden dado: d2tanda_1_d.json d1f7f83b1f6e3fb7 (d, 2026-11-10T08:21:02.134Z) · d2tanda_2_d2.json e2955de8d0c3d271 (d2, 2026-11-10T08:22:55.802Z) · d2tanda_3_d.json 2bc29307e3c55df5 (d, 2026-11-10T08:25:01.633Z) · d2tanda_4_d2.json dc1d4e4dff64bcaa (d2, 2026-11-10T08:26:49.412Z)
+0 · LA ALTERNANCIA: d, d2, d, d2 · horas en orden: true → BIEN
+1 · LOS INDECIDIBLES DE d2 (2026-11-10), POR LAS LÍNEAS: 6 de 42 · por nombre de línea: {"NADA":0,"plantilla_copiada":0,"linea_vacia":0,"dos_palabras":0,"contradiccion_de_linea":0,"linea_ilegible":0} · copia presente: 0
+   pulsación 1, vez 1: pregunta 1: NIEGA (línea NO_HALLAZGO); pregunta 2: PARCIAL (línea HALLAZGO)
+   pulsación 1, vez 4: pregunta 1: NIEGA (línea NO_HALLAZGO); pregunta 2: PARCIAL (línea HALLAZGO)
+   pulsación 1, vez 5: pregunta 1: NIEGA (línea NO_HALLAZGO); pregunta 2: PARCIAL (línea HALLAZGO)
+   pulsación 1, vez 8: pregunta 1: NIEGA (línea NO_HALLAZGO); pregunta 2: PARCIAL (línea HALLAZGO)
+   pulsación 2, vez 3: pregunta 1: NIEGA (línea NO_HALLAZGO); pregunta 2: PARCIAL (línea HALLAZGO)
+   pulsación 2, vez 8: pregunta 1: NIEGA (línea NO_HALLAZGO); pregunta 2: PARCIAL (línea HALLAZGO)
+```
