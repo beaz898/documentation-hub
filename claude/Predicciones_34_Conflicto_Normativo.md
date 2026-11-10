@@ -7657,3 +7657,15 @@ AVISO, no comprobación: la cola dice «trozo» 1 vez/veces: «Un mismo par de t
   aparece, la palabra no importaba y queda cerrado.
 - **El ensayo, cerrado.** La huella del prompt, `aac1ca15db937047`, es la que tienen que devolver el sondeo y la tanda.
 - **Siguiente: el sondeo.** Tres cifras: latencia, tokens de entrada y tokens de salida.
+
+### EL SONDEO DE d3: UNA LLAMADA, TRES CIFRAS (Code, 10/11/2026)
+La salida, tal como llegó: `claude/Medida_F130_D3_Sondeo_10-11-2026.json`. Las cifras, sacadas por script (`archivar_sondeo_d3.mjs`,
+scratchpad), literal:
+```
+huella del prompt: aac1ca15db937047 (la del ensayo: aac1ca15db937047) → IGUAL · régimen pareja_entera
+llamadas: 1 · resultado ok · http 200 · intento 1 · espera 0 · caché 0/0
+LATENCIA: 24037 ms · ENTRADA: 49409 tokens · SALIDA: 4940 tokens
+```
+- **Fuga, declarada**: la respuesta del modelo llegó dentro de la salida y la vieron Code y el arquitecto. Es UNA respuesta, fuera de
+  cualquier tanda, y no se cuenta ni se interpreta.
+- La entrada estimada antes era ≈ 47.805 tokens. La medida es 49.409, un 3,4 % más. El coste lo mueve muy poco.

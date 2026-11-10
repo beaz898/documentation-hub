@@ -1,0 +1,74 @@
+{
+  "estadoHttp": 200,
+  "medida": "F-130 · la pregunta cerrada CON LAS DOS LÍNEAS DE HALLAZGO sobre la pareja de D de la siembra (§2.4 ↔ §3.5), los dos DOCUMENTOS ENTEROS (pareja_entera), 21 veces · SONDEO DE UNA LLAMADA",
+  "cuando": "2026-11-10T13:37:49.657Z",
+  "huellaDelPrompt": "aac1ca15db937047",
+  "documentos": {
+    "analizado": {
+      "documento": "NOR-10_protocolo-esterilizacion-instrumental.docx",
+      "generacion": 1,
+      "trozos": 67,
+      "caracteres": 66801
+    },
+    "candidato": {
+      "documento": "CLI-12_manual-calidad-clinica.docx",
+      "generacion": 1,
+      "trozos": 55,
+      "caracteres": 55135
+    }
+  },
+  "lectura": {
+    "documentId": "facac5fd-ca7a-4f04-abf9-4926bb955e0a",
+    "regimen": "pareja_entera",
+    "analizado": {
+      "caracteres": 66801,
+      "mostrados": 66801,
+      "dejoFuera": false
+    },
+    "candidato": {
+      "caracteres": 55135,
+      "mostrados": 55135,
+      "dejoFuera": false
+    },
+    "presupuesto": 150000,
+    "trozosDelCandidato": 55
+  },
+  "modelo": "claude-haiku-5-5",
+  "respuestas": [
+    {
+      "pareja": "NOR-10_protocolo-esterilizacion-instrumental.docx (documento completo) ↔ CLI-12_manual-calidad-clinica.docx (documento completo)",
+      "vez": 1,
+      "respuesta": "**PREGUNTA 1 · EL DATO**\n\nSí. Los dos textos dan valores distintos a varios datos:\n\n- **Responsable último de la esterilización.** NOR-10, apartado 2.1: «El responsable último del cumplimiento de este protocolo en cada centro es el Director Clínico». CLI-12, apartado 3.1: «El responsable último de la esterilización del instrumental en cada clínica es el Coordinador de Calidad del centro, no el Director Clínico».\n- **Caducidad del material esterilizado.** NOR-10, apartado 13.4: «mantiene su esterilidad durante un máximo de 6 meses». CLI-12, apartado 16.2: «el material esterilizado y envasado se considera válido durante un periodo máximo de 12 meses».\n- **Frecuencia del control biológico.** NOR-10, apartado 10.2: «se realiza semanalmente, todos los lunes a primera hora». CLI-12, apartado 12.1: «se realiza con periodicidad mensual, el primer día laborable de cada mes».\n\n**PREGUNTA 2 · EL CUMPLIMIENTO**\n\nNo. Busqué pares de reglas sobre materias distintas que no puedan cumplirse a la vez. Las discrepancias que encontré (responsabilidad, caducidad, control biológico) recaen sobre la misma materia, así que pertenecen a la pregunta 1, no a la 2. Ninguna otra pareja de reglas entra en conflicto.\n\nHALLAZGO EN LA 1: SÍ\nHALLAZGO EN LA 2: NO"
+    }
+  ],
+  "registro": {
+    "peticiones": [
+      {
+        "n": 1,
+        "etapa": "juez",
+        "pareja": "facac5fd-ca7a-4f04-abf9-4926bb955e0a",
+        "modelo": "claude-haiku-5-5",
+        "vuelta": 1,
+        "intento": 1,
+        "resultado": "ok",
+        "estadoHttp": 200,
+        "latenciaMs": 24037,
+        "esperaMs": 0,
+        "comienzoMs": 0,
+        "tokens": {
+          "entrada": 49409,
+          "salida": 4940,
+          "escrituraCache": 0,
+          "lecturaCache": 0
+        },
+        "parametros": {
+          "maxTokens": 16000,
+          "temperatura": "sin_enviar",
+          "esfuerzo": "medium"
+        }
+      }
+    ],
+    "sinEtapa": 0,
+    "fueraDelDetalle": null
+  }
+}
