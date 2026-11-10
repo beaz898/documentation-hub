@@ -7601,3 +7601,27 @@ COSTE ESTIMADO con la pareja entera: 0.00650 $ por llamada · 21 llamadas (una p
 - **Para cuando se diseñe la tanda de la pareja entera, y no ahora**: su predicción se DERIVA del 14 de 15, no se inventa. Si esas
   negaciones dejan de ocurrir porque el §3.1 está delante, eso implica una tasa con su intervalo. **La deriva Code, y la aprueba el
   arquitecto antes de pulsar**, como el 1-a-6 de hoy.
+
+### d3, LA PAREJA ENTERA: LO QUE DEBE DAR EL ENSAYO, ESCRITO ANTES DE PULSARLO (arquitecto y Code, 10/11/2026)
+- **Los dos desvíos del encargo, aprobados**: (1) el texto sale de `leerLaPareja` (`judge.ts:1324`), la función que usa de verdad el
+  rápido, y no de `repartoDeLaPareja` sola, que sólo decide tamaños. (2) **Se cambian las TRES líneas que nombraban un trozo**, también
+  la de `PAREJA`. Un prompt que anuncia «trozo 4 ↔ trozo 6» y entrega dos documentos enteros le miente al juez, y esa mentira puede
+  reproducir el fallo que se quiere quitar («no puedo suponer lo que no está en el trozo» son 14 de las 15 negaciones). **Forma
+  general (arquitecto): una etiqueta que se vuelve falsa no es una etiqueta sin cambiar.**
+- **El ensayo va recortado**: huella, longitud, cabeza, empalme, cola entera y `enSuSitio`. El prompt de d3 no cruza el chat.
+- **Lo que el arquitecto comprueba en el ensayo, y si algo no cuadra se para y no se pulsa el sondeo**:
+  1. la cola, carácter a carácter, contra la de `d2` del ensayo archivado del 09/11;
+  2. los tres rótulos, que digan «documento completo»;
+  3. los caracteres de cada lado: 66.801 y 55.135, que suman 121.936 (`reparto-de-la-pareja.ts:40-42`);
+  4. `enSuSitio` a verdadero en los dos, y el régimen `pareja_entera`;
+  5. la longitud total.
+- **Las cifras, calculadas por Code ANTES del ensayo** (`longitud_d3.mjs`, scratchpad, desde el prompt de `d2` del ensayo archivado
+  del 09/11). Literal:
+```
+d2 (ensayo del 09/11): 9401 caracteres · trozos 1148 + 969 · encabezados +48
+d3, LONGITUD ESPERADA: 129268 caracteres (con 66.801 + 55.135 de documentos)
+la cola de d2: 7039 caracteres · huella 3505f35ec048841f
+```
+  La longitud esperada vale si los dos documentos dan 66.801 y 55.135. Si dan otra cosa, la longitud se mueve exactamente esa
+  diferencia y no más.
+- **Del sondeo, tres cifras y nada más**: la latencia, los tokens de entrada y los de salida.
