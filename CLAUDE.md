@@ -711,7 +711,12 @@ El dueño del proyecto NO es programador. Vercel deploya automáticamente al hac
   | 20 | ±7,5 | ±6,8 | ±6,8 |
 
   Con un solo día, ningún n baja de ±30. τ sale de tres puntos, así que es un
-  orden de magnitud y no una cifra. El cálculo está archivado en
+  orden de magnitud y no una cifra. ⚠️ **Y τ puede llevar ruido del
+  INSTRUMENTO dentro, no sólo variación entre días**: el lector de prosa tiene
+  tres defectos conocidos de polaridad (el 10/11, «Hallazgo: sí» leído como
+  «sí, se pueden cumplir»). Si falla más con unas redacciones que con otras, y
+  la redacción cambia con el día, parte de la dispersión es nuestra y no del
+  juez. La lección de «días, no respuestas» se sostiene igual. El cálculo está archivado en
   `claude/Predicciones_34_Conflicto_Normativo.md`. Promovida por el arquitecto
   el 10/11/2026.
 - **UNA REGLA DE CLASIFICACIÓN NO ESTÁ ESCRITA HASTA QUE TODOS LOS CASOS

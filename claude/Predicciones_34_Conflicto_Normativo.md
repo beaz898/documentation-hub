@@ -7581,3 +7581,23 @@ COSTE ESTIMADO con la pareja entera: 0.00650 $ por llamada · 21 llamadas (una p
   44.421.
 - **No es «lo mismo»**: la entrada se multiplica por 11,5 y el coste total por unos 3, porque la salida pesa igual. **Unos 0,27 $ las
   42 llamadas**, y 0,34 $ si la salida doblara.
+
+### LA FAMILIA DE LA POLARIDAD, LA SALVEDAD DE τ Y LAS LÍNEAS SE QUEDAN (arquitecto, 10/11/2026)
+- **El mecanismo del fallo queda identificado**: 14 de 15 negaciones reales se deben a que el §3.1 no está en el trozo. Era la
+  predicción del arquitecto (12-16), escrita antes de contar.
+- **La lectura una a una, después de contar, es lo que impidió archivar un 15 de 16 que no medía lo que decía**: dos (a) por el camino
+  equivocado (una que no negaba y seis indecidibles que afirman el hallazgo). La columna (a) del clasificador, sola, no medía motivos
+  de negación.
+- ⚠️ **El defecto de la vez 20 es el TERCERO de la misma familia**: el lector de prosa busca palabras y se equivoca de polaridad. Los
+  otros son «No hay hallazgo» leído como hallazgo, del 09/11, y el latente revisado hacia atrás sobre 179 respuestas.
+- ⚠️ **SALVEDAD DE τ ≈ 15,4: PUEDE LLEVAR RUIDO DEL INSTRUMENTO DENTRO, NO SÓLO VARIACIÓN ENTRE DÍAS.** Si el lector falla más con unas
+  redacciones que con otras, y la redacción cambia con el día, parte de la dispersión es nuestra y no del juez. No se retira la lección
+  de «días, no respuestas»: se sostiene igual. La salvedad queda escrita al lado de τ, también en `CLAUDE.md`.
+- **DECIDIDO: LA HERRAMIENTA SE QUEDA CON LAS LÍNEAS**, por un argumento que no depende de la comparación anulada: el lector de prosa
+  lleva tres defectos de polaridad y no se arregla a parches, y las líneas eliminaron la familia entera (42 de 42, cero fallos). **Si
+  la línea cambia o no el veredicto lo dirá el tercer brazo**, que sigue aparcado.
+- **El coste**: el «lo mismo» y el «treinta veces» del arquitecto quedan sustituidos por la cifra. Treinta era en caracteres; en
+  tokens es ×11,5, y en coste, ×3: **unos 0,27 $ las 42**, o 0,34 $ si la salida doblara. La salida no se puede estimar.
+- **Para cuando se diseñe la tanda de la pareja entera, y no ahora**: su predicción se DERIVA del 14 de 15, no se inventa. Si esas
+  negaciones dejan de ocurrir porque el §3.1 está delante, eso implica una tasa con su intervalo. **La deriva Code, y la aprueba el
+  arquitecto antes de pulsar**, como el 1-a-6 de hoy.
