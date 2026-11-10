@@ -7794,3 +7794,34 @@ bd97227c2a05ed0f herramientas/lector_lineas.ts (sin tocar)
 ```
 **Cómo se corre**: `D3_FICHEROS=<los tres, en el orden en que se pulsaron> npx vitest run --config <scratchpad>/vitest.herramientas.mts
 correr_d3`, que escribe `d3_tanda.txt` con las huellas de lo que lo escribió.
+
+### LAS HUELLAS DE d3, APROBADAS; EL HUECO DE LA DECISIÓN DEL §3.1 Y SU TAPÓN; Y EL GUARDIÁN (arquitecto y Code, 10/11/2026)
+- **Aprobadas las siete huellas** del instrumento y del corredor de d3 (bloque anterior). Después se añadió el guardián, que cambia
+  dos ficheros del corredor y el de los mutantes; sus huellas nuevas, abajo.
+- ⚠️ **EL HUECO Y EL TAPÓN, con los nombres en su sitio**: el §3.1 contiene DOS frases, el principio y la frase de A. **El arquitecto
+  decidió «§2.4 contra §3.1 cuenta como D» sin distinguirlas.** Si la ruta del §3.1 hubiera aceptado cualquier cita del §3.1, A habría
+  contado como D, y el número de d3 habría salido inflado por la misma vía post hoc que la decisión quería evitar. **Code exige que la
+  cita toque la frase del PRINCIPIO, y una prueba comprueba que la de A no cuenta.** Eso es lo que hace honesta la regla aprobada.
+- **La prueba de inercia** (el instrumento nuevo sobre las 42 de d2, con el mismo resultado exigido en cada una) **es la
+  comprobación del día**: cazó dos normalizaciones donde tenía que haber una, la de los corchetes de la glosa. Sin ella, d3 habría dado
+  cifras no comparables con d2 por un motivo que no se ve en ninguna salida. Es la cuarta vez hoy que el problema estaba en el medidor
+  y no en lo medido, y la primera en que se caza antes de medir.
+- **EL GUARDIÁN** (arquitecto): la tabla lee negaciones, la predicción habla de positivos, y los indecidibles pueden absorber la
+  diferencia.
+```
+Los positivos de D por cualquier ruta, sobre 42, FUERA del 26-40 derivado
+  -> NINGUNA DE LAS DOS DERIVACIONES describió la tanda. Se para y se lee,
+     aunque la tabla de negaciones señale un mecanismo. La tabla dice CUÁL;
+     el intervalo dice SI ALGUNA valía.
+```
+  En el corredor es la línea **5b**, con prueba (20 positivos y 4 negaciones: la tabla dice MECANISMO_1 y el guardián la para; 26 y 40
+  quedan dentro) y cuatro mutantes nuevos. **Mueren los 20.**
+- **EL DATO DECLARADO**: el titular es **«D por cualquier ruta, sobre 42, con su fecha»**, con `D_por_3_5`, `D_por_3_1` y «por las
+  dos» debajo. **El corte de 24 sigue suspendido: la tanda no decide construir ni enterrar.** La línea 2 del corredor lo dice.
+- **Las huellas nuevas** (el resto, las aprobadas):
+```
+0c5ca29fa2c0505e herramientas/correr_d3.ts
+0b2c8cc3fb30211e herramientas/correr_d3.test.ts
+a57417610fdf5a0a mutar_instrumento_d3.mjs
+b8b874a728dd6385 herramientas/instrumento_d3.ts (sin cambio)
+```
