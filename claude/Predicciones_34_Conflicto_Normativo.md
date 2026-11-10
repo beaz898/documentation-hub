@@ -7738,3 +7738,59 @@ y el SALE de 26 a 40 del mecanismo 1 contiene el 28 de hoy. **Lo distinguen las 
 **La regla que se propone**: **mecanismo 1** si NIEGA ≤ 5 y ninguna es (d). **Mecanismo 2 presente** si hay alguna (d). **Mecanismo
 2 dominante** si NIEGA ≥ 6 y la mayoría son (d). **Hipótesis de «par de trozos» viva** si aparece alguna (a). Las PARCIAL que citen
 §2.4 contra §3.1 se cuentan aparte, con lo que decida el arquitecto sobre el hueco de arriba.
+
+### EL INSTRUMENTO Y EL CORREDOR DE d3, PARA APROBAR POR SU HUELLA (arquitecto y Code, 10/11/2026)
+**Decisiones del arquitecto, archivadas antes de ver ninguna respuesta de d3:**
+- **§2.4 contra §3.1 CUENTA COMO POSITIVO, con etiqueta propia y contado aparte.** El arquitecto la toma sin haber visto ninguna
+  respuesta que cite el §3.1 contra el §2.4 (la del sondeo cita A, la caducidad y el control): **no se ensancha una definición
+  después de ver el dato; se fija antes de que exista.** El defecto del corpus es uno, y §3.1 y §3.5 son dos sitios donde CLI-12 dice
+  lo mismo. **Dos contadores, `D_por_3_5` y `D_por_3_1`, con el titular «D por cualquier ruta» y su desglose debajo; nunca uno sin el
+  otro.** La regla es inerte sobre `d` y `d2`, cuyo trozo 6 no contiene el §3.1.
+- **Sub-predicción**: si manda el mecanismo 1, la mayoría de los positivos recuperados deberían venir por el §3.1. Si vienen por el
+  §3.5, el bloqueo era otra cosa.
+- **14 por pulsación, tres pulsaciones**: confirmado, con el margen de los reintentos.
+- **La predicción, aprobada**, y la regla con sus dos añadidos: la casilla de parar, obligatoria, y qué se hace en cada una.
+
+**La regla, cerrada por Code** (el arquitecto pidió que «≥6 con mayoría (a)» no cayera en dos casillas). N = negaciones (NO SALE);
+na y nd = las de motivo (a) y (d). **Cada combinación cae en una casilla y sólo en una**, y una prueba recorre todas, de N = 0 a 42:
+- **N ≤ 5**: sin (d) ni (a) → **MECANISMO_1** · sin (d) y alguna (a) → **PAR_DE_TROZOS_VIVA** · alguna (d) y ninguna (a) →
+  **MECANISMO_2_PRESENTE** · alguna (d) y alguna (a) → **MECANISMO_2_PRESENTE_Y_PAR_DE_TROZOS_VIVA** (dos arreglos, cada uno medido
+  aparte).
+- **N ≥ 6**: más de la mitad (d) → **MECANISMO_2_DOMINANTE** · más de la mitad (a) → **PAR_DE_TROZOS_DOMINANTE** (decisión de Code:
+  la mayoría razona como con un fragmento teniendo el documento entero, que es justo lo que dice la hipótesis; su arreglo es el de la
+  palabra, medido contra d3) · ninguna de las dos → **NINGUNA_DE_LAS_ANTERIORES: se para, se lee y no se concluye.**
+- Cada negación tiene UNA categoría, en este orden: (a) fragmento, (d) absorción (con A citada en la 1), (b) lectura estrecha, (c) otro.
+
+**El pajar del instrumento son los dos documentos enteros, reconstruidos y comprobados.** Code los rehízo sin red con la cadena del
+producto (`extractSegments` y `chunkSegments` sobre los `.docx` de `corpus-pruebas/`, pasados por `leerParejaEntera` y
+`construirPromptD3`). Salen 67 y 55 trozos, 66.801 y 55.135 caracteres, un prompt de 129.268 y **la huella `aac1ca15db937047`, la
+del ensayo y la del sondeo**: el pajar es exactamente lo que se le entregó al juez.
+
+⚠️ **Un fallo del instrumento, cazado por su prueba de inercia antes de aprobarlo**: la primera versión comprobaba las citas con
+`ladoNor` y `ladoCli` de contar_brazos, que usan la normalización de SQL_34_06, y no con la puerta de x2, que usa la del producto.
+Una cita con glosa («nunca [por] el Director Clínico…») salía en el §3.5 para d2 y fuera para d3. **La prueba que pasa el
+instrumento de d3 por las 42 respuestas de d2 y exige el mismo resultado en cada una dio 1 distinta.** Ahora d3 usa la puerta de d2
+(`puerta` de x2, sin tocar) con los documentos enteros como pajar, y la ruta del §3.1 aplica la regla aprobada (literal en el §3.1 y
+tocando su frase del PRINCIPIO, 20 caracteres o más) con la misma normalización. Las 42 coinciden.
+
+**Las pruebas y los mutantes**: 5 pruebas del instrumento (la regla exhaustiva; los motivos con frases inventadas y sus trampas; las
+dos rutas, con la frase de A del §3.1 que NO cuenta; el sondeo como control conocido, NO SALE con motivo (d); y la inercia sobre las
+42 de d2) y 6 del corredor (rutas, vías, motivos, indecidibles y casilla con respuestas inventadas; y que NO CUENTA con otra huella,
+con el sondeo, con otro régimen, con 13 respuestas, con dos ficheros o con las horas desordenadas). **De los 16 mutantes, mueren los
+16.** Dos vivieron en la primera pasada («las dos» rutas contadas como §3.5, y la vía siempre «la 2»), porque ninguna respuesta
+inventada tenía D en las dos rutas ni D en la pregunta 1; se añadieron las dos y murieron.
+
+**Las huellas, para aprobar:**
+```
+b8b874a728dd6385 herramientas/instrumento_d3.ts
+f3edd863d94a7914 herramientas/instrumento_d3.test.ts
+e5a70e7e1964de4a herramientas/correr_d3.ts
+ae5ed00fc9e89593 herramientas/correr_d3.test.ts
+f1122f1289ed0d74 documentos_d3.json
+dd48270fa35dcfae mutar_instrumento_d3.mjs
+beae6bad81e50979 herramientas/documentos_d3.test.ts
+203bb5dde2e3bee8 herramientas/instrumento_x2.ts (sin tocar)
+bd97227c2a05ed0f herramientas/lector_lineas.ts (sin tocar)
+```
+**Cómo se corre**: `D3_FICHEROS=<los tres, en el orden en que se pulsaron> npx vitest run --config <scratchpad>/vitest.herramientas.mts
+correr_d3`, que escribe `d3_tanda.txt` con las huellas de lo que lo escribió.
