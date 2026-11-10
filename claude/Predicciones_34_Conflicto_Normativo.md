@@ -7230,3 +7230,43 @@ cosas estaban archivadas, y lo retira):
   recuento de la tanda del 06/11 que estaba prohibido** («esta tanda no se recuenta pase lo que pase»). No se ha usado, no se archiva
   como resultado, y los ficheros sintéticos y las salidas se borraron. Debió hacerse con respuestas inventadas. Queda dicho porque
   ese número ya lo ha visto Code.
+
+### LA DISPERSIÓN ENTRE DÍAS: EL 52,4 % ES «EL LUNES»; EL CORTE, SUSPENDIDO; Y LO QUE DICEN LOS REGISTROS (arquitecto y Code, 10/11/2026)
+- **EL HECHO** (Code, a partir del 36 de su fuga, explicado con el código y con listas que ya estaban archivadas): con el mismo
+  instrumento (`instrumento_x2`, `contarUna`, que pasa la puerta de citas: `instrumento_x2.ts:144, 150-155`), la misma pareja y el mismo
+  prompt (4.155 tokens en las 84 llamadas), **el 06/11 da 36 de 42 y el 09/11 da 22 de 42; Fisher bilateral, p = 0,0018.**
+  - **Del 22 publicado del 06/11 al 36**: el 22 se contó con el guion de entonces (el lector de prosa aprobado y la regla literal de
+    `SQL_34_06`). Con `instrumento_x2`, de los 14 NADA, 12 suman y 2 quedan PARCIAL (pulsación 1, veces 3 y 13); de los 4 PARCIAL, la
+    normalización de la puerta rescata 2 (pulsación 2, veces 16 y 20) y 2 siguen PARCIAL (veces 15 y 21). 22 + 12 + 2 = 36, con 4
+    indecidibles, que son los del control ya archivado, y 2 negativas. **El desacuerdo entre los dos instrumentos es benigno: el nuevo
+    recupera lo que el viejo no sabía leer.**
+  - **El tiempo 2 sí pasa la puerta**; la sospecha de que el 36 venía de saltársela iba en la dirección contraria. No hacen falta dos
+    Fisher.
+- **LA CONSECUENCIA, ESCRITA ANTES DE PULSAR** (arquitecto): **el 52,4 % declarado no es la tasa del juez: es la tasa del juez el lunes.**
+  La cifra se mueve 33 puntos entre días, y la banda decidía en 24 de 42. Por eso:
+  - **el dato declarado lleva su fecha, siempre**;
+  - **EL CORTE DE 24 QUEDA SUSPENDIDO COMO CRITERIO DE DECISIÓN**: la tanda de hoy no puede decidir construir ni enterrar;
+  - **lo que la tanda sí puede contestar son dos cosas, y no una tercera**: (1) `d` contra `d2` el mismo día, que separa el prompt del
+    día; (2) el tercer punto de la dispersión entre días de la ruta `d` con el mismo instrumento: 06/11 → 36, 09/11 → 22, hoy → ?
+- **EL 36 DEL 06/11 NO SE USA COMO RESULTADO** (arquitecto, confirmado para que nadie lo reabra): es un recuento posterior con un
+  instrumento posterior, y el prerregistro lo prohíbe. Se dice, se archiva como aviso y no decide nada. ⚠️ **Code señala una tensión, sin
+  resolverla**: el punto (2) usa ese mismo 36 como uno de los tres puntos de la dispersión. Usarlo como dato de dispersión y no como
+  resultado es una distinción que conviene que el arquitecto deje escrita.
+- **LO QUE DICEN LOS DOS REGISTROS, ANTES DE CULPAR AL DÍA** (`comparar_registros.mjs`, sin leer ninguna respuesta): **iguales en todo lo
+  que se apunta**:
+  - el modelo, `claude-haiku-5-5`, y los parámetros (16.000 de salida, temperatura sin enviar y esfuerzo medio);
+  - etapa, vuelta 1, intento 1 en las 84, `ok`, 200, sin esperas;
+  - entrada de 4.155 y caché a 0;
+  - la concurrencia, 4-4-4-4-4-1 por pulsación;
+  - la salida (mediana de 3.267 y de 3.340 tokens) y la latencia (mediana de 14.852 y de 15.166 ms), parecidas.
+
+  **Y el historial de git no tiene ni un commit entre las dos tandas** en la herramienta, en `lib/llm` ni en el modelo del juez.
+  ⚠️ **PERO EL CAMPO `modelo` NO DICE QUÉ MODELO RESPONDIÓ: dice cuál se PIDIÓ.** La ruta devuelve `delJuez.modelo`
+  (`preguntar-al-juez.ts:30`), y el registro lo toma de los datos de la llamada (`anthropic-client.ts:164-166`), no de la respuesta
+  de la API. **No se guarda el campo `model` que devuelve la API, ni el identificador de la petición.** Así que los registros
+  descartan «cambiamos algo y no lo apuntamos» en todo lo que se apunta, pero **no pueden confirmar ni descartar que el modelo servido
+  cambiara**: esa pregunta no tiene dato. Para que la próxima tanda la pueda contestar haría falta guardar el `model` de la respuesta,
+  y eso es código del producto (`lib/llm/anthropic-client.ts`). Queda como propuesta, sin hacer.
+- **EL CORREDOR, cambiado en consecuencia** (`correr_d2.test.ts`): sin decisión en el tiempo 3, cada cifra con su fecha, y el punto de la
+  dispersión en el tiempo 2. Comprobado **con respuestas inventadas** (`inventar_d2.mjs`; los ficheros, borrados), y con la alternancia
+  en orden equivocado: «PARAR Y MIRAR».
