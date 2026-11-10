@@ -49,6 +49,36 @@ export function construirPromptD3(p: { documento1: string; textoA: string; docum
   return base.ok ? { ok: true, prompt: `${base.prompt}\n\n${LINEAS_DE_HALLAZGO}` } : base;
 }
 
+/** Cuánto de cada documento enseña el resumen del ensayo, por cada lado del empalme. */
+export const CARACTERES_DEL_RESUMEN = 300;
+
+/**
+ * EL ENSAYO RECORTADO (arquitecto, 10/11): el prompt de `d3` tiene unos 127.000 caracteres y no cruza el chat entero (ese día se
+ * cortaron tres pegados de 9.000). Se devuelve lo que hace falta para revisarlo: su huella y su longitud; la cabeza (la línea
+ * PAREJA, el encabezado TEXTO 1 y el principio del documento 1); el empalme (el final del 1, el encabezado TEXTO 2 y el principio
+ * del 2); y la cola entera, desde «Contesta a LAS DOS preguntas» (el criterio y las dos líneas). `enSuSitio` dice si cada documento
+ * está entero y en su sitio dentro del prompt: si no lo está, los cortes de arriba no enseñarían lo que dicen.
+ */
+export function resumenDelPromptD3(prompt: string, textoA: string, textoB: string, huella: string) {
+  const n = CARACTERES_DEL_RESUMEN;
+  const finDeLinea = (desde: number) => { const i = prompt.indexOf('\n', desde); return i === -1 ? prompt.length : i + 1; };
+  const t1 = prompt.indexOf('\nTEXTO 1 · '), t2 = prompt.indexOf('\nTEXTO 2 · '), cola = prompt.indexOf('Contesta a LAS DOS preguntas');
+  const inicioA = t1 === -1 ? -1 : finDeLinea(t1 + 1), inicioB = t2 === -1 ? -1 : finDeLinea(t2 + 1);
+  const enSuSitio = {
+    documento1: inicioA !== -1 && prompt.slice(inicioA, inicioA + textoA.length) === textoA,
+    documento2: inicioB !== -1 && prompt.slice(inicioB, inicioB + textoB.length) === textoB,
+  };
+  const finA = inicioA + textoA.length;
+  return {
+    huellaDelPrompt: huella,
+    longitudDelPrompt: prompt.length,
+    enSuSitio,
+    cabeza: inicioA === -1 ? null : prompt.slice(0, inicioA + Math.min(n, textoA.length)),
+    empalme: inicioA === -1 || inicioB === -1 ? null : prompt.slice(Math.max(inicioA, finA - n), inicioB + Math.min(n, textoB.length)),
+    cola: cola === -1 ? null : prompt.slice(cola),
+  };
+}
+
 /**
  * La pareja tal como la lee el rápido con el interruptor encendido, por `leerLaPareja`. Sólo vale `pareja_entera`: cualquier
  * otro régimen se devuelve como error, con el régimen, para que la ruta responda 409 sin llamar al modelo.

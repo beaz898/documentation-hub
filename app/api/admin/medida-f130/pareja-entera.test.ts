@@ -6,7 +6,7 @@ import { TAMANO_VENTANA } from '@/lib/analysis/reparto-de-la-pareja';
 import { PREGUNTA_CERRADA } from './medida-f130';
 import { CRITERIO_DEL_CUMPLIMIENTO } from './criterio-del-cumplimiento';
 import { construirPromptConLineas } from './lineas-de-hallazgo';
-import { ENCABEZADOS_D3, construirPromptD3, leerParejaEntera, plantillaD3 } from './pareja-entera';
+import { CARACTERES_DEL_RESUMEN, ENCABEZADOS_D3, construirPromptD3, leerParejaEntera, plantillaD3, resumenDelPromptD3 } from './pareja-entera';
 
 // LA PAREJA ENTERA, RUTA d3 (10/11/2026). (a) `d` y `d2` no cambian: lo vigilan `lineas-de-hallazgo.test.ts` (los dos prompts,
 // byte a byte, contra el ensayo archivado) y la negativa dura de `medida-f130.test.ts`, que ahora recorre también `d3`.
@@ -84,15 +84,49 @@ describe('d3: la pareja entera (10/11)', () => {
     expect(ensayo).toBeGreaterThan(regimen);
     expect(modelo).toBeGreaterThan(ensayo);
     expect(r.split('preguntarAlJuez(').length - 1).toBe(1);
-    // la huella del prompt armado, en el ensayo y en la tanda (dos `huellaDelPrompt,` en las respuestas, más la definición)
+    // la huella del prompt armado, en el ensayo (dentro del resumen) y en la tanda; y el prompt ENTERO no sale nunca
     expect(r).toContain('const huellaDelPrompt = huella(armado.prompt);');
-    expect(r.split('huellaDelPrompt,').length - 1).toBe(2);
+    expect(r).toContain('prompt: resumenDelPromptD3(armado.prompt, pareja.textoAnalizado, pareja.bloqueCandidato, huellaDelPrompt),');
+    expect(r).toContain('cuando: new Date().toISOString(), huellaDelPrompt, documentos');
+    // en las RESPUESTAS (el bloque del ensayo y el de la tanda), nunca el prompt entero; sí en las tareas, que es lo que va al modelo
+    const bloqueEnsayo = r.slice(ensayo, r.indexOf('const sondeo'));
+    const bloqueTanda = r.slice(r.indexOf('return NextResponse.json({ medida: sondeo'));
+    expect(bloqueEnsayo).not.toMatch(/prompt: armado\.prompt\b/);
+    expect(bloqueTanda).not.toMatch(/armado\.prompt/);
     // el sondeo es UNA llamada, y la tanda las de siempre
     expect(r).toContain('{ length: sondeo ? 1 : VECES_DE_D }');
     // y `leerParejaEntera` pasa de verdad por `leerLaPareja` del producto, y sólo deja pasar pareja_entera
     const m = leer('app/api/admin/medida-f130/pareja-entera.ts');
     expect(m).toContain('const pareja = leerLaPareja({');
     expect(m).toContain("if (r !== 'pareja_entera') {");
+  });
+
+  it('EL ENSAYO RECORTADO: huella, longitud, cabeza, empalme y cola entera, y NO los documentos enteros', () => {
+    if (!CRITERIO_DEL_CUMPLIMIENTO.ok) throw new Error(CRITERIO_DEL_CUMPLIMIENTO.motivo);
+    const n = CARACTERES_DEL_RESUMEN;
+    const textoA = 'INICIO-A ' + 'a'.repeat(60_000) + ' FINAL-A', textoB = 'INICIO-B ' + 'b'.repeat(60_000) + ' FINAL-B';
+    const d3 = construirPromptD3({ documento1: 'NOR-10.docx', textoA, documento2: 'CLI-12.docx', textoB }, CRITERIO_DEL_CUMPLIMIENTO.texto);
+    if (!d3.ok) throw new Error('no se armó');
+    const r = resumenDelPromptD3(d3.prompt, textoA, textoB, 'h');
+    expect(r.huellaDelPrompt).toBe('h');
+    expect(r.longitudDelPrompt).toBe(d3.prompt.length);
+    expect(r.enSuSitio).toEqual({ documento1: true, documento2: true });
+    // la cabeza: la línea PAREJA, el encabezado TEXTO 1 y EXACTAMENTE los primeros n del documento 1
+    expect(r.cabeza).toBe(`PAREJA 1: NOR-10.docx (documento completo) ↔ CLI-12.docx (documento completo)\n\nTEXTO 1 · NOR-10.docx (documento completo):\n${textoA.slice(0, n)}`);
+    // el empalme: los últimos n del 1, el encabezado TEXTO 2 y los primeros n del 2
+    expect(r.empalme).toBe(`${textoA.slice(-n)}\n\nTEXTO 2 · CLI-12.docx (documento completo):\n${textoB.slice(0, n)}`);
+    // la cola entera: desde «Contesta a LAS DOS preguntas» hasta las dos líneas del final
+    expect(r.cola?.startsWith('Contesta a LAS DOS preguntas.')).toBe(true);
+    expect(r.cola?.endsWith('HALLAZGO EN LA 2: [escribe SÍ o escribe NO]')).toBe(true);
+    // y lo que cruza el chat es pequeño aunque el prompt tenga 120.000 caracteres
+    expect(JSON.stringify(r).length).toBeLessThan(10_000);
+  });
+
+  it('EL ENSAYO RECORTADO avisa si un documento no está entero en su sitio', () => {
+    if (!CRITERIO_DEL_CUMPLIMIENTO.ok) throw new Error(CRITERIO_DEL_CUMPLIMIENTO.motivo);
+    const d3 = construirPromptD3({ documento1: 'a', textoA: 'uno', documento2: 'b', textoB: 'dos' }, CRITERIO_DEL_CUMPLIMIENTO.texto);
+    if (!d3.ok) throw new Error('no se armó');
+    expect(resumenDelPromptD3(d3.prompt, 'uno', 'otro', 'h').enSuSitio).toEqual({ documento1: true, documento2: false });
   });
 
   it('(c) la página tiene los tres botones de d3, y los de d y d2 siguen igual', () => {

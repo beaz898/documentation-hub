@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getDocumentChunks } from '@/lib/read-chunks';
 import { autorizar, leerTrozos } from '../leer-de-la-base';
 import { FRASES_DE_D, fraseQueContiene, PAREJA_DE_D, VECES_DE_D } from '../medida-f130';
-import { construirPromptD3, leerParejaEntera } from '../pareja-entera';
+import { construirPromptD3, leerParejaEntera, resumenDelPromptD3 } from '../pareja-entera';
 import { CRITERIO_DEL_CUMPLIMIENTO } from '../criterio-del-cumplimiento';
 import { preguntarAlJuez } from '../preguntar-al-juez';
 
@@ -18,7 +18,8 @@ import { preguntarAlJuez } from '../preguntar-al-juez';
  *   · la de los trozos, la de `d`: los trozos 4 de NOR-10 y 6 de CLI-12 tienen que existir y contener su frase, y eso
  *     comprueba además que los dos documentos son los que se quieren medir;
  *   · la del régimen: si `leerLaPareja` no da `pareja_entera`, la condición no es la del producto y no se mide.
- * Con `?ensayo=1`: los dos documentos tal como los montó el producto, la lectura, el prompt y SU HUELLA, sin llamar al modelo.
+ * Con `?ensayo=1`: los dos documentos tal como los montó el producto, la lectura y el prompt RECORTADO (su huella, su longitud,
+ * la cabeza, el empalme y la cola entera; `resumenDelPromptD3`), sin llamar al modelo. El prompt entero no cruza el chat.
  * Con `?sondeo=1`: UNA sola llamada, para medir latencia y tokens reales antes de decidir cuántas caben en `maxDuration`.
  */
 export const maxDuration = 300;
@@ -63,8 +64,8 @@ export async function POST(req: NextRequest) {
       documentos,
       lectura: pareja.lectura,
       frasesDeD: { analizado: cortar(pareja.textoAnalizado, FRASES_DE_D.analizado), candidato: cortar(pareja.bloqueCandidato, FRASES_DE_D.candidato) },
-      huellaDelPrompt,
-      prompt: armado.prompt,
+      // el prompt NO va entero (unos 127.000 caracteres): su huella, su longitud y los tres cortes que se revisan
+      prompt: resumenDelPromptD3(armado.prompt, pareja.textoAnalizado, pareja.bloqueCandidato, huellaDelPrompt),
     });
   }
 
