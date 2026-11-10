@@ -117,7 +117,7 @@ describe('las medidas temporales de F-130', () => {
     expect(trozoConSuFrase([{ chunkIndex: 12, text: 'otro' }, bueno], pedido)).toEqual({ ok: true, trozo: bueno });
   });
 
-  it.each(['quinto', 'd', 'd2'])('⚠️ LA NEGATIVA DURA ES DURA: en la ruta %s, el 409 de los trozos va ANTES del ensayo y antes de llamar al modelo', nombre => {
+  it.each(['quinto', 'd', 'd2', 'd3'])('⚠️ LA NEGATIVA DURA ES DURA: en la ruta %s, el 409 de los trozos va ANTES del ensayo y antes de llamar al modelo', nombre => {
     // los finales de línea, normalizados: con core.autocrlf el disco tiene CRLF y el repositorio LF (03/11, el commit de
     // esta prueba la puso en rojo al reescribir el fichero en CRLF)
     const leer = (f: string) => readFileSync(f, 'utf8').replace(/\r\n/g, '\n');

@@ -221,8 +221,10 @@ export function correspondencia(delVector: string | undefined, deLaBase: string)
 
 export interface DatosDeLaPareja { documento1: string; trozoA: number; textoA: string; documento2: string; trozoB: number; textoB: string }
 
-/** El prompt de E3 para una pareja. Sin el criterio del cumplimiento no se arma: vacío es que el recorte no se pudo hacer. */
-export function construirPrompt(pareja: DatosDeLaPareja, criterioDelCumplimiento: string): { ok: true; prompt: string } | { ok: false; motivo: string } {
+/** El prompt de E3 para una pareja. Sin el criterio del cumplimiento no se arma: vacío es que el recorte no se pudo hacer.
+ *  `plantilla` (10/11): sólo la cambia `d3` (`pareja-entera.ts`); las demás rutas usan la de siempre, y la prueba que compara `d`
+ *  byte a byte con el ensayo archivado vigila que el valor por defecto no se mueva. */
+export function construirPrompt(pareja: DatosDeLaPareja, criterioDelCumplimiento: string, plantilla: string = PREGUNTA_CERRADA): { ok: true; prompt: string } | { ok: false; motivo: string } {
   if (criterioDelCumplimiento.trim() === '') return { ok: false, motivo: 'el criterio del cumplimiento está vacío' };
   const valores: Record<string, string> = {
     '{{N}}': '1', '{{DOC_1}}': pareja.documento1, '{{TROZO_A}}': String(pareja.trozoA), '{{DOC_2}}': pareja.documento2,
@@ -230,7 +232,7 @@ export function construirPrompt(pareja: DatosDeLaPareja, criterioDelCumplimiento
     '{{CRITERIO_DEL_CUMPLIMIENTO}}': criterioDelCumplimiento,
   };
   // una sola pasada por la plantilla: un texto del cliente que contuviera una marca no se sustituye
-  return { ok: true, prompt: PREGUNTA_CERRADA.replace(/\{\{[A-Z_0-9]+\}\}/g, m => valores[m] ?? m) };
+  return { ok: true, prompt: plantilla.replace(/\{\{[A-Z_0-9]+\}\}/g, m => valores[m] ?? m) };
 }
 
 /** El puesto (desde 1) de cada id objetivo en una lista de resultados ordenada, o null si no salió. */
