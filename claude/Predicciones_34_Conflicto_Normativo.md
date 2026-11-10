@@ -7426,3 +7426,29 @@ control de la t: cuantil 0,95 con 2 g.l. = 2.920 (de tablas: 2,920) · con 3 g.l
 - No levanta el corte suspendido ni decide construir. Si el cuarto día da 19 o más, decide sólo el lado de abajo: **enterrar
   queda descartado**.
 - Regla promovida a `CLAUDE.md` el mismo día: la precisión se compra en días, no en respuestas por día.
+
+### PRERREGISTRO DEL CUARTO DÍA DE LA RUTA d: SÓLO EL LADO DE ABAJO (arquitecto, 10/11/2026; umbral auditado por Code)
+- **El número que no se usó** (arquitecto, con estas palabras): *el número tentador era el que cerraba el día.* Si se toma τ ≈ 15,4
+  como conocida, p baja a 0,0017. Se dejó escrito al lado y no se usó, porque τ sale de tres puntos. Y los cuantiles de la t se
+  comprobaron contra tablas antes de usarlos: verificar el instrumento antes que el resultado.
+- **LA REGLA, escrita antes de pulsar:**
+```
+cuarto día de `d`, 42 respuestas, instrumento_x2 congelado
+  ≥ 19 de 42  ->  el 40 % queda EXCLUIDO: enterrar descartado, y nada más
+  < 19 de 42  ->  no queda excluido, y además sabremos que la dispersión
+                  es más ancha de lo estimado, porque sería peor que los
+                  tres días anteriores (el peor fue 22)
+```
+- **El corte del 70 % sigue suspendido en los dos casos.** Es la ruta `d`, no `d2`: un cuarto punto de otro prompt no se junta con
+  esta serie. La pregunta de las líneas sigue aparcada.
+- **El umbral 19, auditado** (`umbral_19.mjs`, scratchpad; t de una cola, 3 grados de libertad, el día como unidad). Literal:
+```
+control: cuantil 0,95 con 3 g.l. = 2.353 (de tablas: 2,353)
+cuarto día 17/42: media 60.7 % · desviación 19.3 · t = 2.147 · p = 0.0605 · cota inferior 38.0 % → no excluye
+cuarto día 18/42: media 61.3 % · desviación 18.5 · t = 2.306 · p = 0.0522 · cota inferior 39.6 % → no excluye
+cuarto día 19/42: media 61.9 % · desviación 17.7 · t = 2.474 · p = 0.0449 · cota inferior 41.1 % → EXCLUYE
+cuarto día 20/42: media 62.5 % · desviación 17.0 · t = 2.649 · p = 0.0385 · cota inferior 42.5 % → EXCLUYE
+```
+  **El umbral es monótono**: `cuarto_dia.mjs` (scratchpad) recorre los 43 valores posibles, de 0 a 42, y excluye desde 19 hasta 42 sin
+  un solo hueco.
+- **Aparcados, los tres para después**: guardar el `model` de la respuesta, el paso 0 de `RATE_LIMIT_ANALYZE` y el tercer brazo.
