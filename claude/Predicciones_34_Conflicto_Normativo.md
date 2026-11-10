@@ -7348,3 +7348,31 @@ d2 (sin líneas): 42 respuestas · sin secciones para el lector: 0 · indecidibl
   «la línea se llevó el veredicto de la prosa»**, que es el confundido que este diseño existía para evitar. La consecuencia
   prerregistrada salta («se separan»), pero la frase que la acompaña («cambió lo que el juez concluye») no está demostrada.
 - Code no recalcula sobre las puntuables ni abre el tiempo 3: no está prerregistrado. Decide el arquitecto.
+
+### EL CONTRASTE DEL TIEMPO 2, ANULADO; LO QUE LA TANDA DEL 10/11 SÍ ESTABLECE; Y EL TIEMPO 3, ETIQUETADO (arquitecto y Code, 10/11/2026)
+- **El arquitecto anula el contraste del tiempo 2 y no aplica su rama prerregistrada.** Su premisa era unidireccional: quitar las
+  líneas impide que la prosa gane con ellas, no que pierda. **El tratamiento daña al instrumento con el que se iba a medir**, así que
+  las dos ramas («se separan», «no se separan») daban por supuesta una comparación válida que no lo es. Habría anulado igual un «no se
+  separan», que habría sido una falsa tranquilidad peor: la prosa de `d2` lee respuestas a las que les falta el veredicto, y eso
+  empuja hacia «no sale». **La anulación perjudica a la rama que le convenía, que era adoptar la línea.**
+  **«¿Nos quedamos con las líneas?» queda SIN CONTESTAR por la tanda de hoy.**
+- **Al prerregistro, como regla general** (arquitecto): *una consecuencia prerregistrada está condicionada a que el contraste sea
+  válido; si el tratamiento daña al instrumento que compara, no hay rama que aplicar, hay un contraste nulo.*
+- **Lo que la tanda del 10/11 sí establece:**
+  1. las líneas funcionan como formato: 42 de 42, sin un solo fallo de ninguna categoría;
+  2. 6 indecidibles de 42, todos PARCIAL, dentro del intervalo prerregistrado (de 1 a 6);
+  3. un tercer punto fechado de la ruta `d` con el instrumento congelado: 06/11 → 36 · 09/11 → 22 · 10/11 → 27;
+  4. **pedir un formato al final hace que el juez deje de escribir el veredicto en la prosa: 19 contra 5.** Va a la deuda, con sus
+     consecuencias en el producto (`claude/Estado_Y_Pendientes_14-10-2026.md` §5).
+- **El tercer brazo, propuesto y NO escrito**: la plantilla con las dos líneas y una instrucción expresa de seguir escribiendo el
+  veredicto en la prosa como hasta ahora. Así la prosa queda intacta en los dos brazos, y probablemente es además el instrumento que se
+  quiere tener. Lo decide el director.
+
+**EL TIEMPO 3, CON SU ETIQUETA: «CIFRA DE UN PROMPT CUYA ADOPCIÓN ESTÁ SIN DECIDIR».** No decide nada. Literal:
+```
+3 · LOS POSITIVOS DE d2 (2026-11-10), POR LAS LÍNEAS: 28 de 42 (niegan 8; indecidibles 6)
+   POR QUÉ PREGUNTA SALEN (2026-11-10): por la 1 0 · por la 2 28 · por las dos 0
+   NO HAY DECISIÓN: el corte de 24 está suspendido (10/11). Es un dato, y lleva su fecha, 2026-11-10: sobre 42 (lo que alcanzaría el PRODUCTO) 66,7 %, Wilson del 51,6 % al 79,0 % · sobre 36 puntuables (lo que alcanza el JUEZ cuando se le puede leer) 77,8 %, Wilson del 61,9 % al 88,3 %
+```
+- El 28 de `d2` por las líneas y el 27 de `d` por la prosa, del mismo día, **no son una comparación**: salen de dos lectores
+  distintos, y ese contraste no está validado.
