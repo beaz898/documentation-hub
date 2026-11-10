@@ -7495,3 +7495,37 @@ cuarto día 20/42: media 62.5 % · desviación 17.0 · t = 2.649 · p = 0.0385 �
   documentos enteros en las 21 pasadas de D del 30-31/10 (34 de 34, con las del quinto). Ese día, el interruptor estaba encendido.
 - **A la deuda, como una sola entrada** que absorbe la del `model`: *una condición que hace falta para interpretar una medición se
   guarda con la medición, no se consulta después; el entorno no tiene memoria y algunas de sus variables no se dejan leer.*
+
+### LA SALIDA DE `SQL_34_12`: EL INTERRUPTOR, ENCENDIDO EN LOS 118 RÁPIDOS, DEL 26/10 AL 03/11 (10/11/2026)
+Ejecutada por el director el 10/11, abierta desde GitHub tras el push `fc1f129c`. Salida literal, tal como llegó a Code:
+```
+bloque,a,b,c
+organización leída,organización leída: 68bf28c3-8352-4052-8eb4-3a7e31b74b53 · «Mi workspace» · 45 documentos,null,null
+0 · control,rápidos de la organización: 118 · con la lectura de las parejas: 118 (los demás son anteriores al 29/09 o no tuvieron candidatos),OK,null
+0 · control,regímenes fuera de los cuatro conocidos: ninguno,OK,null
+0 · control,rápidos con los dos estados a la vez (el código no los puede producir): 0,OK,null
+0 · control,documentos NOR-10: 1 · CLI-12: 1 (uno de cada),OK,null
+0 · control,CONTROL POSITIVO · pasadas de D del 30-31/10 con pareja_entera: 21 de 21 (SQL_34_08 leyó 21 de 21 el 02/11),OK,null
+1 · el último rápido de NOR-10 ↔ CLI-12,02/11/2026 18:29 (Madrid) · NOR-10_protocolo-esterilizacion-instrumental.docx,régimen de la pareja: pareja_entera · interruptor: ENCENDIDO,null
+"2 · el último rápido, de cualquier pareja",03/11/2026 08:50 (Madrid) · NOR-11_gestion-de-residuos-sanitarios.docx,regímenes: pareja_entera · interruptor: ENCENDIDO,null
+3 · por estado del interruptor,ENCENDIDO: 118 rápidos,el primero: 26/10/2026 12:45,el último: 03/11/2026 08:50
+4 · los cambios,ninguno: todos los rápidos con lectura dicen lo mismo del interruptor,null,null
+```
+- **Code la comprobó contra la lectura del arquitecto, y cuadra en todo**: 21 de 21, 118 rápidos, ningún cambio, el último el 03/11.
+  La organización es la del piloto archivada (`68bf28c3`, «Mi workspace», alta el 25/10, 45 documentos; `Estado_Y_Pendientes…:82`).
+- **Lo que establece, y no más**: el interruptor estuvo **encendido en los 118 rápidos de esta organización, del 26/10 12:45 al
+  03/11 08:50**. No se apagó nunca en ese tiempo, así que **las tandas de esas fechas corrieron todas en el mismo régimen**. Como la
+  organización nació el 25/10, no hay ningún rápido suyo con el interruptor apagado.
+- **Que siga encendido HOY es una INFERENCIA, no un dato**: no hay ningún rápido posterior al 03/11. Nadie tocó la variable, y el
+  director salió del formulario sin guardar. Lo zanjará el siguiente rápido, que registrará su propio régimen.
+- **La consecuencia** (arquitecto): el rápido le entrega al juez los dos documentos ENTEROS, así que el §3.1 está siempre delante, y
+  con él la frase de A. **El caso de los tres días —el principio detrás de un puntero— no es el que el rápido le pone al juez.**
+  **Pero el EXHAUSTIVO no usa nunca la pareja entera**: lee el analizado entero y 3.000 caracteres por candidato, por relevancia. La
+  condición medida se parece más a la del exhaustivo que a la del rápido. **No está medido si el §3.1 entraría en esos 3.000.**
+- **LA RECOMENDACIÓN DEL ARQUITECTO, archivada sin escribir nada; LA DECIDE EL DIRECTOR**: el cuarto día baja de prioridad y
+  probablemente no hay que hacerlo. Excluir el 40 % bajo una condición que el rápido no impone sería etiquetar una cifra que no
+  describe lo que se quiere decidir. Lo sustituiría, al mismo coste, **la misma medida con la pareja ENTERA**, como el producto: una
+  plantilla, una ruta, dos pulsaciones. Entonces la herramienta se diferenciaría del producto sólo en que le entrega la pareja ya
+  emparejada. **Es el mejor proxy posible sin ejecutar el producto**, que sigue bloqueado por el corpus.
+- **La regla de la deuda decidió hoy qué pregunta tenía respuesta**: el régimen estaba guardado con cada medición y se ha recuperado;
+  el `model` no se guarda y no se ha podido. Queda escrito en su entrada (`Estado_Y_Pendientes…` §5).

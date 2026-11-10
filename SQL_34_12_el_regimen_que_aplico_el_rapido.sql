@@ -1,6 +1,8 @@
 -- ============================================================================
 -- SQL_34_12 · QUÉ RÉGIMEN APLICÓ DE VERDAD EL RÁPIDO, Y CUÁNDO — SÓLO LECTURA (10/11/2026)
--- ⏳ PENDIENTE DE EJECUTAR. Sólo SELECT: no escribe, no borra, no cambia nada.
+-- ✅ EJECUTADO por el director el 10/11/2026: los cinco controles OK, con el positivo en 21 de 21. ENCENDIDO en los 118 rápidos, del
+-- 26/10 12:45 al 03/11 08:50 (Madrid), sin un solo cambio. La salida, literal, en claude/Predicciones_34_Conflicto_Normativo.md.
+-- Sólo SELECT: no escribe, no borra, no cambia nada.
 --
 -- PARA QUÉ (arquitecto, 10/11): `ANALYSIS_PAREJA_ENTERA` está marcada como «sensitive» en Vercel y su valor no se puede volver
 -- a leer, ni en el panel ni por CLI. Esto no lee la configuración: lee lo que HIZO el programa. Cada rápido deja escrito, en
