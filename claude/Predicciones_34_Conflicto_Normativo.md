@@ -7625,3 +7625,23 @@ la cola de d2: 7039 caracteres · huella 3505f35ec048841f
   La longitud esperada vale si los dos documentos dan 66.801 y 55.135. Si dan otra cosa, la longitud se mueve exactamente esa
   diferencia y no más.
 - **Del sondeo, tres cifras y nada más**: la latencia, los tokens de entrada y los de salida.
+
+### EL ENSAYO DE d3: CUMPLE LAS CINCO COMPROBACIONES ESCRITAS ANTES (Code, 10/11/2026)
+La salida, tal como llegó, sacada del registro por un script: `claude/Medida_F130_D3_Ensayo_10-11-2026.json`. La comprobación
+(`comprobar_ensayo_d3.mjs`, scratchpad), literal:
+```
+BIEN · estado 200, sin llamar al modelo
+BIEN · 1 · la cola, carácter a carácter contra la de d2 del 09/11: 7039 contra 7039 caracteres · huella 3505f35ec048841f (esperada 3505f35ec048841f)
+BIEN · 2 · los tres rótulos: «PAREJA 1: NOR-10_protocolo-esterilizacion-instrumental.docx (documento completo) ↔ CLI-12_manual-calidad-clinica.docx (documento completo)» · «TEXTO 1 · NOR-10_protocolo-esterilizacion-instrumental.docx (documento completo):» · «TEXTO 2 · CLI-12_manual-calidad-clinica.docx (documento completo):»
+BIEN · 3 · caracteres: 66801 + 55135 = 121936 (esperado 66.801 + 55.135 = 121.936), y la lectura dice lo mismo
+BIEN · 4 · enSuSitio {"documento1":true,"documento2":true} · régimen pareja_entera
+BIEN · 5 · longitud del prompt: 129268 (esperada 129.268)
+BIEN · y nada se quedó fuera: mostrados 66801 y 55135, dejoFuera false / false
+BIEN · las dos frases de D, cortadas una vez cada una dentro de los documentos enteros
+AVISO, no comprobación: la cola dice «trozo» 1 vez/veces: «Un mismo par de trozos puede mandar a la vez sobre la misma cosa y sobre cosas distintas, así que no decidas eso del par entero: la distinción de arriba se aplica AL PAR DE FRASES que estés considerando»
+```
+- **La huella del prompt armado de d3 es `aac1ca15db937047`.** Es la referencia para el sondeo y la tanda: si cambia, cambió la
+  entrada.
+- **AVISO para el arquitecto**: en la pregunta 2, en la parte de fondo que no se cambió, queda una mención a «trozos»: «Un mismo par
+  de trozos puede mandar…». Es una instrucción general, no un rótulo de lo que se entrega. Cambiarla haría que la cola de d3 dejara
+  de ser idéntica a la de d2. Lo decide el arquitecto antes del sondeo.
