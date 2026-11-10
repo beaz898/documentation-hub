@@ -7325,3 +7325,26 @@ FICHEROS, en el orden dado: d2tanda_1_d.json d1f7f83b1f6e3fb7 (d, 2026-11-10T08:
   - **no se separan** → la línea es una mejora de lectura pura: arregla los NADA sin tocar lo que el juez concluye. **Se adopta**;
   - **se separan** → la línea cambia también el veredicto, así que el medidor con líneas mide algo distinto de lo que hace el
     producto. **No se adopta**, y se vuelve al medidor de prosa con su problema de ilegibles.
+
+### EL TIEMPO 2 DE LA TANDA d CONTRA d2 (10/11), Y LA PREMISA DEL DENOMINADOR QUE NO SE SOSTIENE (Code, 10/11/2026)
+**El tiempo 2** (`correr_d2.test.ts`, huella aprobada `cdcbbf4b1e4a95b0`), literal:
+```
+2 · LA COMPARACIÓN d CONTRA d2, POR PROSA EN LAS DOS (d2 sin las líneas), Fisher exacto bilateral, alfa 0,05:
+   d (2026-11-10): 27 de 42 salen (indecidibles 7) · d2 (2026-11-10): 11 de 42 salen (indecidibles 20) · p = 0.0009
+   → SE SEPARAN: la línea cambió también lo que el juez concluye; lo que mide d2 no es lo que hace el producto. (Prerregistrado el 09/11.)
+   LA DISPERSIÓN ENTRE DÍAS DE LA RUTA d, con el mismo instrumento: 06/11 → 36 de 42 (aviso, no resultado) · 09/11 → 22 de 42 · 2026-11-10 → 27 de 42
+```
+**Una comprobación que nadie pidió, declarada como tal**: de qué están hechos los indecidibles de PROSA de cada brazo
+(`herramientas/causa_indecidibles_prosa.test.ts`). No cuenta positivos. Literal:
+```
+d: 42 respuestas · sin secciones para el lector: 0 · indecidibles por causa: {"NADA en la 2":5,"PARCIAL":2}
+d2 (sin líneas): 42 respuestas · sin secciones para el lector: 0 · indecidibles por causa: {"NADA en la 2":19,"PARCIAL":1}
+```
+- **La premisa del denominador, «el canal de la legibilidad está cerrado por construcción», es FALSA.** Quitar las líneas impide que
+  la prosa de `d2` se beneficie de ellas, pero no impide que se PERJUDIQUE: con la línea al final, el juez deja de escribir el
+  veredicto de la pregunta 2 en la prosa. Hay 19 NADA en la 2 en `d2`, frente a 5 en `d`. Además cambia el formato: `d2` escribe casi
+  siempre «Pregunta 1 (el dato):», y `d`, «PREGUNTA 1 · EL DATO».
+- Con 42 de denominador, esos indecidibles cuentan como no-sale. Así que **el tiempo 2 no distingue «la línea cambió el veredicto» de
+  «la línea se llevó el veredicto de la prosa»**, que es el confundido que este diseño existía para evitar. La consecuencia
+  prerregistrada salta («se separan»), pero la frase que la acompaña («cambió lo que el juez concluye») no está demostrada.
+- Code no recalcula sobre las puntuables ni abre el tiempo 3: no está prerregistrado. Decide el arquitecto.
