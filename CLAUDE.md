@@ -733,6 +733,23 @@ El dueño del proyecto NO es programador. Vercel deploya automáticamente al hac
   con un candidato ERA el total y con dos dejó de serlo — «un registro que era
   completo cuando se escribió deja de serlo cuando cambia lo que describe, y no
   avisa». Promovida en F-102.
+  ⚠️ **Y SU FORMA PARA LO QUE SE VUELVE A LEER: LAS RESPUESTAS ARCHIVADAS SON
+  DATOS, Y SE PUEDEN VOLVER A LEER CON UN INSTRUMENTO CONGELADO. EL RESULTADO DE
+  UNA TANDA ES LO QUE DIJO SU INSTRUMENTO DECLARADO, Y ESO NO SE PUEDE VOLVER A
+  DECLARAR.** El caso, del 10/11/2026: la ruta `d` dio 22 de 42 el 06/11 con
+  el guion de entonces. Leída otra vez con `instrumento_x2`, la misma tanda da
+  36, y el 09/11, con ese mismo instrumento, dio 22 (p = 0,0018). El 36 vale
+  como dato de dispersión entre días por tres cosas:
+  1. el instrumento es el mismo en los dos lados, así que la comparación está
+     controlada por instrumento;
+  2. ese instrumento se construyó para el 09/11, antes de que nadie
+     recontara el 06/11, así que no se eligió después de ver el resultado;
+  3. la afirmación («la tasa se mueve entre días») no necesita que ninguno de
+     los dos números sea el resultado oficial de su tanda.
+
+  **Lo que sigue prohibido:** citar «el juez encontró D 36 veces de 42 el
+  06/11» como rendimiento del producto. No fue el dato declarado de aquella
+  tanda y no lo será nunca. Promovida por el arquitecto el 10/11/2026.
 - **UNA FILA AFIRMA LA EXISTENCIA DE AQUELLO DE LO QUE ES FILA, NO DE AQUELLO A
   LO QUE APUNTA.** Un análisis existe desde que ocurre — no desde que se decide
   qué hacer con su resultado. Su propietario es lo que ya existe cuando ocurre, y
