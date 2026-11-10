@@ -7309,3 +7309,19 @@ FICHEROS, en el orden dado: d2tanda_1_d.json d1f7f83b1f6e3fb7 (d, 2026-11-10T08:
    pulsación 2, vez 3: pregunta 1: NIEGA (línea NO_HALLAZGO); pregunta 2: PARCIAL (línea HALLAZGO)
    pulsación 2, vez 8: pregunta 1: NIEGA (línea NO_HALLAZGO); pregunta 2: PARCIAL (línea HALLAZGO)
 ```
+
+### ANTES DEL TIEMPO 2 (10/11): EL DENOMINADOR Y LO QUE SE DECIDE, ESCRITOS ANTES DE VER LA CIFRA (arquitecto; comprobado por Code)
+- **Del tiempo 1** (arquitecto): 6 indecidibles de 42, y los seis PARCIAL, en el extremo alto del intervalo prerregistrado (de 1 a 6,
+  por el Wilson de 6 de 84), pero dentro. La estimación puntual, 3, habría fallado; el intervalo no. **Cero fallos de línea en 42**,
+  frente a 6 NADA el 09/11: la línea hace lo que se construyó para hacer. Que la salida diga «línea HALLAZGO» en los PARCIAL no es una
+  fuga: va dentro de la propia definición de PARCIAL.
+- **EL DENOMINADOR DEL FISHER DEL TIEMPO 2 ES 42 EN LOS DOS BRAZOS** (arquitecto, cerrando un hueco del prerregistro antes de leer).
+  El motivo: el canal de la legibilidad está cerrado por construcción, porque la prosa lee `d2` sin las líneas. Con las puntuables como
+  denominador, una mejora de lectura podría disfrazarse de cambio de veredicto. **Comprobado por Code en el corredor aprobado**
+  (`correr_d2.test.ts:63` y `:66`): cuenta 42 respuestas por brazo y compara los «sale» de cada brazo sobre esas 42, así que los
+  indecidibles cuentan como no-sale. Ya era así; no se toca nada.
+- **LO QUE DECIDE HOY EL TIEMPO 2: ¿NOS QUEDAMOS CON LAS LÍNEAS?** (el corte está suspendido, así que la pregunta de ayer ya no está
+  en juego):
+  - **no se separan** → la línea es una mejora de lectura pura: arregla los NADA sin tocar lo que el juez concluye. **Se adopta**;
+  - **se separan** → la línea cambia también el veredicto, así que el medidor con líneas mide algo distinto de lo que hace el
+    producto. **No se adopta**, y se vuelve al medidor de prosa con su problema de ilegibles.
