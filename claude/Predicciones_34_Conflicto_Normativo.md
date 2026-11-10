@@ -5656,6 +5656,9 @@ predicciones todavía** (arquitecto): esta vez, el dato antes de la aritmética.
   ⚠️ **SIN PROCEDENCIA (marcado el 10/11/2026)**: «el rápido lee hoy la pareja entera» no dice de dónde sale, y la petición del valor
   de `ANALYSIS_PAREJA_ENTERA` al director, del mismo 05/11 (arriba, «la lista para el director»), no tiene respuesta archivada. Es un
   eco, no un dato. El valor en Production se le pidió al director el 10/11.
+  **Al lado, con procedencia (10/11)**: para el 30-31/10 el hecho sí tiene respaldo. `SQL_34_08`, ejecutada el 02/11, leyó
+  `pareja_entera` en las 21 pasadas de D, así que esos días el interruptor estaba encendido. Esta nota es probablemente un eco
+  VERDADERO de esa lectura. Lo que falta saber es si sigue encendido, y eso es lo que lee `SQL_34_12`.
 
 ### EL CAMPO «FORMA» DEL VERIFICADOR: EL ORDEN, ACEPTADO (arquitecto, 05/11/2026)
 Primero la sesión con el producto tal como está; después el campo, validado contra las marcas: **la forma sería lo que el modelo
