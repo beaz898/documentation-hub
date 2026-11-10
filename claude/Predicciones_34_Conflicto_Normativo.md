@@ -7480,3 +7480,15 @@ cuarto día 20/42: media 62.5 % · desviación 17.0 · t = 2.649 · p = 0.0385 �
 - **Si vale «1», el cuarto día conserva su valor y cambia de etiqueta**: «la tasa bajo una condición que le niega el §3.1 y le regala
   la pareja». Sigue siendo el único sitio donde se puede excluir el 40 %, y cuesta dos pulsaciones.
 - El recuento de los motivos de fallo sigue aprobado y en espera de esa respuesta.
+
+### EL VALOR DEL INTERRUPTOR NO SE PUEDE LEER; SE LEE LO QUE HIZO EL PROGRAMA: `SQL_34_12` (10/11/2026)
+- **El panel no contesta**: `ANALYSIS_PAREJA_ENTERA` está marcada como «sensitive» en Vercel y su valor no se puede volver a leer, ni
+  en el panel ni por CLI. El director salió del formulario sin guardar.
+- **`SQL_34_12_el_regimen_que_aplico_el_rapido.sql`** (PENDIENTE DE EJECUTAR, probada en PGlite) lee el régimen que aplicó cada
+  rápido. Devuelve: el último rápido de NOR-10 ↔ CLI-12; el último rápido de cualquier pareja; cada estado del interruptor con su
+  primera y su última fecha; y los cambios. `tijera_vieja` sólo sale con el interruptor apagado; los otros tres regímenes, sólo
+  encendido. **Dice cómo estaba cuando corrió cada rápido, no cómo está hoy.**
+- **Lo que ya está archivado y sirve de control positivo**: `SQL_34_08`, ejecutada el 02/11, leyó `pareja_entera` con los dos
+  documentos enteros en las 21 pasadas de D del 30-31/10 (34 de 34, con las del quinto). Ese día, el interruptor estaba encendido.
+- **A la deuda, como una sola entrada** que absorbe la del `model`: *una condición que hace falta para interpretar una medición se
+  guarda con la medición, no se consulta después; el entorno no tiene memoria y algunas de sus variables no se dejan leer.*
