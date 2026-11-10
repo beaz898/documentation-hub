@@ -7208,3 +7208,25 @@ cosas estaban archivadas, y lo retira):
 - **LA REGLA DEL LECTOR DE LAS LÍNEAS, REESCRITA por el arquitecto el 09/11**: se quitan los extremos que no son letra; manda la primera
   palabra; las dos palabras sólo cuentan con un conector entre ellas; una corrección no es un fallo; y el nombre del fallo es el de la
   última aparición. **Escrito y probado por Code; las huellas, pendientes de la aprobación del arquitecto.**
+
+### d CONTRA d2: LA PREMISA FALSA DEL ARQUITECTO, EL NO-OP, LOS TRES TIEMPOS, Y UNA FUGA DE CODE (10/11/2026)
+- **AL REGISTRO, la retirada del arquitecto** (sus palabras): afirmó que la línea final «es exactamente ese disparador» del lector de
+  prosa, y los siete casos de Code con el formato pedido dicen que la prosa no lee esa línea. **«Afirmé un mecanismo por
+  verosimilitud y lo di por hecho»**: ayer fue dar por nuevo lo archivado, hoy dar por medido lo imaginado.
+- **La limpieza (`sinLineas`), aprobada, con lo que significa «suelto» dicho en la prueba**: la línea entera, normalizada, es sólo SÍ o
+  NO. Una línea que empieza por «No se pueden cumplir…» es prosa y no se toca.
+- **EL NO-OP SOBRE LAS 84 RESPUESTAS ARCHIVADAS DE `d` (06/11 y 09/11)**: `sinLineas` no cambia ni un byte de ninguna. Con su caso
+  decisivo: un limpiador que quitara cualquier línea con «HALLAZGO» lo suspende. **Y su límite, medido**: en las 84 no hay ni una línea
+  que sea sólo SÍ o NO, así que el no-op no puede cazar una limpieza que quite esas líneas sin rótulo delante. Ese caso lo caza la
+  prueba sintética (mutante en rojo).
+- **EL QUE CORRE LA TANDA, EN TRES TIEMPOS Y EN ESTE ORDEN** (arquitecto): (1) los indecidibles de `d2`, por las líneas, con la banda
+  disponible; (2) la comparación de `d` contra `d2`, por prosa en las dos (en `d2`, sin las líneas), con Fisher bilateral y alfa 0,05,
+  y la consecuencia prerregistrada de cada resultado; (3) los positivos de `d2`, por las líneas, con el desglose la 1 / la 2 / las dos.
+  **El 2 va antes que el 3**: nadie debería leer el titular antes de saber si el titular vale. Antes de los tres, el tiempo **0 · la
+  alternancia** comprueba en el papel `d, d2, d, d2` y las horas en orden, y si no cuadra, para.
+- ⚠️ **UNA FUGA DE CODE, AL REGISTRO**: para comprobar que el corredor funciona por los tres caminos, Code lo pasó por cuatro salidas
+  sintéticas hechas con las respuestas REALES del 06/11, con líneas añadidas a mano a dos de ellas. **El tiempo 2 imprimió así un
+  recuento por prosa de las respuestas del 06/11 con el instrumento de X (36 de 42 salen y 4 indecidibles), y eso es justo el
+  recuento de la tanda del 06/11 que estaba prohibido** («esta tanda no se recuenta pase lo que pase»). No se ha usado, no se archiva
+  como resultado, y los ficheros sintéticos y las salidas se borraron. Debió hacerse con respuestas inventadas. Queda dicho porque
+  ese número ya lo ha visto Code.
