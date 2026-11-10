@@ -21,6 +21,14 @@ import { LINEAS_DE_HALLAZGO } from './lineas-de-hallazgo';
  * trozos), no se mide: la condición no sería la que se quiere. La ruta responde 409 y no llama al modelo.
  */
 
+/**
+ * 14 POR PULSACIÓN, TRES PULSACIONES: 42, como en `d` y `d2` (arquitecto, 10/11). El sondeo midió 24 s por llamada con 49.409 tokens
+ * de entrada, y `preguntarAlJuez` va de 4 en 4 (`batchSize: 4`): cada ronda tarda lo que su llamada más lenta. 21 son 6 rondas, que
+ * con la cola alta (unos 40 s por ronda) son 240 s contra los 300 de `maxDuration`, y si se pasa se pierde la pulsación entera.
+ * 14 son 4 rondas: unos 96 s, y unos 160 en el peor caso.
+ */
+export const VECES_DE_D3 = 14;
+
 /** Las líneas de la plantilla que nombran un trozo, y por qué se cambian. Es la ÚNICA diferencia con `d2`. */
 export const ENCABEZADOS_D3: ReadonlyArray<{ de: string; a: string }> = [
   { de: 'PAREJA {{N}}: {{DOC_1}}, trozo {{TROZO_A}} ↔ {{DOC_2}}, trozo {{TROZO_B}}', a: 'PAREJA {{N}}: {{DOC_1}} (documento completo) ↔ {{DOC_2}} (documento completo)' },

@@ -6,7 +6,7 @@ import { TAMANO_VENTANA } from '@/lib/analysis/reparto-de-la-pareja';
 import { PREGUNTA_CERRADA } from './medida-f130';
 import { CRITERIO_DEL_CUMPLIMIENTO } from './criterio-del-cumplimiento';
 import { construirPromptConLineas } from './lineas-de-hallazgo';
-import { CARACTERES_DEL_RESUMEN, ENCABEZADOS_D3, construirPromptD3, leerParejaEntera, plantillaD3, resumenDelPromptD3 } from './pareja-entera';
+import { CARACTERES_DEL_RESUMEN, ENCABEZADOS_D3, VECES_DE_D3, construirPromptD3, leerParejaEntera, plantillaD3, resumenDelPromptD3 } from './pareja-entera';
 
 // LA PAREJA ENTERA, RUTA d3 (10/11/2026). (a) `d` y `d2` no cambian: lo vigilan `lineas-de-hallazgo.test.ts` (los dos prompts,
 // byte a byte, contra el ensayo archivado) y la negativa dura de `medida-f130.test.ts`, que ahora recorre también `d3`.
@@ -94,7 +94,11 @@ describe('d3: la pareja entera (10/11)', () => {
     expect(bloqueEnsayo).not.toMatch(/prompt: armado\.prompt\b/);
     expect(bloqueTanda).not.toMatch(/armado\.prompt/);
     // el sondeo es UNA llamada, y la tanda las de siempre
-    expect(r).toContain('{ length: sondeo ? 1 : VECES_DE_D }');
+    expect(r).toContain('{ length: sondeo ? 1 : VECES_DE_D3 }');
+    expect(r).not.toMatch(/VECES_DE_D(?!3)/);
+    // 14 por pulsación, tres pulsaciones: 42, como d y d2 (arquitecto, 10/11, con la latencia del sondeo)
+    expect(VECES_DE_D3).toBe(14);
+    expect(3 * VECES_DE_D3).toBe(42);
     // y `leerParejaEntera` pasa de verdad por `leerLaPareja` del producto, y sólo deja pasar pareja_entera
     const m = leer('app/api/admin/medida-f130/pareja-entera.ts');
     expect(m).toContain('const pareja = leerLaPareja({');

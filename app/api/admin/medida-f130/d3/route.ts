@@ -2,8 +2,8 @@ import { createHash } from 'node:crypto';
 import { NextRequest, NextResponse } from 'next/server';
 import { getDocumentChunks } from '@/lib/read-chunks';
 import { autorizar, leerTrozos } from '../leer-de-la-base';
-import { FRASES_DE_D, fraseQueContiene, PAREJA_DE_D, VECES_DE_D } from '../medida-f130';
-import { construirPromptD3, leerParejaEntera, resumenDelPromptD3 } from '../pareja-entera';
+import { FRASES_DE_D, fraseQueContiene, PAREJA_DE_D } from '../medida-f130';
+import { construirPromptD3, leerParejaEntera, resumenDelPromptD3, VECES_DE_D3 } from '../pareja-entera';
 import { CRITERIO_DEL_CUMPLIMIENTO } from '../criterio-del-cumplimiento';
 import { preguntarAlJuez } from '../preguntar-al-juez';
 
@@ -47,7 +47,7 @@ export async function POST(req: NextRequest) {
   if (!armado.ok) return NextResponse.json({ error: armado.motivo }, { status: 409 });
   const huellaDelPrompt = huella(armado.prompt);
 
-  const medida = `F-130 · la pregunta cerrada CON LAS DOS LÍNEAS DE HALLAZGO sobre la pareja de D de la siembra (§2.4 ↔ §3.5), los dos DOCUMENTOS ENTEROS (pareja_entera), ${VECES_DE_D} veces`;
+  const medida = `F-130 · la pregunta cerrada CON LAS DOS LÍNEAS DE HALLAZGO sobre la pareja de D de la siembra (§2.4 ↔ §3.5), los dos DOCUMENTOS ENTEROS (pareja_entera), ${VECES_DE_D3} veces por pulsación`;
   const documentos = {
     analizado: { documento: x.nombre, generacion: x.generacion, trozos: trozosX.length, caracteres: pareja.textoAnalizado.length },
     candidato: { documento: y.nombre, generacion: y.generacion, trozos: trozosY.length, caracteres: pareja.bloqueCandidato.length },
@@ -71,7 +71,7 @@ export async function POST(req: NextRequest) {
 
   const sondeo = req.nextUrl.searchParams.get('sondeo') === '1';
   const nombre = `${x.nombre} (documento completo) ↔ ${y.nombre} (documento completo)`;
-  const tareas = Array.from({ length: sondeo ? 1 : VECES_DE_D }, (_, i) => ({ pareja: nombre, vez: i + 1, candidatoId: y.documentId, prompt: armado.prompt }));
+  const tareas = Array.from({ length: sondeo ? 1 : VECES_DE_D3 }, (_, i) => ({ pareja: nombre, vez: i + 1, candidatoId: y.documentId, prompt: armado.prompt }));
   const { modelo, respuestas, registro } = await preguntarAlJuez(tareas);
 
   return NextResponse.json({ medida: sondeo ? `${medida} · SONDEO DE UNA LLAMADA` : medida, cuando: new Date().toISOString(), huellaDelPrompt, documentos, lectura: pareja.lectura, modelo, respuestas, registro });
