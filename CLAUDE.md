@@ -455,6 +455,18 @@ El dueño del proyecto NO es programador. Vercel deploya automáticamente al hac
   estaba; éste es el INVERSO y es NUESTRO — damos por inexistente algo que sí
   está, y proponemos construir lo construido. Se caza igual y solo así: abriendo
   el consumidor antes de escribir la premisa. Promovida el 01/09/2026 (F-94).
+  ⚠️ **Y SU CARA SIMÉTRICA, la del archivo: LEER ALGO POR PRIMERA VEZ NO LO
+  CONVIERTE EN UN HALLAZGO NUEVO; ANTES DE LLAMARLO NUEVO, HAY QUE BUSCARLO EN EL
+  ARCHIVO.** Aquí la pieza que existía y se daba por nueva no es código: es lo
+  que ya se sabía. El caso, del 09/11/2026: al leer el prompt real del ensayo
+  de `d2`, el arquitecto presentó como «ésta no la teníamos» la frase «El
+  Coordinador de Calidad no sustituye al Director Clínico…», y era **A**, la
+  `FRASE_A` del guion, la que da nombre al caso y define «a caballo». Su efecto
+  ya se había medido el 30/10 (F-130:675). En el mismo mensaje dio por
+  «confirmados de la salida y no del archivo» los dos punteros a §2.1 y §3.1,
+  y los dos estaban archivados. **Es un patrón, no un despiste**: el día
+  anterior había pasado lo mismo con el 186, con una cita de Fable y con el
+  «nueve de las diez». Promovida por el arquitecto el 10/11/2026.
   ⚠️ **Y SU FORMA MÁS CARA, del 14/09/2026: DECIR QUE UN RESIDUO ES BENIGNO ES
   UNA AFIRMACIÓN SOBRE SU CONSUMIDOR, NO SOBRE EL RESIDUO.** «Benigno» no es una
   propiedad de lo que queda tirado: es una propiedad de quién lo lee. Sin abrir

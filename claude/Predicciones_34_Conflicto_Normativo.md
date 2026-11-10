@@ -7175,3 +7175,36 @@ servirse un modelo distinto el 06/11, el 09/11 y el día de la tanda. Correr `d`
   preguntas.
 - **Lo único comprobado hoy, porque toca a la tanda** (Code): **las rutas de la herramienta no toman el cerrojo.** No hay ningún uso de
   `AnalysisLock` en `app/api/admin/medida-f130/`, así que un cerrojo pillado no bloquearía las pulsaciones.
+
+### LOS ENSAYOS DE d Y d2 EN PRODUCCIÓN, COMPROBADOS; Y LO QUE VA AL PRERREGISTRO ANTES DEL LECTOR (arquitecto y Code, 10/11/2026)
+**LAS SALIDAS, a Code un día después**: el director se las pegó el 09/11 al arquitecto y no a Code, y el arquitecto encargó a Code una
+comparación con datos que Code no tenía. «No vuelvo a mandarte a comprobar algo sin preguntarte antes si lo tienes» (arquitecto). Se
+pegaron a Code el 10/11, y quedan en `claude/Medida_F130_D2_Ensayos_09-11-2026.json`, sacadas del registro con un script.
+
+**LA COMPARACIÓN, por script** (`comparar_ensayos_d2.mjs`), en una sola salida:
+- **(1) el prompt de `d` en PRODUCCIÓN es el del ensayo de D archivado el 04/11, byte a byte**: huella `33375a78508e6924` en los dos, 8.953
+  caracteres. Es la prueba (a) corriendo contra producción;
+- **(2) el prompt de `d2` es el de `d`, más «\n\n», más el bloque aprobado** (`ae20948d748edca0`);
+- **(3) los dos trozos, en las dos salidas, son los archivados**: trozos 4 y 6, generación 1, y el ancla de cada uno encuentra su frase;
+- los dos con `estadoHttp` 200 y sin hora, como se acordó.
+
+**AL PRERREGISTRO, CORREGIDO** (el arquitecto había escrito «ésta no la teníamos» y «confirmada de la salida y no del archivo»; las dos
+cosas estaban archivadas, y lo retira):
+- **La cota de lectura**: los dos lados apuntan fuera del trozo. CLI-12·6 enuncia el principio como «la separación de funciones descrita
+  en el apartado 3.1», y NOR-10·4 habla de «la responsabilidad última descrita en el apartado 2.1»; ni §3.1 ni §2.1 están en los trozos.
+  Si el juez falla, no se sabrá si es porque el caso es difícil o porque el principio le llega como un puntero que no puede seguir. Las
+  dos líneas no arreglan eso.
+- **A, que está en el mismo trozo** («El Coordinador de Calidad no sustituye al Director Clínico en la responsabilidad última…»). Se lee
+  como si resolviera el conflicto y no lo resuelve, así que una respuesta que niega puede estar leyéndola: un «no» no es por fuerza un
+  fallo del juez. **El límite: que A tapa a D se midió el 30/10 en la pareja del §3.1 y con la regla laxa (F-130:675); en la pareja
+  del §3.5 no se ha medido nunca.**
+- **LOS DOS LECTORES, con las palabras del arquitecto**: la PROSA, en las dos rutas, decide la COMPARACIÓN de `d` contra `d2`; las
+  LÍNEAS, en `d2`, deciden construir o enterrar. Un instrumento sesgado, usado igual en los dos brazos, sigue detectando una diferencia.
+- **QUITAR LAS LÍNEAS ANTES DE PASAR LA PROSA POR `d2`, Y LO QUE SE MIDIÓ** (`prosa_con_lineas.test.ts`, Code): con el rótulo y el valor
+  en la misma línea, que es el formato pedido, **el lector de prosa no la lee**: siete casos con ese formato salen iguales con y sin la
+  línea. **El único caso que cambia el veredicto es el rótulo PARTIDO**, con el valor solo en la línea siguiente: la prosa lee ese «NO»
+  suelto como hallazgo. Y quitar sólo la línea del rótulo no lo arregla. La limpieza (`sinLineas`) quita el rótulo y, si viene vacío,
+  también el SÍ o NO de la línea siguiente, y ése es su caso decisivo.
+- **LA REGLA DEL LECTOR DE LAS LÍNEAS, REESCRITA por el arquitecto el 09/11**: se quitan los extremos que no son letra; manda la primera
+  palabra; las dos palabras sólo cuentan con un conector entre ellas; una corrección no es un fallo; y el nombre del fallo es el de la
+  última aparición. **Escrito y probado por Code; las huellas, pendientes de la aprobación del arquitecto.**
