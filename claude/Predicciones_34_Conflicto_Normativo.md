@@ -7669,3 +7669,72 @@ LATENCIA: 24037 ms · ENTRADA: 49409 tokens · SALIDA: 4940 tokens
 - **Fuga, declarada**: la respuesta del modelo llegó dentro de la salida y la vieron Code y el arquitecto. Es UNA respuesta, fuera de
   cualquier tanda, y no se cuenta ni se interpreta.
 - La entrada estimada antes era ≈ 47.805 tokens. La medida es 49.409, un 3,4 % más. El coste lo mueve muy poco.
+
+### ANTES DE LA TANDA DE d3: LA CONCURRENCIA, LA TRAZA DEL SONDEO Y LAS DOS DERIVACIONES (Code, 10/11/2026; PROPUESTA, la aprueba el arquitecto)
+**La concurrencia, leída del código**: `preguntarAlJuez` llama a `runInBatches(…, { batchSize: 4 })`
+(`app/api/admin/medida-f130/preguntar-al-juez.ts`). Son rondas de 4 con `Promise.all`, una detrás de otra, y cada ronda tarda lo que
+su llamada más lenta (`lib/run-in-batches.ts`). La ruta declara `maxDuration = 300`, y `vercel.json` no la pisa: sólo fija la de
+`/api/ask`. **Es 4, así que se queda el reparto de 14 por pulsación y tres pulsaciones.** Hecho en `VECES_DE_D3 = 14`, con 17 mutantes
+muertos y los gates en verde. Un margen que no se ve: `callLLM` reintenta hasta 5 veces, con unos 52 s de esperas; si una ronda entera
+reintenta, 14 siguen cabiendo y 21 no.
+
+**LA TRAZA DEL SONDEO** (`herramientas/traza_sondeo.test.ts`; instrumento de d2 sin tocar). Es una traza, no un recuento. Literal:
+```
+líneas: la 1 → HALLAZGO · la 2 → NO_HALLAZGO
+clases: pregunta 1 → OTRO · pregunta 2 → NIEGA · casilla (regla ii) → NO SALE · vía — · la prosa sola diría NO SALE
+citas de la pregunta 1: 6
+   «El responsable último del cumplimiento de este protocolo en cada centro es el Director Clí…» → en P24: no · en P35: no
+   «El responsable último de la esterilización del instrumental en cada clínica es el Coordina…» → en P24: no · en P35: no
+   «mantiene su esterilidad durante un máximo de 6 meses» → en P24: no · en P35: no
+   «el material esterilizado y envasado se considera válido durante un periodo máximo de 12 me…» → en P24: no · en P35: no
+   «se realiza semanalmente, todos los lunes a primera hora» → en P24: no · en P35: no
+   «se realiza con periodicidad mensual, el primer día laborable de cada mes» → en P24: no · en P35: no
+citas de la pregunta 2: 0
+comprobación del paso: clase(p, sección 1, «sí», 'sí') = OTRO
+```
+- **Cae en NO SALE.** La pregunta 1 tiene hallazgo por su línea, pero ninguna de sus seis citas cae en el párrafo de D (P24 o P35),
+  así que es OTRO. La 2 dice NO por su línea: NIEGA. OTRO con NIEGA, por la regla (ii), es NO SALE.
+- **La puerta del instrumento usa como pajar los trozos 4 y 6, no los documentos enteros, y aquí no cambia nada**: la clase sólo
+  pregunta si la cita cae en P24 o en P35, y esos dos párrafos están dentro de los trozos 4 y 6. Ninguna de las seis cae ahí con
+  ningún pajar.
+- La respuesta hace justo lo que el prompt prohíbe («NO VALE RESPONDER "ya queda recogido en la pregunta 1"»): manda a la pregunta 1
+  todo lo que encontró, «porque recae sobre la misma materia».
+
+⚠️ **UN HUECO DEL INSTRUMENTO QUE HAY QUE CERRAR ANTES DE PULSAR**: con los documentos enteros, el juez tiene a la vista el §3.1, que
+enuncia la separación de funciones literalmente. Una respuesta que encuentre el conflicto citando §2.4 contra el **§3.1**, y no
+contra el §3.5, **la cuenta el instrumento como PARCIAL** (la cita de NOR-10 en P24, la de CLI-12 fuera de P35), es decir, como
+indecidible. Y §2.4 contra §3.1 es la pareja de E3, que el archivo dice que **no es D** (`medida-f130.ts:162`: «su 36 de 40 NO es la
+tasa de D»). **Decide el arquitecto, antes de pulsar**: si en `d3` §2.4 contra §3.1 cuenta como D, como OTRO o como indecidible.
+Mientras no se decida, el mecanismo 1 puede convertir negaciones en PARCIAL en vez de en SALE.
+
+**LAS DOS DERIVACIONES**
+- **MECANISMO 1 SOLO** (el §3.1 delante quita las negaciones por fragmento; nada se absorbe en la 1). Derivado de d2 del 10/11 (28
+  SALE, 8 NIEGA, 6 PARCIAL) y de que 14 de 15 negaciones reales eran por el §3.1 que faltaba (`prediccion_d3.mjs`, Monte Carlo con la
+  incertidumbre de cada proporción). Literal:
+```
+MECANISMO 1 SOLO (el §3.1 delante quita las negaciones por fragmento; nada se absorbe en la 1), un día como el 10/11:
+  NIEGA: mediana 1 · intervalo predictivo al 95 % de 0 a 5 (de 42)
+  PARCIAL, sin cambio: mediana 7 · intervalo predictivo al 95 % de 1 a 14 (de 42)
+  SALE: mediana 34 · intervalo predictivo al 95 % de 26 a 40 (de 42)
+  BASE, d2 del 10/11 por las líneas: SALE 28 · NIEGA 8 · PARCIAL 6
+```
+  No lleva dentro la variación entre días (τ ≈ 15 puntos), y supone que el PARCIAL no cambia (ver el hueco de arriba).
+- **MECANISMO 2 SOLO** (A visible; D se absorbe en la pregunta 1). **No tiene tasa derivable**: su único dato es el sondeo, 1 de 1
+  (Wilson del 20,7 % al 100 %). Si actúa en una fracción f de las respuestas, y una absorbida da OTRO más NIEGA como el sondeo, SALE
+  baja de unas 34 a unas 34·(1 − f), y NIEGA sube de 1 a 1 + 34·f. Con f = 0,5: SALE unas 17 y NIEGA unas 18.
+
+**LO QUE DISTINGUE UNO DE OTRO, y es lo que hace que la tanda decida algo. Las TASAS NO lo distinguen**: los intervalos se solapan,
+y el SALE de 26 a 40 del mecanismo 1 contiene el 28 de hoy. **Lo distinguen las NEGACIONES y su MOTIVO:**
+1. **Cuántas NIEGA.** Con el mecanismo 1 solo, de 0 a 5. **6 o más** quiere decir que hay algo más que el mecanismo 1.
+2. **El motivo de cada NIEGA**, con categorías escritas antes de leer (como el recuento de hoy):
+   - **(a) fragmento**: dice que el §3.1 no está o que no puede suponer lo que falta en el trozo. Con los documentos enteros
+     delante, **es la hipótesis de «un mismo par de trozos»** (prerregistrada hoy);
+   - **(d) absorción**: niega la 2 porque lo que encontró «recae sobre la misma materia» o «pertenece a la pregunta 1», y cita A en
+     la 1. **Es el mecanismo 2**;
+   - **(b)** lectura estrecha del principio (sólo sustitución) y **(c)** otro motivo, nombrado.
+3. **La vía de las que SALEN**: si D aparece citada en la pregunta 1 (vía «la 1»), el juez la encontró pero la llamó contradicción
+   de dato. Es una absorción que el instrumento sí cuenta como SALE. Hoy, con trozos, fue 0 de 28.
+
+**La regla que se propone**: **mecanismo 1** si NIEGA ≤ 5 y ninguna es (d). **Mecanismo 2 presente** si hay alguna (d). **Mecanismo
+2 dominante** si NIEGA ≥ 6 y la mayoría son (d). **Hipótesis de «par de trozos» viva** si aparece alguna (a). Las PARCIAL que citen
+§2.4 contra §3.1 se cuentan aparte, con lo que decida el arquitecto sobre el hueco de arriba.
