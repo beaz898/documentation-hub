@@ -7529,3 +7529,55 @@ organización leída,organización leída: 68bf28c3-8352-4052-8eb4-3a7e31b74b53 
   emparejada. **Es el mejor proxy posible sin ejecutar el producto**, que sigue bloqueado por el corpus.
 - **La regla de la deuda decidió hoy qué pregunta tenía respuesta**: el régimen estaba guardado con cada medición y se ha recuperado;
   el `model` no se guarda y no se ha podido. Queda escrito en su entrada (`Estado_Y_Pendientes…` §5).
+
+### EL RECUENTO DE LOS MOTIVOS: EL PUNTERO AL §3.1 ES EL MOTIVO DOMINANTE; UN DEFECTO NUEVO DEL LECTOR DE PROSA; Y EL COSTE DE LA PAREJA ENTERA (10/11/2026)
+**La predicción del arquitecto, escrita antes de contar**: de las 16 que niegan (8 de `d2` por las líneas y 8 de `d` por la prosa),
+entre 12 y 16 dan como motivo expreso que el §3.1 no está. **Lo que la refutaría: 8 o menos.**
+
+**El recuento** (`herramientas/motivos.test.ts`, scratchpad, huella `b572468e96eaa757`). Las categorías y las expresiones estaban
+escritas antes de leer ninguna respuesta, y el clasificador pasó antes seis frases inventadas, con dos trampas: una que nombra el
+3.1 sin decir que falta, y una que lo menciona sin más. Las poblaciones dan 8, 8 y 7, lo mismo que los tiempos 2 y 3. Literal:
+```
+ESCRITO POR: motivos.test.ts b572468e96eaa757
+d2, NIEGA por las líneas: 8 · (a) 3.1 expreso: 7 (de ellas, también con el argumento de (b): 2) · (b) titularidad/sustitución sin 3.1: 1 · (c) otro: 0
+d, NIEGA por la prosa: 8 · (a) 3.1 expreso: 8 (de ellas, también con el argumento de (b): 4) · (b) titularidad/sustitución sin 3.1: 0 · (c) otro: 0
+d, INDECIDIBLES por la prosa (aparte): 7 · (a) 3.1 expreso: 6 (de ellas, también con el argumento de (b): 6) · (b) titularidad/sustitución sin 3.1: 1 · (c) otro: 0
+```
+**La lectura de cada una** (Code), para cazar aciertos por el camino equivocado:
+- **`d2`, 8 que niegan**: las 7 de (a) niegan de verdad, y el motivo es el 3.1 que falta. La de (b) (pulsación 2, vez 5) tiene otro
+  motivo, y es real: lee el principio como limitado a la sustitución («excluye que el Director sustituya al Coordinador, no que una
+  misma persona ocupe ambos cargos»), sin invocar el 3.1.
+- **`d`, 8 que «niegan» por la prosa**: 7 niegan de verdad, las 7 por el 3.1. **La octava no niega: afirma el hallazgo.** Es la
+  pulsación 1, vez 20: «Hallazgo: sí. Etiqueta: "normacontranorma"». El clasificador la puso en (a) por un matiz final sobre el 3.1:
+  **un (a) por el camino equivocado.**
+- **Los 7 indecidibles de `d`**: **6 AFIRMAN el hallazgo** (se quedaron sin decidir por las citas o el lector, no por negar), y caen
+  en (a) sólo por la salvedad sobre el 3.1. Otro (a) por el camino equivocado. **1 niega de verdad**, por el 3.1 (pulsación 2, vez 9).
+  Así que la columna de los indecidibles no mide motivos de negación.
+
+**Resultado sobre la predicción**:
+- **De las 16 que la herramienta da como negativas, 15 son negaciones de verdad, y 14 de ellas por el 3.1.** La que queda es la (b)
+  de `d2`. Sobre el denominador del arquitecto, el clasificador da 15 de 16, y la lectura, 14 de 15 negaciones reales.
+- **Las dos cifras caen dentro del 12-16. La predicción se cumple y el umbral de refutación (8) queda lejos.**
+- Si se suma el indecidible que niega, son 15 de 16 negaciones reales por el 3.1.
+
+⚠️ **UN DEFECTO NUEVO DEL LECTOR DE PROSA APROBADO, cazado al leer** (`herramientas/sonda_vez20.test.ts`): en la pulsación 1, vez 20
+de `d`, el lector lee «sí» en la pregunta 2 (veredicto aprobado y lector amplio, los dos) y lo toma como «sí, se pueden cumplir», es
+decir, NIEGA. El «sí» que encuentra es el de «Hallazgo: sí», cuya polaridad es la contraria. **Es el defecto simétrico del de «No hay
+hallazgo» del 09/11.** Consecuencia: el 27 de 42 del tiempo 2 de `d` habría sido 28 con esta respuesta bien leída. **No se vuelve a
+declarar**: es el resultado de su instrumento declarado. Se apunta como defecto conocido del lector, con su caso.
+
+**EL COSTE DE LA MISMA MEDIDA CON LA PAREJA ENTERA** (`coste_pareja_entera.mjs`, scratchpad). Precios de `llm-pricing.ts` (Haiku 5.5,
+0,10 $/M de entrada y 0,50 $/M de salida, tramo de menos de 100.000 tokens). Literal:
+```
+los dos trozos de hoy: 2117 caracteres (≈ 771 tokens) · la pareja entera: 121936 caracteres (≈ 44421 tokens)
+entrada por llamada: d, medida, 4155 · pareja entera, ESTIMADA, ≈ 47805 (×11.5) · por debajo de 100.000, así que vale el precio del tramo
+salida por llamada: d de hoy, media 3430 (de 2565 a 5092); con la pareja entera NO se sabe y se toma la misma
+COSTE REAL de las 42 de d de hoy (registro): 0.0895 $ · 0.00213 $ por llamada
+COSTE ESTIMADO con la pareja entera: 0.00650 $ por llamada · 21 llamadas (una pulsación): 0.1364 $ · 42 (las dos pulsaciones): 0.2728 $ · ×3.0 lo de hoy
+  de ello, entrada 0.2008 $ y salida 0.0720 $ · si la salida doblara, 0.3448 $
+```
+- La entrada estimada cuadra con lo medido: el 22/10, el juez gastó 50.834 tokens contra CLI-12 con la pareja entera
+  (`Estado_Y_Pendientes…:1823`), y unos 6.400 eran del prompt de entonces. Quedan unos 44.400 tokens para los documentos; aquí salen
+  44.421.
+- **No es «lo mismo»**: la entrada se multiplica por 11,5 y el coste total por unos 3, porque la salida pesa igual. **Unos 0,27 $ las
+  42 llamadas**, y 0,34 $ si la salida doblara.
