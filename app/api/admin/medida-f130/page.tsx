@@ -9,7 +9,7 @@ export default function MedidaF130() {
   const [salida, setSalida] = useState('');
   const [ocupado, setOcupado] = useState(false);
 
-  async function medir(ruta: 'vecindad' | 'pregunta' | 'limpia?ensayo=1' | 'limpia' | 'quinto?ensayo=1' | 'quinto' | 'd?ensayo=1' | 'd' | 'd2?ensayo=1' | 'd2') {
+  async function medir(ruta: 'vecindad' | 'pregunta' | 'limpia?ensayo=1' | 'limpia' | 'quinto?ensayo=1' | 'quinto' | 'd?ensayo=1' | 'd' | 'd2?ensayo=1' | 'd2' | 'd3?ensayo=1' | 'd3?sondeo=1' | 'd3') {
     setOcupado(true);
     setSalida(`Midiendo ${ruta}…`);
     try {
@@ -50,6 +50,12 @@ export default function MedidaF130() {
       <p>
         <button disabled={ocupado} onClick={() => medir('d2?ensayo=1')}>D2 · ensayo: el prompt con las dos líneas (sin modelo, no gasta)</button>{' '}
         <button disabled={ocupado} onClick={() => medir('d2')}>D2 · la tanda: la misma pareja con las dos líneas de hallazgo, 21 veces (gasta en la API)</button>
+      </p>
+      <p>La D con la PAREJA ENTERA (10/11): los dos documentos enteros, como el rápido del producto, y las dos líneas. Uno a uno y sólo cuando el arquitecto lo diga: primero el ensayo, luego el sondeo, y la tanda la última:</p>
+      <p>
+        <button disabled={ocupado} onClick={() => medir('d3?ensayo=1')}>D3 · ensayo: los dos documentos enteros y el prompt (sin modelo, no gasta)</button>{' '}
+        <button disabled={ocupado} onClick={() => medir('d3?sondeo=1')}>D3 · sondeo: UNA sola llamada, para medir la latencia (gasta unos 0,006 $)</button>{' '}
+        <button disabled={ocupado} onClick={() => medir('d3')}>D3 · la tanda: la pareja entera, 21 veces (gasta en la API, unos 0,14 $)</button>
       </p>
       <p>Copia todo lo que salga abajo y pégaselo a Claude Code.</p>
       <pre style={{ whiteSpace: 'pre-wrap', background: '#f4f4f4', padding: '1rem', minHeight: '10rem' }}>{salida}</pre>
