@@ -7399,3 +7399,30 @@ TRES DÍAS DE LA RUTA d, MISMO INSTRUMENTO: 06/11 → 36 de 42 · 09/11 → 22 d
 - **El «142 días» depende de dónde cae la media** (a 2,5 puntos del 70 %), así que no es un coste general. Si el portón sólo tuviera
   que separar 70 % de 40 %, bastaría una semianchura de unos ±15, y eso son unos 5 días de 42.
 - **τ sale de 3 puntos.** Con 2 grados de libertad, el intervalo de τ es muy ancho, y la tabla entera hereda esa incertidumbre.
+
+### ¿QUEDA EXCLUIDO EL 40 % CON LOS TRES DÍAS? NO, Y POR LOS PELOS; UN CUARTO DÍA DE 19/42 O MÁS LO EXCLUYE (Code, 10/11/2026)
+- **Corrección del arquitecto a su propia lectura**: lo que no se resuelve no es «un portón basado en una tasa», sino 67,5 % contra
+  70 %. El valor cayó pegado al borde de la banda; la banda no está mal construida.
+- Hecho con `excluir_40.mjs` y `cuarto_dia.mjs` (scratchpad). **La unidad es el DÍA**: las tres tasas diarias son las observaciones,
+  y su dispersión lleva dentro la variación entre días y la binomial. Prueba t de una cola, con 2 grados de libertad, sin suponer un τ
+  conocido. **Control**: los cuantiles de la t que calcula la herramienta coinciden con los de tablas. Salida literal:
+```
+TRES DÍAS DE LA RUTA d: 36/42 = 85.7 % · 22/42 = 52.4 % · 27/42 = 64.3 % · media de las tasas diarias 67.5 % · desviación entre las tres 16.9 puntos
+control de la t: cuantil 0,95 con 2 g.l. = 2.920 (de tablas: 2,920) · con 3 g.l. = 2.353 (de tablas: 2,353)
+1 · MÉTODO PRINCIPAL (la unidad es el día, t de una cola, 2 g.l.): t = 2.816 · p (H0: media ≤ 40 %) = 0.0532 · cota inferior al 95 % de una cola: 39.0 % · intervalo bilateral al 95 %: 25.5 % a 109.4 %
+   → EL 40 % NO QUEDA EXCLUIDO al 5 % con los tres días
+   (al lado, NO como método: con τ = 15.4 puntos tomado como verdadero, z = 2.79, p ≈ 0.0017. Sale mucho más segura porque olvida que τ sale de 3 puntos.)
+2 · CUÁNTOS DÍAS HARÍAN FALTA, si cada día nuevo se pareciera a éstos (media 67.5 %, desviación 16.9 puntos), PROYECCIÓN:
+   k = 3 días: t = 2.82 contra 2.920 → no excluye · cota inferior 39.0 %
+   k = 4 días: t = 3.25 contra 2.353 → excluye · cota inferior 47.6 %
+   k = 5 días: t = 3.64 contra 2.132 → excluye · cota inferior 51.4 %
+   k = 6 días: t = 3.98 contra 2.015 → excluye · cota inferior 53.6 %
+   k = 7 días: t = 4.30 contra 1.943 → excluye · cota inferior 55.1 %
+   k = 8 días: t = 4.60 contra 1.895 → excluye · cota inferior 56.1 %
+3 · PARA SEPARAR 70 % DE 40 % (30 puntos: semianchura de ±15 o menos), con la fórmula de la tabla del 10/11 y 42 por día: 5 días (±14.9); con 4, ±16.7
+```
+- **Sin proyección (`cuarto_dia.mjs`): con un cuarto día, los cuatro excluyen el 40 % si y sólo si ese día da 19 de 42 o más (45 %).**
+  El peor de los tres días que hay dio 22.
+- No levanta el corte suspendido ni decide construir. Si el cuarto día da 19 o más, decide sólo el lado de abajo: **enterrar
+  queda descartado**.
+- Regla promovida a `CLAUDE.md` el mismo día: la precisión se compra en días, no en respuestas por día.

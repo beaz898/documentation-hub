@@ -687,6 +687,27 @@ El dueño del proyecto NO es programador. Vercel deploya automáticamente al hac
   del 55,45 %. El intervalo del 4, que nadie calculó, iba del 3,8 al 22,1 %, es
   decir, de 2 a 9 indecidibles. El adjetivo sin medir era «el techo es 4».
   Promovida por el arquitecto el 09/11/2026.
+- **CUANDO LO MEDIDO SE MUEVE ENTRE DÍAS, LA PRECISIÓN SE COMPRA EN DÍAS Y NO EN
+  RESPUESTAS POR DÍA. UNA TANDA DE 42 REPARTIDA EN CINCO DÍAS VALE MÁS QUE UNA
+  DE 1.000 EN UNA TARDE, Y CUESTA MENOS.** Hasta el 10/11 se hacía al revés:
+  se apretaba el n y se metía todo en una tarde.
+  El caso, del 10/11/2026: la ruta `d` de F-130, sobre la misma pareja y con el
+  mismo instrumento, dio 36, 22 y 27 de 42 en tres días. No son homogéneos
+  (Fisher-Freeman-Halton, p = 0,0036), y la variación entre días sale en
+  **τ ≈ 15,4 puntos**. Esta tabla da la semianchura al 95 % de la tasa media,
+  1,96·√(τ²/k + p(1−p)/(k·n)), con k días de n respuestas:
+
+  | días | 42 por día | 1.000 por día | infinitas por día |
+  |---|---|---|---|
+  | 1 | ±33,4 | ±30,4 | ±30,2 |
+  | 5 | ±14,9 | ±13,6 | ±13,5 |
+  | 10 | ±10,6 | ±9,6 | ±9,6 |
+  | 20 | ±7,5 | ±6,8 | ±6,8 |
+
+  Con un solo día, ningún n baja de ±30. τ sale de tres puntos, así que es un
+  orden de magnitud y no una cifra. El cálculo está archivado en
+  `claude/Predicciones_34_Conflicto_Normativo.md`. Promovida por el arquitecto
+  el 10/11/2026.
 - **UNA REGLA DE CLASIFICACIÓN NO ESTÁ ESCRITA HASTA QUE TODOS LOS CASOS
   POSIBLES CAEN EN UNA CASILLA Y SÓLO EN UNA. Se comprueba ENUMERANDO el espacio
   de casos, no leyendo la regla.**
