@@ -7376,3 +7376,26 @@ d2 (sin líneas): 42 respuestas · sin secciones para el lector: 0 · indecidibl
 ```
 - El 28 de `d2` por las líneas y el 27 de `d` por la prosa, del mismo día, **no son una comparación**: salen de dos lectores
   distintos, y ese contraste no está validado.
+
+### ¿SE PUEDEN JUNTAR LOS TRES DÍAS DE LA RUTA d? NO (Code, 10/11/2026, a petición del arquitecto)
+Hecho con `homogeneidad_d.mjs` (scratchpad) sobre las tres cifras archivadas con el mismo instrumento. El 36 se usa como dato de
+dispersión, nunca como rendimiento. **Control**: el mismo cálculo exacto sobre el par 06/11–09/11 da p = 0,0018, el valor archivado.
+Salida literal:
+```
+TRES DÍAS DE LA RUTA d, MISMO INSTRUMENTO: 06/11 → 36 de 42 · 09/11 → 22 de 42 · 10/11 → 27 de 42 · conjunto 85 de 126
+1 · HOMOGENEIDAD: Fisher-Freeman-Halton exacto (3×2), p = 0.0036 · χ² = 10.92, 2 g.l., p = 0.0043 · (control: suma de la distribución = 1.000000)
+3 · NO SON HOMOGÉNEOS: no se junta nada.
+   variación entre días (momentos, sobre la escala de la proporción): varianza observada de las tres tasas 0.0285 − la binomial esperada con n = 42 0.0048 = 0.0238 → desviación entre días τ ≈ 15.4 puntos (con 3 días, 2 grados de libertad: es un orden de magnitud, no una cifra)
+   la semianchura al 95 % de la tasa media de k días con n por día es 1,96·√(τ²/k + p(1−p)/(k·n)), con p = 0.675. Su SUELO con n infinito es 1,96·τ/√k:
+   k =  1 días · n=42: ±33.4 · n=100: ±31.6 · n=1000: ±30.4 · n=∞: ±30.2
+   k =  3 días · n=42: ±19.3 · n=100: ±18.2 · n=1000: ±17.5 · n=∞: ±17.4
+   k =  5 días · n=42: ±14.9 · n=100: ±14.1 · n=1000: ±13.6 · n=∞: ±13.5
+   k = 10 días · n=42: ±10.6 · n=100: ±10.0 · n=1000: ±9.6 · n=∞: ±9.6
+   k = 20 días · n=42: ±7.5 · n=100: ±7.1 · n=1000: ±6.8 · n=∞: ±6.8
+   para que un portón del 70 % se resuelva con la media de hoy (67.5 %, a 2.5 puntos), la semianchura tiene que bajar de 2.5: con un solo día NINGÚN n lo consigue (suelo ±30.2); hacen falta al menos 142 días aunque cada uno fuera infinito, y más con 42 por día
+```
+- **Lo que decide es el número de DÍAS, no el n por día.** Pasar de 42 a 1.000 respuestas en un día baja la semianchura de ±33,4 a
+  ±30,4. Pasar de 1 día a 5 la baja a ±14,9.
+- **El «142 días» depende de dónde cae la media** (a 2,5 puntos del 70 %), así que no es un coste general. Si el portón sólo tuviera
+  que separar 70 % de 40 %, bastaría una semianchura de unos ±15, y eso son unos 5 días de 42.
+- **τ sale de 3 puntos.** Con 2 grados de libertad, el intervalo de τ es muy ancho, y la tabla entera hereda esa incertidumbre.
