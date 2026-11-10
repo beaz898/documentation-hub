@@ -7645,3 +7645,15 @@ AVISO, no comprobación: la cola dice «trozo» 1 vez/veces: «Un mismo par de t
 - **AVISO para el arquitecto**: en la pregunta 2, en la parte de fondo que no se cambió, queda una mención a «trozos»: «Un mismo par
   de trozos puede mandar…». Es una instrucción general, no un rótulo de lo que se entrega. Cambiarla haría que la cola de d3 dejara
   de ser idéntica a la de d2. Lo decide el arquitecto antes del sondeo.
+
+### «UN MISMO PAR DE TROZOS…» NO SE TOCA, Y LA OBJECIÓN SE PRERREGISTRA COMO HIPÓTESIS (arquitecto, 10/11/2026)
+- **Decisión**: `d3` aísla UN cambio, qué lee el juez. Cambiar además una palabra del criterio lo haría diferir de `d2` en dos cosas,
+  y el resultado dejaría de ser atribuible: es el confundido que anuló la comparación de la mañana. La frase no afirma un hecho
+  sobre lo entregado, como hacían los rótulos; es imprecisa, no falsa. Y los tres rótulos dicen «documento completo».
+- ⚠️ **HIPÓTESIS PRERREGISTRADA, para buscarla en las respuestas de `d3`**: que la palabra «trozos» del criterio induzca al juez a
+  razonar como quien tiene un fragmento delante (el fallo de 14 de las 15 negaciones del 10/11). **Cómo se vería**: una respuesta de
+  `d3` que niegue diciendo que no puede suponer lo que no está en el trozo, o que el §3.1 no está, **teniendo los documentos enteros
+  delante.** Si aparece, el arreglo es cambiar esa palabra y medirlo **con `d3` como control**: una palabra y una tanda. Si no
+  aparece, la palabra no importaba y queda cerrado.
+- **El ensayo, cerrado.** La huella del prompt, `aac1ca15db937047`, es la que tienen que devolver el sondeo y la tanda.
+- **Siguiente: el sondeo.** Tres cifras: latencia, tokens de entrada y tokens de salida.
