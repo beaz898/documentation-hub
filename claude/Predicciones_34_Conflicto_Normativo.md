@@ -5653,6 +5653,9 @@ predicciones todavía** (arquitecto): esta vez, el dato antes de la aritmética.
 - **Lo que esto deja para el director** (es su decisión, con estos datos): el exhaustivo, que cuesta seis veces el rápido, lee de cada
   candidato lo que lee el rápido sin pareja entera, mientras el rápido lee hoy la pareja entera (`ANALYSIS_PAREJA_ENTERA` en Vercel, que
   el exhaustivo ni mira).
+  ⚠️ **SIN PROCEDENCIA (marcado el 10/11/2026)**: «el rápido lee hoy la pareja entera» no dice de dónde sale, y la petición del valor
+  de `ANALYSIS_PAREJA_ENTERA` al director, del mismo 05/11 (arriba, «la lista para el director»), no tiene respuesta archivada. Es un
+  eco, no un dato. El valor en Production se le pidió al director el 10/11.
 
 ### EL CAMPO «FORMA» DEL VERIFICADOR: EL ORDEN, ACEPTADO (arquitecto, 05/11/2026)
 Primero la sesión con el producto tal como está; después el campo, validado contra las marcas: **la forma sería lo que el modelo
@@ -7452,3 +7455,28 @@ cuarto día 20/42: media 62.5 % · desviación 17.0 · t = 2.649 · p = 0.0385 �
   **El umbral es monótono**: `cuarto_dia.mjs` (scratchpad) recorre los 43 valores posibles, de 0 a 42, y excluye desde 19 hasta 42 sin
   un solo hueco.
 - **Aparcados, los tres para después**: guardar el `model` de la respuesta, el paso 0 de `RATE_LIMIT_ANALYZE` y el tercer brazo.
+
+### QUÉ LEE EL RÁPIDO DEPENDE DE UN INTERRUPTOR; LOS DOS SESGOS OPUESTOS DE LA HERRAMIENTA; Y LO QUE SE LE PIDE AL DIRECTOR (10/11/2026)
+- **El §3.1 de CLI-12 existe y no está en el trozo 6** (Code, del `.docx` de `corpus-pruebas/`, sin tocarlo): «El responsable último
+  de la esterilización del instrumental en cada clínica es el Coordinador de Calidad del centro, no el Director Clínico…».
+- **Meter el §3.1 mete A dentro de la pareja** (arquitecto). Esa frase contradice de frente la de NOR-10 §2.4: «El Coordinador de
+  Calidad no sustituye al Director Clínico en la responsabilidad última». Es el mismo dato con dos valores. Con el §3.1 delante se
+  mediría A y D mezcladas.
+- **Qué lee el rápido** (Code, del código): depende de `ANALYSIS_PAREJA_ENTERA`. Si vale exactamente «1», la pareja va con una
+  ventana de 150.000 caracteres, y NOR-10 ↔ CLI-12 caben enteros (121.936), con el §3.1 dentro. Si no, es la tijera vieja: 6.000 del
+  analizado y 3.000 del candidato, por relevancia. El exhaustivo no la lee nunca. **El «3.000 por candidato» que dio Code era un eco
+  de la tabla de `CLAUDE.md`**, que sólo describía la tijera vieja. Corregida el mismo día; el detalle está en la tabla.
+- **La nota del 05/11 «el rápido lee hoy la pareja entera» queda marcada SIN PROCEDENCIA** en su sitio.
+- ⚠️ **EL ARQUITECTO RETIRA, antes de que entre en el archivo, que con «1» «el 67 % es un suelo y no una estimación».** Hay dos
+  diferencias entre la herramienta y el producto, y van en direcciones contrarias:
+  - **la herramienta le ENTREGA la pareja** ya emparejada, y el producto tiene que encontrarla con retrieval y rerank → **la
+    herramienta es MÁS FÁCIL**;
+  - **la herramienta le niega el §3.1** y, con «1», el producto lo tiene → **la herramienta es MÁS DIFÍCIL**.
+
+  **Dos sesgos opuestos de tamaño desconocido: el 67 % no es un suelo ni un techo, y no se sabe hacia dónde se desvía.** Es el mismo
+  aviso de que X no mide la tasa del producto, una vuelta más apretado.
+- **Se le pide al director** una mirada al panel, sin tocar nada: **el valor de `ANALYSIS_PAREJA_ENTERA` en Production, tal cual, o
+  «no existe»**. Lo que vea, literal.
+- **Si vale «1», el cuarto día conserva su valor y cambia de etiqueta**: «la tasa bajo una condición que le niega el §3.1 y le regala
+  la pareja». Sigue siendo el único sitio donde se puede excluir el 40 %, y cuesta dos pulsaciones.
+- El recuento de los motivos de fallo sigue aprobado y en espera de esa respuesta.

@@ -57,15 +57,21 @@ When requested, the system runs multi-step analysis against existing docs:
 - Each step calls Claude via `lib/analysis/llm-client.ts`
 - Results are confidence-scored findings users can accept/reject before saving improvements
 
-**Qué recibe el juez por cada lado** (28/09/2026, F-118 — toda consulta sobre el juez lo lista así; `claude/Protocolo_Harness_Tasas.md`). Cada cifra con su línea, para que una errata se caiga al leerla:
+**Qué recibe el juez por cada lado** (28/09/2026, F-118 — toda consulta sobre el juez lo lista así; `claude/Protocolo_Harness_Tasas.md`). Cada cifra con su línea, para que una errata se caiga al leerla. *(Corregido el 10/11/2026: la tabla describía un solo régimen del rápido como si fuera el único, callaba el interruptor que lo gobierna, y sus líneas se habían movido. Ese silencio produjo un error el mismo día: «3.000 por candidato» se dio como lo que lee el rápido.)*
 
-| Lado | Qué texto entra | Cuánto, en rápido | Criterio de corte | Exhaustivo |
+⚠️ **EL RÁPIDO TIENE DOS REGÍMENES, Y LOS ELIGE `ANALYSIS_PAREJA_ENTERA`, UNA VARIABLE DE VERCEL QUE NO ESTÁ EN EL REPOSITORIO.** Antes de afirmar qué lee el juez en producción, hay que saber su valor en Production, visto en el panel y no recordado. **El exhaustivo no la lee nunca** (`parejaEnteraEnEsteModo`, `lib/analysis/judge.ts:1291-1293`).
+- **Apagado** (la variable no existe, o vale cualquier cosa distinta de «1»; falla cerrado, `interruptorParejaEntera`, `judge.ts:1278-1285`): es la **tijera vieja** de la tabla de abajo (`judge.ts:1370`).
+- **Encendido** (exactamente «1»): la pareja se lee con una ventana de **150.000 caracteres** (`TAMANO_VENTANA`, `lib/analysis/reparto-de-la-pareja.ts:45`; el reparto, `repartoDeLaPareja`, `:75`). Si los dos documentos caben, van **los dos ENTEROS** (`pareja_entera`, `judge.ts:1387-1398`). Si no caben, hay **corte honesto**: el candidato entero si cabe en su resto, y si no, su bloque por relevancia; el analizado se lleva lo que quede, cortado en un límite de pieza (`judge.ts:1407-1411`). Ejemplo: NOR-10 ↔ CLI-12 suman 121.936 y caben enteros (`reparto-de-la-pareja.ts:40-42`).
+
+**La tijera vieja** (rápido con el interruptor apagado) y el exhaustivo:
+
+| Lado | Qué texto entra | Cuánto, en rápido con la tijera vieja | Criterio de corte | Exhaustivo |
 |---|---|---|---|---|
-| **Analizado** | armado desde sus trozos guardados (`buildAnalyzedDocumentText`, `lib/analysis/judge.ts:977`); sin trozos, texto plano (`judge.ts:1038-1040`) | los primeros **6.000 caracteres** (`NEW_DOC_LIMIT_QUICK`, `judge.ts:35`) | **por POSICIÓN**, a mitad de frase o de tabla (`recortarAnalizado`, `judge.ts:1087`) | entero |
-| **Candidato** | sus trozos, por orden de parecido (`selectUnitsWithinBudget`, `lib/analysis/retrieval.ts:1046`) | **3.000 caracteres** por candidato (`FRAGMENT_BUDGET_CHARS_QUICK`, `retrieval.ts:104`), tope de **25** trozos (`retrieval.ts:110`) | **por RELEVANCIA**, trozos enteros; el que no cabe se salta y se prueba el siguiente (`retrieval.ts:1069-1076`) | los mismos 3.000, salvo `ANALYSIS_EXHAUSTIVE_BUDGET_CHARS` (`retrieval.ts:177-188`) |
+| **Analizado** | armado desde sus trozos guardados (`buildAnalyzedDocumentText`, `lib/analysis/judge.ts:1061`); sin trozos, texto plano (`judge.ts:1131-1136`) | los primeros **6.000 caracteres** (`NEW_DOC_LIMIT_QUICK`, `judge.ts:45`) | **por POSICIÓN**, a mitad de frase o de tabla (`recortarAnalizado`, `judge.ts:1207`) | entero |
+| **Candidato** | sus trozos, por orden de parecido (`selectUnitsWithinBudget`, `lib/analysis/retrieval.ts:1111`) | **3.000 caracteres** por candidato (`FRAGMENT_BUDGET_CHARS_QUICK`, `retrieval.ts:104`), tope de **25** trozos (`retrieval.ts:110`) | **por RELEVANCIA**, trozos enteros; el que no cabe se salta y se prueba el siguiente (`retrieval.ts:1134-1141`) | los mismos 3.000, salvo `ANALYSIS_EXHAUSTIVE_BUDGET_CHARS` (`retrieval.ts:177-189`) |
 
 - Las **consultas de búsqueda** no pasan por el 6.000: salen de todos los trozos del documento entero, hasta 120 (`lib/analysis/muestras.ts:21-25`).
-- Lo que vio el juez del analizado queda en el resultado: `textoAnalizado: { caracteres, mostrados }` (`lib/analysis/types.ts:457`).
+- Lo que vio el juez queda en su salida: `textoAnalizado` (`judge.ts:1098`) y, por cada pareja, `lecturaDeLasParejas` con el régimen que se aplicó (`judge.ts:1100`).
 - Ninguna de las dos cifras tiene medición detrás; son tijeras nuestras, no límites del modelo (`claude/consultas-fable/F-118_2026-09-28_simetria-de-lectura.md`, sección d).
 
 **La puerta de citas del juez** (`fixQuotesInJudgment`, `lib/analysis/judge.ts`; 13/10/2026, F-125 fase 3.1). Un hallazgo pasa sólo si las citas de sus dos lados están en el texto que se le ENTREGÓ al juez de ese lado (`lib/analysis/pajar-de-la-cita.ts`). Por cada cita, en este orden:
