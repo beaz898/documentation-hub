@@ -12,6 +12,11 @@
  *   · limpia (29/10): la variante limpia, la misma pregunta sobre las dos frases de D solas; con `?ensayo=1`, sin modelo.
  * Las tres: POST, sólo administradores, organización resuelta por el usuario, nada del cliente en la entrada (los
  * pasajes se leen de la base) y ninguna tabla nueva. Lo que devuelven lo pega el director y se archiva en `claude/`.
+ *
+ * ⚠️ LA CONVENCIÓN DE NOMBRES (arquitecto, 11/11/2026): las rutas `d…` (d, d2, d3, d4, d4b, d4c) son de DIAGNÓSTICO, y nunca
+ * pueden llegar al producto; las rutas `m…` (m1) son CAMBIOS CANDIDATOS, que sí podrían. Por eso toda diferencia de una `m…` con
+ * el producto es un cambio candidato declarado (la regla de CLAUDE.md: medidor y producto sólo difieren en un cambio candidato o
+ * en un control declarado).
  */
 
 /** Pasada esta fecha, las tres rutas responden 410. Era el 15/11 (la semana 0 de F-130 más margen); el arquitecto la
