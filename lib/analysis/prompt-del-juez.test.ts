@@ -37,6 +37,8 @@ async function prompt(analizado: StoredChunk[], candidato: StoredChunk[], regime
   expect(enviados).toHaveLength(1);
   // que cada caso sea de verdad el régimen que dice ser
   expect(r.lecturaDeLasParejas[0].regimen).toBe(regimen);
+  // y que la lectura guarde la huella de LO ENVIADO (11/11, LecturaDeLaPareja.huellaDelPrompt), en los tres regímenes
+  expect(r.lecturaDeLasParejas[0].huellaDelPrompt).toBe(huella(enviados[0]));
   return enviados[0];
 }
 

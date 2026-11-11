@@ -1,3 +1,4 @@
+import { createHash } from 'crypto';
 import { recordStageFailure } from './stage-failures';
 import { callLLMJson } from './llm-client';
 import { modeloDelJuez } from './modelo-del-juez';
@@ -734,6 +735,11 @@ function buildExistingFragsBlock(
  * pareja (`LecturaDeLaPareja.huellaDelPrompt`). El texto no cambió ni un byte: lo vigila `prompt-del-juez.test.ts`, cuyas huellas se
  * sacaron del código ANTERIOR a este cambio. Cambiar la plantilla mueve esas huellas, y se decide a sabiendas.
  */
+/** La huella de un prompt del juez: sha256, los 16 primeros caracteres hex, la misma forma que usan las rutas de F-130. */
+export function huellaDelPrompt(prompt: string): string {
+  return createHash('sha256').update(prompt, 'utf8').digest('hex').slice(0, 16);
+}
+
 export function promptDelJuez(p: {
   nombreDelAnalizado: string; textoAnalizado: string; avisoDeLoOmitido: string;
   nombreDelCandidato: string; fuenteDelCandidato: RerankedCandidate['source']; bloqueCandidato: string;
@@ -953,6 +959,8 @@ async function judgeSingleDocument(args: {
     nombreDelAnalizado: newDocumentName, textoAnalizado: pareja.textoAnalizado, avisoDeLoOmitido: avisoDeLoOmitido(pareja.lectura),
     nombreDelCandidato: candidate.documentName, fuenteDelCandidato: candidate.source, bloqueCandidato: pareja.bloqueCandidato,
   });
+  // 11/11/2026: la huella de lo que se envía, guardada con la pareja (LecturaDeLaPareja.huellaDelPrompt)
+  lectura.huellaDelPrompt = huellaDelPrompt(prompt);
 
   try {
     const response = await callLLMJson<JudgeResponse>(prompt, {

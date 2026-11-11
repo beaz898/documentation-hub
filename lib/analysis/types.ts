@@ -304,6 +304,10 @@ export interface LecturaDeLaPareja {
    *  exacto, avanzando al final de la pieza, retrocediendo al límite anterior porque la pieza pasaba de 3.000, o
    *  por posición porque no había límite anterior. AUSENTE si el analizado fue entero y en los análisis anteriores. */
   corteDelAnalizado?: 'limite_exacto' | 'avanza' | 'retrocede' | 'posicion';
+  /** 11/11/2026: la huella del prompt que se le ENVIÓ al juez de esta pareja (sha256, 16 caracteres hex, de `promptDelJuez`). Es la
+   *  regla de deuda del 10/11: una condición que hace falta para interpretar una medición se guarda con la medición, no se consulta
+   *  después. Dos pasadas con la misma huella le mandaron al juez exactamente el mismo texto. AUSENTE en los análisis anteriores. */
+  huellaDelPrompt?: string;
 }
 
 /** Caracteres del texto del analizado que armó el juez, y los que vio. En el
