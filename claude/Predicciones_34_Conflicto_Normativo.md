@@ -7868,3 +7868,41 @@ literal.** Los indecidibles son del instrumento, no del juez.
 5b3987f1590c7b58 umbral_indecidibles.mjs
 b8b874a728dd6385 herramientas/instrumento_d3.ts (sin cambio)
 ```
+
+### EL UMBRAL 8, APROBADO; EL DESGLOSE DE LOS INDECIDIBLES; Y POR QUÉ FUERON PARCIAL LOS 6 DE d2 (arquitecto y Code, 11/11/2026)
+- **Umbral 8, aprobado.** Otra suposición del arquitecto, medida y desmentida: la ventana ancha no baja los indecidibles. Y la fuente
+  que encontró Code, la frase de A del §3.1 citada frente al permiso, empuja en sentido contrario: los sube.
+- ⚠️ **Precisión de Code**: el 10/11 se midió sólo que los 6 PARCIAL de d2 SIGUEN siendo PARCIAL con los documentos enteros, no POR
+  QUÉ. La causa («el juez reescribe la frase») era la hipótesis del arquitecto. **Ahora está medida**, abajo.
+- **EL DESGLOSE** (pedido por el arquitecto; no bloquea las pulsaciones y el corredor corre después, en frío). Cada indecidible lleva
+  su porqué, en este orden y uno solo: **la frase de A del §3.1 frente al permiso** · **cita que la puerta no encuentra en ningún
+  documento** (reescrita o inventada) · **a caballo** · **otra** · **de línea o NADA**. Así, si el guardián salta, «se para y se lee»
+  llega con su candidato.
+- ⚠️ **Un fallo del desglose, cazado al medirlo sobre d2**: la etiqueta citada («normacontranorma», que el texto archivado trae sin
+  guiones bajos) contaba como «cita que la puerta no encuentra». Ahora se cuentan sólo las citas que pueden ser frases: 20
+  caracteres normalizados o más, el mismo mínimo de la regla, y sin la etiqueta. Hay prueba y mutante.
+- **POR QUÉ FUERON PARCIAL LOS 6 DE d2 DEL 10/11** (`herramientas/desglose_d2.test.ts`), medido:
+```
+pulsación 1 de d2, vez 1: NIEGA / PARCIAL · por no_localizada
+pulsación 1 de d2, vez 4: NIEGA / PARCIAL · por no_localizada
+pulsación 1 de d2, vez 5: NIEGA / PARCIAL · por no_localizada
+pulsación 1 de d2, vez 8: NIEGA / PARCIAL · por otra
+pulsación 2 de d2, vez 3: NIEGA / PARCIAL · por no_localizada
+pulsación 2 de d2, vez 8: NIEGA / PARCIAL · por no_localizada
+```
+  **5 de 6 por reescritura**: la cita de NOR-10 sale como «la figura [de Coordinador de Calidad] puede recaer…» o «la figura puede
+  recaer…», cuando el texto dice «figura que puede recaer…»; y la de CLI-12, una vez, como «en el Director Clínico…» en vez de «por
+  el Director Clínico…». La puerta no la encuentra en ninguno de los dos documentos. **El sexto (pulsación 1, vez 8) cita sólo el lado
+  de CLI-12**: no es reescritura, es un lado sin citar. **La hipótesis del arquitecto se sostiene en 5 de 6.**
+- **Pruebas y mutantes**: 14 pruebas del instrumento y del corredor, y **25 mutantes, mueren los 25** (cuatro nuevos del desglose: sin
+  la frase de A del §3.1, la etiqueta contada como cita, la frase de A que incluye el principio, y el desglose mirando primero la 1).
+
+**Las huellas nuevas, para aprobar** (el desglose cambia el instrumento, así que también cambia su huella):
+```
+c55b7565cd880864 herramientas/instrumento_d3.ts
+88161692d01bf2f5 herramientas/instrumento_d3.test.ts
+2d19b4f0ce37315f herramientas/correr_d3.ts
+0df6c63607b24d5a herramientas/correr_d3.test.ts
+ea4a254b41b0c369 mutar_instrumento_d3.mjs
+89119ff3d2f8d522 herramientas/desglose_d2.test.ts
+```
