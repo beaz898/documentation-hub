@@ -8079,3 +8079,69 @@ añadidos de las 13:40 (c) y de las 15:40 (d), literales y por script, con sus h
   enteros, la pregunta cerrada dio 7 de 42 (d3, 11/11), con el defecto de la elección forzada. Así que «el modelo ve D cuando la
   pregunta tiene la forma de D» está medido con los trozos y no con la condición del producto. El argumento contra el límite de
   capacidad es más débil de lo que lo presenta. **Lo decide el arquitecto, y se le dice a Fable con el resto.**
+
+### PRERREGISTRO DEL CONTRASTE DEL PAJAR: d4 CONTRA d4b (arquitecto y Code, 11/11/2026, ANTES DE PULSAR)
+**Los dos brazos** (`app/api/admin/medida-f130/brazos.ts`; el juez del producto con el prompt del producto, `pareja_entera`, después
+de la puerta y antes del verificador):
+- **`d4`** = los documentos enteros · ~122.000 caracteres · competencia completa · las dos vías de D (§3.1 y §3.5).
+- **`d4b`** = el trozo de D más los de A, B y C de cada lado · NOR-10 trozos 2, 4, 36 y 58 (4.246 caracteres); CLI-12 trozos 3, 6,
+  34 y 51 (4.366) · competencia completa · las dos vías. Comprobado por script sobre los `.docx` y fijado en `brazos.test.ts`.
+- `d4` contra `d4b` aísla **el pajar** con todo lo demás igual.
+
+⚠️ **HECHO DEL CORPUS QUE CONDICIONA TODO LO QUE SE PUEDA MEDIR: A Y D COMPARTEN TROZO EN EL LADO DE CLI-12.** El trozo 3 lleva la
+frase de A del §3.1 y el principio del §3.1 («separar la responsabilidad…»), que es la vía por la que sale D. **«D sin A» no es
+construible**: quitar A le quita a D su ancla. No es un defecto del diseño; es cómo se sembró el corpus. Y en NOR-10 el trozo de D (el 4)
+lleva además la frase de A del §2.4. Comprobado por Code el 11/11: en `d3`, «D_por_3_5 0 · D_por_3_1 6 · por las dos 1» (el bloque de
+`d3`, más arriba); en la línea base, «Las tres D citan el permiso contra el principio de §3.1» (`Estado…:458`).
+
+⚠️ **`d4c` SE RETIRA SIN PULSAR.** Era el trozo de D con trozos neutros hasta el tamaño de `d4b`, sin competencia; al quitar el trozo 3
+le quitaba a D la única vía que funciona, y un cero no habría distinguido «sin competencia» de «sin ancla». Ruta, botones y código
+retirados. **La competencia, si hace falta, con `d4b'` = D + A sin B ni C**, que conserva el §3.1: anotado, **no escrito**, y sólo si el
+contraste del pajar sale nulo. **La celda grande sin competencia no existe**: los documentos enteros llevan A, B y C dentro.
+
+**EL DISEÑO, EN DOS ETAPAS, ESCRITO ANTES DE PULSAR** (`scratchpad/dos_etapas_d4.mjs`, huella `d8a81ea2ff4e6827`; su salida,
+`dos_etapas_d4.txt`, huella `dea0947b9a64458c`). Fisher exacto bilateral:
+1. **Criba:** una pulsación por brazo, 14 y 14, en el orden `d4`, `d4b`. Si p < 0,05, se concluye diferencia y se para.
+2. **Zona de nadie:** se añaden 1, 2 o 3 pulsaciones por brazo, las mínimas que dan un 80 % de potencia condicional tomando como
+   verdaderas las tasas de la criba. Después, Fisher sobre lo acumulado con p < 0,05.
+3. **Si ni con 3 más llega al 80 %, se para y se declara NO DETECTADO.**
+**Error de tipo I de la regla completa, adaptativa incluida: 3,42 % como máximo**, calculado exacto enumerando todos los resultados para
+cada tasa común de 0,01 a 0,99. **Un solo contraste**, así que no hay multiplicidad.
+
+**Etapa 1: cuánto tiene que dar el brazo alto para concluir ya** (literal de la salida):
+```
+  bajo 0 de 14 → alto 5 de 14 o más (p = 0.0407; con 4, p = 0.0978)
+  bajo 1 de 14 → alto 7 de 14 o más (p = 0.0329; con 6, p = 0.0768)
+  bajo 2 de 14 → alto 8 de 14 o más (p = 0.0461; con 7, p = 0.1032)
+  bajo 3 de 14 → alto 10 de 14 o más (p = 0.0213; con 9, p = 0.0542)
+  bajo 4 de 14 → alto 11 de 14 o más (p = 0.0213; con 10, p = 0.0570)
+  bajo 5 de 14 → alto 12 de 14 o más (p = 0.0183; con 11, p = 0.0542)
+  bajo 6 de 14 → alto 12 de 14 o más (p = 0.0461; con 11, p = 0.1201)
+```
+**Zona de nadie: pulsaciones más por brazo** («para» = no detectado; «C» = concluye en la criba):
+```
+  bajo 0 → 0:para 1:para 2:+3 3:+2 4:+1 5:C …
+  bajo 1 → 1:para 2:para 3:para 4:+3 5:+2 6:+1 7:C …
+  bajo 2 → 2:para 3:para 4:para 5:para 6:+2 7:+1 8:C …
+  bajo 3 → 3:para 4:para 5:para 6:para 7:+3 8:+2 9:+1 10:C …
+  bajo 4 → 4:para 5:para 6:para 7:para 8:+3 9:+2 10:+1 11:C …
+  bajo 5 → 5:para 6:para 7:para 8:para 9:+3 10:+2 11:+1 12:C …
+  bajo 6 → 6:para 7:para 8:para 9:para 10:+3 11:+2 12:C …
+```
+**Potencia con una base del 14 %:** contra 30 %, 9 % en la criba y 24 % con la segunda etapa; contra 40 %, 22 % y 51 %; contra 50 %,
+41 % y 75 %; contra 60 %, 62 % y 90 %; contra 70 %, 80 % y 97 %. **La criba sólo ve efectos grandes, y así se declara.**
+
+**LA LECTURA, CORREGIDA ANTES DE PULSAR** (el arquitecto retira su rama «≈ → la forma»: el diseño concluye diferencias y nunca igualdad):
+```
+d4b >> d4   ->  es el PAJAR. Los arreglos de forma no bastan; hay que descomponer.
+sin separar ->  NO DETECTADO a este n. NO establece que el pajar sea inocente,
+                y por tanto NO autoriza M2: sólo no lo prohíbe. Con 14 por brazo
+                estamos ciegos a diferencias de 15 a 25 puntos.
+```
+
+**LA PREDICCIÓN DEL ARQUITECTO, escrita con las tablas delante:** `d4` entre 1 y 6 de 14 (de los 3 de 21 de la línea base y los 7 de 42
+de `d3`), y `d4b` por encima de `d4` lo bastante para cruzar el umbral si el pajar manda (con `d4` en 2, 8 de 14; con `d4` en 3, 10 de
+14). **Lo que la refuta: que `d4b` quede igual o por debajo de `d4`.**
+
+**M1, M2 y M3 siguen APARCADAS hasta leer este contraste.** Los ensayos y sondeos de `d4` y `d4b`, en paralelo con `SQL_34_13`; las
+pulsaciones, cuando se haya leído la consulta.
