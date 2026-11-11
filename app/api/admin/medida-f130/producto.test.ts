@@ -79,14 +79,15 @@ describe('d4: el juez del producto (11/11)', () => {
     expect(resumenDelPromptD4(prompt, textoA, 'otro', 'h').enSuSitio.documento2).toBe(false);
   });
 
-  it('d4 y d4c: cada ruta llama a la lógica común con SU condición, y nada más', () => {
-    const d4 = leer('app/api/admin/medida-f130/d4/route.ts'), d4c = leer('app/api/admin/medida-f130/d4c/route.ts');
+  it('d4, d4b y d4c: cada ruta llama a la lógica común con SU brazo, y nada más', () => {
+    const [d4, d4b, d4c] = ['d4', 'd4b', 'd4c'].map(r => leer(`app/api/admin/medida-f130/${r}/route.ts`));
     expect(d4).toContain("return medirConElProducto(req, 'documentos');");
-    expect(d4c).toContain("return medirConElProducto(req, 'trozos');");
-    for (const r of [d4, d4c]) { expect(r.split('medirConElProducto(').length - 1).toBe(1); expect(r).toContain('export const maxDuration = 300;'); }
+    expect(d4b).toContain("return medirConElProducto(req, 'competencia');");
+    expect(d4c).toContain("return medirConElProducto(req, 'neutros');");
+    for (const r of [d4, d4b, d4c]) { expect(r.split('medirConElProducto(').length - 1).toBe(1); expect(r).toContain('export const maxDuration = 300;'); }
   });
 
-  it('⚠️ d4c ES d4 CON LO ÚNICO CAMBIADO, QUÉ TEXTO ENTRA: sustituyendo los dos documentos por los dos trozos, el prompt es idéntico', () => {
+  it('⚠️ LOS BRAZOS SON d4 CON LO ÚNICO CAMBIADO, QUÉ TEXTO ENTRA: sustituyendo los documentos por otros trozos, el prompt es idéntico', () => {
     const a = doc('Analizado', 5, 300), c = doc('Candidato', 4, 200);
     const d4 = promptDeLaPareja(pareja(a, c));
     const d4c = promptDeLaPareja(pareja([a[2]], [c[1]]));
@@ -96,11 +97,17 @@ describe('d4: el juez del producto (11/11)', () => {
     expect(d4c.huella).not.toBe(d4.huella);
   });
 
-  it('LA LÓGICA COMÚN: en trozos, sólo los dos de la pareja y el texto del analizado es lo entregado; en documentos, todos y full_text', () => {
+  it('LA LÓGICA COMÚN: los trozos de cada lado son los del brazo; fuera de documentos, el texto del analizado es lo entregado', () => {
     const r = leer('app/api/admin/medida-f130/producto-ruta.ts');
-    expect(r).toContain("const trozosX = condicion === 'documentos' ? todosX : todosX.filter(c => c.chunkIndex === x.chunkIndex);");
-    expect(r).toContain("const trozosY = condicion === 'documentos' ? todosY : todosY.filter(c => c.chunkIndex === y.chunkIndex);");
-    expect(r).toContain("const textoDelAnalizado = condicion === 'trozos' ? armado.textoAnalizado");
+    expect(r).toContain("const brazoX = trozosDelBrazo(condicion, { codigo: TROZOS[analizado].codigo, todos: todosX, trozoD: x.chunkIndex }");
+    expect(r).toContain("const brazoY = trozosDelBrazo(condicion, { codigo: TROZOS[candidato].codigo, todos: todosY, trozoD: y.chunkIndex }");
+    expect(r).toContain('const trozosX = todosX.filter(c => brazoX.indices.includes(c.chunkIndex));');
+    expect(r).toContain('const trozosY = todosY.filter(c => brazoY.indices.includes(c.chunkIndex));');
+    expect(r).toContain("const textoDelAnalizado = condicion !== 'documentos' ? armado.textoAnalizado");
+    // la negativa del brazo, después de la del interruptor y antes de armar el prompt
+    const brazo = r.indexOf('if (!brazoX.ok || !brazoY.ok) return NextResponse.json(');
+    expect(brazo).toBeGreaterThan(r.indexOf('if (!interruptorEncendido()) {'));
+    expect(brazo).toBeLessThan(r.indexOf('const armado = promptDeLaPareja('));
   });
 
   it('LA LÓGICA COMÚN: las tres negativas antes del ensayo y del modelo, una sola llamada al juez, el sondeo de una, y sin el prompt entero', () => {
