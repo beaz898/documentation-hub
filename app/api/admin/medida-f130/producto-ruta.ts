@@ -4,7 +4,8 @@ import { conRegistroDeLlamadas } from '@/lib/observability/registro-de-llamadas'
 import { runInBatches } from '@/lib/run-in-batches';
 import { modeloDelJuez } from '@/lib/analysis/modelo-del-juez';
 import { autorizar, leerTrozos } from './leer-de-la-base';
-import { buildAnalyzedDocumentText } from '@/lib/analysis/judge';
+import { buildAnalyzedDocumentText, huellaDelPrompt } from '@/lib/analysis/judge';
+import { promptDeExtraccion, promptDeProsa, respuestaEnDosLlamadas, type RastroDeM1 } from './cambio-m1';
 import { PAREJA_DE_D, TROZOS } from './medida-f130';
 import { fuenteDelProducto, interruptorEncendido, juzgarConElProducto, promptDeLaPareja, resumenDelPromptD4, VECES_DE_D4 } from './producto';
 import { marcasDe, trozosDelBrazo, type Brazo } from './brazos';
@@ -20,8 +21,12 @@ import { marcasDe, trozosDelBrazo, type Brazo } from './brazos';
  * que `SQL_34_13` lo confirme— dice que las pérdidas son anteriores, en la generación.
  * NO COBRA CRÉDITOS y no pasa por el limitador. ⚠️ CUATRO NEGATIVAS DURAS, antes del ensayo y antes del modelo, con 409: los trozos
  * de la pareja, el interruptor de la pareja entera a «1», los trozos del brazo (`trozosDelBrazo`) y el régimen `pareja_entera`.
+ * CON UN CAMBIO CANDIDATO (`cambio`, convención de la carpeta): `m1` (`cambio-m1.ts`) sustituye la llamada del juez por la costura, sobre
+ * el mismo prompt del producto; una QUINTA negativa dura, si sus supresiones no se pueden aplicar. Se cuenta en el mismo sitio que d4.
  */
-export async function medirConElProducto(req: NextRequest, condicion: Brazo) {
+export type CambioCandidato = 'ninguno' | 'm1';
+
+export async function medirConElProducto(req: NextRequest, condicion: Brazo, cambio: CambioCandidato = 'ninguno') {
   const a = await autorizar(req);
   if (!a.ok) return a.respuesta;
 
@@ -50,13 +55,16 @@ export async function medirConElProducto(req: NextRequest, condicion: Brazo) {
 
   const armado = promptDeLaPareja({ analizado: ladoX, candidato: ladoY });
   if (!armado.ok) return NextResponse.json({ error: armado.motivo, regimen: armado.regimen }, { status: 409 });
+  const prosa = cambio === 'm1' ? promptDeProsa(armado.prompt) : null;
+  if (prosa && !prosa.ok) return NextResponse.json({ error: `m1: ${prosa.motivo}` }, { status: 409 });
   // el texto del analizado que el producto le pasa al juez (`newDocumentSample`): el del documento entero en d4; en d4b y d4c, lo
   // entregado
   const textoDelAnalizado = condicion !== 'documentos' ? armado.textoAnalizado
     : typeof filaX.full_text === 'string' && filaX.full_text.trim() !== '' ? filaX.full_text : armado.textoAnalizado;
 
   const que = { documentos: 'los dos DOCUMENTOS ENTEROS', competencia: 'el trozo de D y los de A, B y C de cada lado (d4b)', neutros: 'el trozo de D y trozos NEUTROS hasta el tamaño de d4b, de cada lado (d4c)' }[condicion];
-  const medida = `F-130 · el JUEZ DEL PRODUCTO, con el PROMPT DEL PRODUCTO, sobre la pareja de D de la siembra (§2.4 ↔ §3.5), ${que} (pareja_entera), después de la puerta y antes del verificador, ${VECES_DE_D4} veces por pulsación`;
+  const conQue = cambio === 'm1' ? 'con el CAMBIO CANDIDATO m1 (el prompt del producto con supresiones, en PROSA, y luego la extracción al esquema del producto: dos llamadas)' : 'con el PROMPT DEL PRODUCTO';
+  const medida = `F-130 · el JUEZ DEL PRODUCTO, ${conQue}, sobre la pareja de D de la siembra (§2.4 ↔ §3.5), ${que} (pareja_entera), después de la puerta y antes del verificador, ${VECES_DE_D4} veces por pulsación`;
   // en el ensayo, cada trozo entregado con su tamaño y sus marcas, para comprobar el brazo sobre lo que de verdad se entrega
   const detalle = (ts: typeof todosX) => condicion === 'documentos' ? undefined : ts.map(c => ({ trozo: c.chunkIndex, caracteres: c.text.length, marcas: marcasDe(c.text) }));
   const documentos = {
@@ -69,6 +77,10 @@ export async function medirConElProducto(req: NextRequest, condicion: Brazo) {
     return NextResponse.json({
       medida, ensayo: 'sin llamar al modelo', documentos, lectura: armado.lectura, modelo: modeloDelJuez().modelo,
       prompt: resumenDelPromptD4(armado.prompt, armado.textoAnalizado, armado.bloqueCandidato, armado.huella),
+      ...(prosa?.ok ? { m1: {
+        llamada1: { ...resumenDelPromptD4(prosa.prompt, armado.textoAnalizado, armado.bloqueCandidato, prosa.huella), supresiones: prosa.supresiones, caracteresSuprimidos: prosa.caracteresSuprimidos, sustitucion: prosa.sustitucion },
+        llamada2: { plantilla: promptDeExtraccion('{{LA PROSA DE LA LLAMADA 1}}'), huellaDeLaPlantilla: huellaDelPrompt(promptDeExtraccion('{{LA PROSA DE LA LLAMADA 1}}')) },
+      } } : {}),
     });
   }
 
@@ -77,6 +89,12 @@ export async function medirConElProducto(req: NextRequest, condicion: Brazo) {
   const { resultado: respuestas, registro } = await conRegistroDeLlamadas(() =>
     runInBatches(veces, async vez => {
       try {
+        if (prosa?.ok) {
+          // m1: la costura del juez, y lo que pasa por el camino —la prosa CRUDA y las huellas de los dos prompts enviados—
+          const rastro: RastroDeM1 = {};
+          const j = await juzgarConElProducto({ analizado: { ...ladoX, textoDelAnalizado }, candidato: ladoY, obtenerRespuesta: respuestaEnDosLlamadas(rastro) });
+          return { vez, ...j, mismaHuella: j.lectura.huellaDelPrompt === armado.huella, m1: { ...rastro, mismaHuellaDeLaProsa: rastro.huellaDeLaProsaEnviada === prosa.huella } };
+        }
         const j = await juzgarConElProducto({ analizado: { ...ladoX, textoDelAnalizado }, candidato: ladoY });
         return { vez, ...j, mismaHuella: j.lectura.huellaDelPrompt === armado.huella };
       } catch (err) {

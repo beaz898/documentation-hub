@@ -1,4 +1,4 @@
-import { judgeAllDocuments, interruptorParejaEntera, promptDelJuez, huellaDelPrompt } from '@/lib/analysis/judge';
+import { judgeAllDocuments, interruptorParejaEntera, promptDelJuez, huellaDelPrompt, type ObtenerRespuestaDelJuez } from '@/lib/analysis/judge';
 import { avisoDeLoOmitido } from '@/lib/analysis/corte-del-analizado';
 import type { DocumentJudgment, LecturaDeLaPareja, RerankedCandidate } from '@/lib/analysis/types';
 import type { StoredChunk } from '@/lib/read-chunks';
@@ -58,8 +58,13 @@ export interface JuicioDelProducto {
 
 /** UNA llamada al juez del producto, por `judgeAllDocuments` en rápido. `textoDelAnalizado` es lo que el producto le pasa como
  *  `newDocumentSample`: el texto del documento (`documents.full_text`). */
-export async function juzgarConElProducto(a: { analizado: LadoDelProducto & { textoDelAnalizado: string }; candidato: CandidatoDelProducto }): Promise<JuicioDelProducto> {
+export async function juzgarConElProducto(a: {
+  analizado: LadoDelProducto & { textoDelAnalizado: string }; candidato: CandidatoDelProducto;
+  /** Sólo un cambio candidato (m…) la pasa: la costura del juez (`ObtenerRespuestaDelJuez`). Sin ella, el producto tal cual. */
+  obtenerRespuesta?: ObtenerRespuestaDelJuez;
+}): Promise<JuicioDelProducto> {
   const r = await judgeAllDocuments({
+    ...(a.obtenerRespuesta ? { obtenerRespuesta: a.obtenerRespuesta } : {}),
     newDocumentName: a.analizado.nombre,
     newDocumentSample: a.analizado.textoDelAnalizado,
     newDocumentChunks: a.analizado.trozos,

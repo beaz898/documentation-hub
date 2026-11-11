@@ -79,12 +79,13 @@ describe('d4: el juez del producto (11/11)', () => {
     expect(resumenDelPromptD4(prompt, textoA, 'otro', 'h').enSuSitio.documento2).toBe(false);
   });
 
-  it('d4, d4b y d4c: cada ruta llama a la lógica común con SU brazo, y nada más', () => {
-    const [d4, d4b, d4c] = ['d4', 'd4b', 'd4c'].map(r => leer(`app/api/admin/medida-f130/${r}/route.ts`));
+  it('d4, d4b, d4c y m1: cada ruta llama a la lógica común con SU brazo (y m1 con su cambio, sobre los documentos enteros), y nada más', () => {
+    const [d4, d4b, d4c, m1] = ['d4', 'd4b', 'd4c', 'm1'].map(r => leer(`app/api/admin/medida-f130/${r}/route.ts`));
     expect(d4).toContain("return medirConElProducto(req, 'documentos');");
     expect(d4b).toContain("return medirConElProducto(req, 'competencia');");
     expect(d4c).toContain("return medirConElProducto(req, 'neutros');");
-    for (const r of [d4, d4b, d4c]) { expect(r.split('medirConElProducto(').length - 1).toBe(1); expect(r).toContain('export const maxDuration = 300;'); }
+    expect(m1).toContain("return medirConElProducto(req, 'documentos', 'm1');");
+    for (const r of [d4, d4b, d4c, m1]) { expect(r.split('medirConElProducto(').length - 1).toBe(1); expect(r).toContain('export const maxDuration = 300;'); }
   });
 
   it('⚠️ LOS BRAZOS SON d4 CON LO ÚNICO CAMBIADO, QUÉ TEXTO ENTRA: sustituyendo los documentos por otros trozos, el prompt es idéntico', () => {
@@ -122,11 +123,21 @@ describe('d4: el juez del producto (11/11)', () => {
     expect(interruptor).toBeLessThan(regimen);
     expect(regimen).toBeLessThan(ensayo);
     expect(ensayo).toBeLessThan(modelo);
-    expect(r.split('juzgarConElProducto(').length - 1).toBe(1);
+    // dos llamadas al juez (11/11, m1): la del cambio candidato, con la costura, y la del producto, sin ella; y sólo una de las dos corre
+    expect(r.split('juzgarConElProducto(').length - 1).toBe(2);
+    expect(r).toContain('const j = await juzgarConElProducto({ analizado: { ...ladoX, textoDelAnalizado }, candidato: ladoY, obtenerRespuesta: respuestaEnDosLlamadas(rastro) });');
+    expect(r).toContain('const j = await juzgarConElProducto({ analizado: { ...ladoX, textoDelAnalizado }, candidato: ladoY });');
+    expect(r.split('obtenerRespuesta').length - 1).toBe(1);
+    // la negativa de m1, después de la del régimen y antes del ensayo
+    const deM1 = r.indexOf("if (prosa && !prosa.ok) return NextResponse.json(");
+    expect(deM1).toBeGreaterThan(regimen);
+    expect(deM1).toBeLessThan(ensayo);
     expect(r).toContain('{ length: sondeo ? 1 : VECES_DE_D4 }');
     expect(r).toContain('prompt: resumenDelPromptD4(armado.prompt, armado.textoAnalizado, armado.bloqueCandidato, armado.huella),');
     expect(r).not.toMatch(/prompt: armado\.prompt\b/);
-    expect(r).toContain('mismaHuella: j.lectura.huellaDelPrompt === armado.huella');
+    // las dos ramas comparan la huella enviada con la del ensayo, y m1 además la de su prosa
+    expect(r).toContain('return { vez, ...j, mismaHuella: j.lectura.huellaDelPrompt === armado.huella };');
+    expect(r).toContain('return { vez, ...j, mismaHuella: j.lectura.huellaDelPrompt === armado.huella, m1: { ...rastro, mismaHuellaDeLaProsa: rastro.huellaDeLaProsaEnviada === prosa.huella } };');
     expect(VECES_DE_D4).toBe(14);
   });
 });
