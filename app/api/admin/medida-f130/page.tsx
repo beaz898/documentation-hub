@@ -9,7 +9,7 @@ export default function MedidaF130() {
   const [salida, setSalida] = useState('');
   const [ocupado, setOcupado] = useState(false);
 
-  async function medir(ruta: 'vecindad' | 'pregunta' | 'limpia?ensayo=1' | 'limpia' | 'quinto?ensayo=1' | 'quinto' | 'd?ensayo=1' | 'd' | 'd2?ensayo=1' | 'd2' | 'd3?ensayo=1' | 'd3?sondeo=1' | 'd3' | 'd4?ensayo=1' | 'd4?sondeo=1' | 'd4' | 'd4b?ensayo=1' | 'd4b?sondeo=1' | 'd4b' | 'd4c?ensayo=1' | 'd4c?sondeo=1' | 'd4c') {
+  async function medir(ruta: 'vecindad' | 'pregunta' | 'limpia?ensayo=1' | 'limpia' | 'quinto?ensayo=1' | 'quinto' | 'd?ensayo=1' | 'd' | 'd2?ensayo=1' | 'd2' | 'd3?ensayo=1' | 'd3?sondeo=1' | 'd3' | 'd4?ensayo=1' | 'd4?sondeo=1' | 'd4' | 'd4b?ensayo=1' | 'd4b?sondeo=1' | 'd4b') {
     setOcupado(true);
     setSalida(`Midiendo ${ruta}…`);
     try {
@@ -63,16 +63,11 @@ export default function MedidaF130() {
         <button disabled={ocupado} onClick={() => medir('d4?sondeo=1')}>D4 · sondeo: UNA sola llamada, para medir la latencia (gasta menos de 0,01 $)</button>{' '}
         <button disabled={ocupado} onClick={() => medir('d4')}>D4 · una pulsación: el juez del producto, 14 veces (gasta en la API, unos 0,10 $)</button>
       </p>
-      <p>Los otros dos brazos (11/11), los dos del mismo tamaño mediano. Las pulsaciones, en el orden D4, D4B, D4C y sólo cuando el arquitecto lo diga:</p>
+      <p>El brazo pequeño (11/11): el trozo de D y los de A, B y C, para comparar con D4. Las pulsaciones, en el orden D4, D4B y sólo cuando el arquitecto lo diga:</p>
       <p>
         <button disabled={ocupado} onClick={() => medir('d4b?ensayo=1')}>D4B · ensayo: el trozo de D y los de A, B y C (sin modelo, no gasta)</button>{' '}
         <button disabled={ocupado} onClick={() => medir('d4b?sondeo=1')}>D4B · sondeo: UNA sola llamada (gasta menos de 0,01 $)</button>{' '}
         <button disabled={ocupado} onClick={() => medir('d4b')}>D4B · una pulsación: con competencia, 14 veces (gasta en la API, unos 0,03 $)</button>
-      </p>
-      <p>
-        <button disabled={ocupado} onClick={() => medir('d4c?ensayo=1')}>D4C · ensayo: el trozo de D y trozos neutros (sin modelo, no gasta)</button>{' '}
-        <button disabled={ocupado} onClick={() => medir('d4c?sondeo=1')}>D4C · sondeo: UNA sola llamada (gasta menos de 0,01 $)</button>{' '}
-        <button disabled={ocupado} onClick={() => medir('d4c')}>D4C · una pulsación: sin competencia, 14 veces (gasta en la API, unos 0,03 $)</button>
       </p>
       <p>Copia todo lo que salga abajo y pégaselo a Claude Code.</p>
       <pre style={{ whiteSpace: 'pre-wrap', background: '#f4f4f4', padding: '1rem', minHeight: '10rem' }}>{salida}</pre>
