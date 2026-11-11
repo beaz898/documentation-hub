@@ -7925,3 +7925,57 @@ ea4a254b41b0c369 mutar_instrumento_d3.mjs
   19/10 del salto de «Mejora con IA» que coge la primera aparición de la cita: **las dos son la misma familia, la cita como
   identificador frágil.**
 - No bloquea las pulsaciones.
+
+### LA TANDA DE d3 DEL 11/11: 7 DE 42, Y LA CASILLA DE PARAR (Code, 11/11/2026)
+**Las tres pulsaciones, tal como llegaron**: `claude/Medida_F130_D3_Pulsacion_{1,2,3}_11-11-2026.json`, sacadas del registro por
+script (`extraer_d3.mjs`). Los metadatos (literal):
+```
+pulsación 1 · 2026-11-11T08:37:55.292Z · huella del fichero bdf2a06e7a47d093 · huella del prompt aac1ca15db937047 · régimen pareja_entera · respuestas 14 (con texto 14)
+   entrada 49409 · resultado ok · http 200 · intento 1 · espera 0 · caché 0/0 · parámetros {"maxTokens":16000,"temperatura":"sin_enviar","esfuerzo":"medium"} · modelo pedido claude-haiku-5-5
+   latencia 11.2–31.5 s · de la primera petición al final de la última: 109.8 s (límite 300)
+pulsación 2 · 2026-11-11T08:43:18.413Z · huella del fichero 86776ca7c8b38eb3 · huella del prompt aac1ca15db937047 · régimen pareja_entera · respuestas 14 (con texto 14)
+   entrada 49409 · resultado ok · http 200 · intento 1 · espera 0 · caché 0/0 · parámetros {"maxTokens":16000,"temperatura":"sin_enviar","esfuerzo":"medium"} · modelo pedido claude-haiku-5-5
+   latencia 11.3–26.5 s · de la primera petición al final de la última: 89.1 s (límite 300)
+pulsación 3 · 2026-11-11T08:46:46.969Z · huella del fichero 598201928b74b19c · huella del prompt aac1ca15db937047 · régimen pareja_entera · respuestas 14 (con texto 14)
+   entrada 49409 · resultado ok · http 200 · intento 1 · espera 0 · caché 0/0 · parámetros {"maxTokens":16000,"temperatura":"sin_enviar","esfuerzo":"medium"} · modelo pedido claude-haiku-5-5
+   latencia 11.7–37.0 s · de la primera petición al final de la última: 108.2 s (límite 300)
+```
+**EL CORREDOR APROBADO** (instrumento_d3 `c55b7565cd880864`, correr_d3 `2d19b4f0ce37315f`), literal:
+```
+0 · LOS FICHEROS: 3 pulsaciones de d3 en orden · huella aac1ca15db937047 y pareja_entera en las tres · tokens de entrada: 49409
+1 · RESPUESTAS: 42 con texto · fallidas 0
+2 · D POR CUALQUIER RUTA, SOBRE 42, CON SU FECHA (2026-11-11): 7 de 42 · sobre 42 (lo que alcanzaría el PRODUCTO) 16.7 %, Wilson del 8.3 % al 30.6 % · sobre 40 puntuables (lo que alcanza el JUEZ cuando se le puede leer) 17.5 %, Wilson del 8.7 % al 31.9 % · el corte de 24 sigue SUSPENDIDO: la tanda no decide construir ni enterrar
+   POR RUTA: D_por_3_5 0 · D_por_3_1 6 · por las dos 1
+   POR PREGUNTA: por la 1 0 · por la 2 7 · por las dos 0
+3 · NEGACIONES (NO SALE): 33 · por motivo, PROVISIONAL HASTA LA LECTURA: (a) fragmento 0 · (d) absorción 9 · (b) lectura estrecha 0 · (c) otro 24
+4 · INDECIDIBLES: 2 · por qué: la frase de A del §3.1 frente al permiso 0 · cita que la puerta no encuentra en ningún documento 1 · a caballo 0 · otra 0 · de línea o NADA 1
+5 · LA CASILLA (provisional hasta la lectura de las negaciones): NINGUNA_DE_LAS_ANTERIORES → SE PARA, SE LEE Y NO SE CONCLUYE: hay un mecanismo que no se había pensado
+5b · EL GUARDIÁN: 2 indecidibles, no más de 8: la casilla de arriba vale
+```
+(La salida completa, con las 33 negaciones una a una, en `scratchpad/d3_tanda.txt`.)
+
+**LA LECTURA, DESCRIPTIVA Y SIN CONCLUIR** (la casilla manda parar y leer). Ayuda de lectura post hoc (`herramientas/lectura_d3.test.ts`),
+que no decide nada:
+```
+16 · línea 2 HALLAZGO
+12 · línea 2 NO_HALLAZGO · dice que es de la 1
+5 · línea 2 HALLAZGO · dice que es de la 1
+```
+- **21 de las 33 dicen HALLAZGO en la 2, pero con OTROS conflictos, no con D**: 20 de las 21 hablan de la retirada del autoclave
+  (NOR-10 §2.1 «no es delegable» frente a CLI-12 §3.1 «sin necesidad de validación adicional del Director Clínico»), y muchas también
+  de la caducidad (6 o 12 meses), del control biológico (semanal o mensual) o de la práctica (registro de carga). **Esos son A, B y C
+  de la siembra**: el registro de siembra pone la retirada del autoclave dentro de A (`corpus-pruebas/SIEMBRA_corpus_ampliado.md:57-69`)
+  y B es el control biológico.
+- **12 dicen NO en la 2 porque lo que encontraron «es de la pregunta 1»**: es la forma del sondeo. El clasificador provisional puso 7
+  en (d) y 5 en (c), porque su expresión no recoge giros como «recaen sobre el mismo asunto» o «quedan cubiertos por la pregunta 1».
+  Leídas, las 12 son la misma cosa. **Dos de ellas no citan la frase de A («responsable último») en la 1**, sino la decisión de retirar
+  el autoclave: según la definición escrita, no serían (d). Si la retirada del autoclave cuenta como A, lo decide el arquitecto.
+- **Ninguna (a)**: ninguna negación dice que el §3.1 no está ni habla de «trozo». **La hipótesis de «un mismo par de trozos» no
+  aparece.**
+- **Los 7 positivos salen todos por el §3.1 (6, más 1 por las dos rutas) y ninguno sólo por el §3.5.**
+- **Una lectura que no cambia el recuento declarado**: en la pulsación 1, vez 12, la 2 señala justo D (el principio del §3.1 frente al
+  permiso del §2.4) con la cita reescrita «pued[a] recaer en el propio Director Clínico», y el principio parafraseado, sin comillas. El
+  instrumento la cuenta como OTRO. Es la familia de los cuasi-aciertos de cita del 10/11.
+- **No se concluye nada.** Lo que la lectura muestra es una forma que la tabla no tenía: con los documentos enteros, el juez llena las
+  dos preguntas con A, B y C, que son evidentes. 21 veces los presenta como conflicto normativo en la 2, y 12 veces niega la 2
+  diciendo que todo es de la 1. **Decide el arquitecto qué se hace.**

@@ -1,0 +1,451 @@
+{
+  "estadoHttp": 200,
+  "medida": "F-130 · la pregunta cerrada CON LAS DOS LÍNEAS DE HALLAZGO sobre la pareja de D de la siembra (§2.4 ↔ §3.5), los dos DOCUMENTOS ENTEROS (pareja_entera), 14 veces por pulsación",
+  "cuando": "2026-11-11T08:43:18.413Z",
+  "huellaDelPrompt": "aac1ca15db937047",
+  "documentos": {
+    "analizado": {
+      "documento": "NOR-10_protocolo-esterilizacion-instrumental.docx",
+      "generacion": 1,
+      "trozos": 67,
+      "caracteres": 66801
+    },
+    "candidato": {
+      "documento": "CLI-12_manual-calidad-clinica.docx",
+      "generacion": 1,
+      "trozos": 55,
+      "caracteres": 55135
+    }
+  },
+  "lectura": {
+    "documentId": "facac5fd-ca7a-4f04-abf9-4926bb955e0a",
+    "regimen": "pareja_entera",
+    "analizado": {
+      "caracteres": 66801,
+      "mostrados": 66801,
+      "dejoFuera": false
+    },
+    "candidato": {
+      "caracteres": 55135,
+      "mostrados": 55135,
+      "dejoFuera": false
+    },
+    "presupuesto": 150000,
+    "trozosDelCandidato": 55
+  },
+  "modelo": "claude-haiku-5-5",
+  "respuestas": [
+    {
+      "pareja": "NOR-10_protocolo-esterilizacion-instrumental.docx (documento completo) ↔ CLI-12_manual-calidad-clinica.docx (documento completo)",
+      "vez": 1,
+      "respuesta": "**PREGUNTA 1 · EL DATO**\n\nSí. Los dos textos asignan la responsabilidad última de la esterilización a figuras distintas:\n\n- NOR-10, apartado 2.1: «El responsable último del cumplimiento de este protocolo en cada centro es el Director Clínico de la clínica correspondiente.»\n- CLI-12, apartado 3.1: «El responsable último de la esterilización del instrumental en cada clínica es el Coordinador de Calidad del centro, no el Director Clínico.»\n\nLo mismo ocurre con la retirada de un autoclave que no supere un control biológico, que NOR-10 atribuye al Director Clínico («no es delegable y recae siempre sobre esta figura») y CLI-12 al Coordinador de Calidad («sin necesidad de validación adicional del Director Clínico»).\n\nTambién discrepan en otros datos:\n\n- Caducidad del material esterilizado. NOR-10, apartado 13.4: «mantiene su esterilidad durante un máximo de 6 meses». CLI-12, apartado 16.2: «se considera válido durante un periodo máximo de 12 meses».\n- Periodicidad del control biológico. NOR-10, apartado 10.2: «se realiza semanalmente, todos los lunes». CLI-12, apartado 12.1: «con periodicidad mensual, el primer día laborable de cada mes».\n\n**PREGUNTA 2 · EL CUMPLIMIENTO**\n\nNo. Las reglas que chocan entre sí (quién es responsable y quién decide, la caducidad y la periodicidad del control biológico) regulan la misma cosa, así que pertenecen a la pregunta 1. Los demás pares de reglas de ambos textos (cooperación en las inspecciones, comunicación de incidencias, auditorías, formación, proveedores, retirada de autoclave tras un control biológico positivo) pueden cumplirse a la vez.\n\nHALLAZGO EN LA 1: SÍ\nHALLAZGO EN LA 2: NO"
+    },
+    {
+      "pareja": "NOR-10_protocolo-esterilizacion-instrumental.docx (documento completo) ↔ CLI-12_manual-calidad-clinica.docx (documento completo)",
+      "vez": 2,
+      "respuesta": "**Pregunta 1 (el dato):** Hay hallazgo.\n\n- Responsable último de la esterilización:\n  - NOR-10, apartado 2.1: «El responsable último del cumplimiento de este protocolo en cada centro es el Director Clínico de la clínica correspondiente.»\n  - CLI-12, apartado 3.1: «El responsable último de la esterilización del instrumental en cada clínica es el Coordinador de Calidad del centro, no el Director Clínico.»\n- Frecuencia del control biológico:\n  - NOR-10, apartado 10.2: «El control biológico del autoclave se realiza semanalmente, todos los lunes a primera hora».\n  - CLI-12, apartado 12.1: «El control biológico del autoclave se realiza con periodicidad mensual, el primer día laborable de cada mes».\n- Caducidad del material esterilizado:\n  - NOR-10, apartado 13.4: «mantiene su esterilidad durante un máximo de 6 meses desde la fecha de esterilización impresa en la etiqueta, transcurridos los cuales el paquete debe reesterilizarse».\n  - CLI-12, apartado 16.2: «el material esterilizado y envasado se considera válido durante un periodo máximo de 12 meses desde su esterilización».\n\n**Pregunta 2 (el cumplimiento):** Hay hallazgo. Son dos reglas y no se pueden cumplir a la vez.\n\n- Caducidad (norma contra norma): si se hace lo que CLI-12 permite, conservar un paquete de 8 meses como válido, se incumple NOR-10, que obliga a reesterilizarlo a los 6 meses. Y si se cumple NOR-10, se incumple CLI-12, que lo da por válido.\n- Retirada de autoclaves (norma contra norma): NOR-10, apartado 2.1, dice que la decisión de retirar un autoclave «no es delegable y recae siempre sobre esta figura» (el Director Clínico). CLI-12, apartado 3.1, dice que el Coordinador de Calidad la decide «sin necesidad de validación adicional del Director Clínico». Hacer lo que permite CLI-12 incumple NOR-10.\n\nHALLAZGO EN LA 1: SÍ\nHALLAZGO EN LA 2: SÍ"
+    },
+    {
+      "pareja": "NOR-10_protocolo-esterilizacion-instrumental.docx (documento completo) ↔ CLI-12_manual-calidad-clinica.docx (documento completo)",
+      "vez": 3,
+      "respuesta": "**PREGUNTA 1 · EL DATO**\n\nSí. Los textos dan valores distintos sobre el mismo dato en varios puntos:\n\n- **Responsable último de la esterilización.** NOR-10 §2.1: «El responsable último del cumplimiento de este protocolo en cada centro es el Director Clínico». CLI-12 §3.1: «El responsable último de la esterilización del instrumental en cada clínica es el Coordinador de Calidad del centro, no el Director Clínico».\n- **Periodicidad del control biológico.** NOR-10 §10.2: «El control biológico del autoclave se realiza semanalmente, todos los lunes a primera hora». CLI-12 §12.1: «El control biológico del autoclave se realiza con periodicidad mensual, el primer día laborable de cada mes».\n- **Caducidad del material esterilizado.** NOR-10 §13.4: «mantiene su esterilidad durante un máximo de 6 meses». CLI-12 §16.2: «se considera válido durante un periodo máximo de 12 meses».\n\n**PREGUNTA 2 · EL CUMPLIMIENTO**\n\nSí. Ambos textos son reglas. Hay un par de frases que no se pueden cumplir a la vez, y no regula el mismo punto sino que choca con un principio:\n\n- NOR-10 §2.4 permite: la figura de Coordinador de Calidad «puede recaer en el propio Director Clínico o en otro profesional designado por él».\n- CLI-12 §3.1 enuncia un principio que excluye justo eso: la responsabilidad de la esterilización debe separarse «de la persona que, en su rol de Director Clínico, gestiona simultáneamente la agenda asistencial». CLI-12 §3.5 refuerza la misma separación.\n\nSi un centro hace lo que NOR-10 permite (que el Director Clínico sea también el Coordinador de Calidad), no se cumple el principio de CLI-12. No basta con «no usar el permiso», porque eso dejaría sin efecto la permisión de NOR-10. Es un conflicto normativo de tipo «norma_contra_norma».\n\nHALLAZGO EN LA 1: SÍ\nHALLAZGO EN LA 2: SÍ"
+    },
+    {
+      "pareja": "NOR-10_protocolo-esterilizacion-instrumental.docx (documento completo) ↔ CLI-12_manual-calidad-clinica.docx (documento completo)",
+      "vez": 4,
+      "respuesta": "**PREGUNTA 1 · EL DATO**\n\nSí. Los dos textos dan valores distintos a varios datos:\n\n- **Responsable último de la esterilización.**\n  - NOR-10, 2.1: «El responsable último del cumplimiento de este protocolo en cada centro es el Director Clínico de la clínica correspondiente.»\n  - CLI-12, 3.1: «El responsable último de la esterilización del instrumental en cada clínica es el Coordinador de Calidad del centro, no el Director Clínico.»\n- **Caducidad del material esterilizado.**\n  - NOR-10, 13.4: «mantiene su esterilidad durante un máximo de 6 meses desde la fecha de esterilización impresa en la etiqueta».\n  - CLI-12, 16.2: «el material esterilizado y envasado se considera válido durante un periodo máximo de 12 meses desde su esterilización».\n- **Periodicidad del control biológico.**\n  - NOR-10, 10.2: «El control biológico del autoclave se realiza semanalmente, todos los lunes a primera hora».\n  - CLI-12, 12.1: «El control biológico del autoclave se realiza con periodicidad mensual, el primer día laborable de cada mes».\n\n**PREGUNTA 2 · EL CUMPLIMIENTO**\n\nLas incompatibilidades que encuentro entre reglas (la responsabilidad de retirar un autoclave, la firma de las auditorías trimestrales, la caducidad de 6 o 12 meses y la frecuencia del control biológico) recaen todas sobre el mismo asunto. Son las discrepancias de dato de la pregunta 1, no conflictos entre reglas sobre cosas distintas. No encuentro ningún par de frases de cada texto que mande sobre cosas distintas y que no pueda cumplirse a la vez.\n\nHALLAZGO EN LA 1: SÍ\nHALLAZGO EN LA 2: NO"
+    },
+    {
+      "pareja": "NOR-10_protocolo-esterilizacion-instrumental.docx (documento completo) ↔ CLI-12_manual-calidad-clinica.docx (documento completo)",
+      "vez": 5,
+      "respuesta": "**PREGUNTA 1 · EL DATO**\n\nSí, los textos dan valores distintos a varios datos. Ejemplos:\n\n- **Quién decide retirar un autoclave que no supera un control biológico:**\n  - NOR-10, 2.1: «la decisión de retirar del servicio un autoclave que no supere un control biológico — no es delegable y recae siempre sobre esta figura» (el Director Clínico).\n  - CLI-12, 3.1: «quien decide, con criterio técnico y sin necesidad de validación adicional del Director Clínico, la retirada de servicio de un autoclave que no supere un control biológico» (el Coordinador de Calidad).\n- **Periodicidad del control biológico:**\n  - NOR-10, 10.2: «se realiza semanalmente, todos los lunes a primera hora».\n  - CLI-12, 12.1: «se realiza con periodicidad mensual, el primer día laborable de cada mes».\n- **Plazo de caducidad del material esterilizado en bolsa mixta:**\n  - NOR-10, 13.4: «mantiene su esterilidad durante un máximo de 6 meses».\n  - CLI-12, 16.2: «se considera válido durante un periodo máximo de 12 meses».\n\n**PREGUNTA 2 · EL CUMPLIMIENTO**\n\nLos pares de reglas que chocan regulan la misma cosa (quién retira el autoclave, con qué frecuencia se controla, cuánto dura el envase), así que son hallazgos de la pregunta 1, no de la 2. No he encontrado ningún par de reglas sobre materias distintas que no puedan cumplirse a la vez.\n\nHALLAZGO EN LA 1: SÍ\nHALLAZGO EN LA 2: NO"
+    },
+    {
+      "pareja": "NOR-10_protocolo-esterilizacion-instrumental.docx (documento completo) ↔ CLI-12_manual-calidad-clinica.docx (documento completo)",
+      "vez": 6,
+      "respuesta": "**Pregunta 1 (el dato):** Sí. Los textos dan valores distintos a tres datos:\n\n- **Caducidad del material esterilizado.** NOR-10, apartado 13.4: «mantiene su esterilidad durante un máximo de 6 meses desde la fecha de esterilización impresa en la etiqueta». CLI-12, apartado 16.2: «el material esterilizado y envasado se considera válido durante un periodo máximo de 12 meses desde su esterilización».\n- **Responsable último de la esterilización.** NOR-10, apartado 2.1: «El responsable último del cumplimiento de este protocolo en cada centro es el Director Clínico». CLI-12, apartado 3.1: «El responsable último de la esterilización del instrumental en cada clínica es el Coordinador de Calidad del centro, no el Director Clínico».\n- **Frecuencia del control biológico.** NOR-10, apartado 10.2: «se realiza semanalmente, todos los lunes a primera hora». CLI-12, apartado 12.1: «se realiza con periodicidad mensual, el primer día laborable de cada mes».\n\n**Pregunta 2 (el cumplimiento):** Los tres puntos de conflicto de la pregunta 1 recaen sobre la misma materia (quién responde, cuánto dura un paquete, cada cuánto se controla), así que quedan cubiertos por la pregunta 1. No he encontrado otro par de reglas sobre materias distintas que no puedan cumplirse a la vez.\n\nHALLAZGO EN LA 1: SÍ\nHALLAZGO EN LA 2: NO"
+    },
+    {
+      "pareja": "NOR-10_protocolo-esterilizacion-instrumental.docx (documento completo) ↔ CLI-12_manual-calidad-clinica.docx (documento completo)",
+      "vez": 7,
+      "respuesta": "**PREGUNTA 1 · EL DATO**\n\nSí. Los dos textos asignan de forma distinta la responsabilidad última de la esterilización:\n\n- NOR-10, apartado 2.1: «El responsable último del cumplimiento de este protocolo en cada centro es el Director Clínico de la clínica correspondiente.»\n- CLI-12, apartado 3.1: «El responsable último de la esterilización del instrumental en cada clínica es el Coordinador de Calidad del centro, no el Director Clínico.»\n\nAdemás, dan valores distintos a otros datos:\n\n- Frecuencia del control biológico. NOR-10, apartado 10.2: «se realiza semanalmente, todos los lunes». CLI-12, apartado 12.1: «se realiza con periodicidad mensual».\n- Caducidad del material esterilizado. NOR-10, apartado 13.4: «mantiene su esterilidad durante un máximo de 6 meses». CLI-12, apartado 16.2: «se considera válido durante un periodo máximo de 12 meses».\n\n**PREGUNTA 2 · EL CUMPLIMIENTO**\n\nSí. Ambos textos son reglas, y no se pueden cumplir las dos a la vez en lo relativo a la retirada de un autoclave:\n\n- NOR-10, apartado 2.1: la decisión de «retirar del servicio un autoclave que no supere un control biológico […] no es delegable y recae siempre sobre esta figura» (el Director Clínico).\n- CLI-12, apartado 3.1: el Coordinador de Calidad «decide, con criterio técnico y sin necesidad de validación adicional del Director Clínico, la retirada de servicio de un autoclave», y «el Director Clínico es informado de estas decisiones pero no interviene en ellas».\n\nSi decide el Coordinador sin intervención del Director, se incumple la NOR-10. Si decide el Director, se incumple la CLI-12. Es un caso de norma contra norma.\n\nHALLAZGO EN LA 1: SÍ\nHALLAZGO EN LA 2: SÍ"
+    },
+    {
+      "pareja": "NOR-10_protocolo-esterilizacion-instrumental.docx (documento completo) ↔ CLI-12_manual-calidad-clinica.docx (documento completo)",
+      "vez": 8,
+      "respuesta": "**PREGUNTA 1 · EL DATO**\n\nSí. Los dos textos dan valores distintos a tres datos:\n\n- **Responsable último de la esterilización.** NOR-10, 2.1: «El responsable último del cumplimiento de este protocolo en cada centro es el Director Clínico de la clínica correspondiente.» CLI-12, 3.1: «El responsable último de la esterilización del instrumental en cada clínica es el Coordinador de Calidad del centro, no el Director Clínico.»\n- **Frecuencia del control biológico.** NOR-10, 10.2: «El control biológico del autoclave se realiza semanalmente, todos los lunes a primera hora». CLI-12, 12.1: «El control biológico del autoclave se realiza con periodicidad mensual, el primer día laborable de cada mes».\n- **Caducidad del material esterilizado.** NOR-10, 13.4: «mantiene su esterilidad durante un máximo de 6 meses desde la fecha de esterilización». CLI-12, 16.2: «el material esterilizado y envasado se considera válido durante un periodo máximo de 12 meses».\n\n**PREGUNTA 2 · EL CUMPLIMIENTO**\n\nSí. Ambos textos son reglas sobre quién decide y firma, y no se pueden cumplir a la vez:\n\n- NOR-10, 2.1: la retirada de un autoclave que no supere un control biológico es una decisión «no delegable» que «recae siempre» en el Director Clínico, quien también firma los registros de auditoría trimestral.\n- CLI-12, 3.1: el Coordinador de Calidad «decide, con criterio técnico y sin necesidad de validación adicional del Director Clínico, la retirada de servicio de un autoclave», y «el Director Clínico (...) no interviene en ellas como autoridad jerárquica».\n\nSi decide el Coordinador solo, se incumple la NOR-10. Si decide el Director, se incumple la CLI-12. Ninguna de las dos formas cumple ambas reglas.\n\nEstas dos reglas tratan sobre lo mismo (quién responde y decide), por lo que el conflicto también aparece como discrepancia de la pregunta 1. Lo señalo igualmente en la 2 porque no se puede cumplir ninguna de las dos reglas sin incumplir la otra.\n\nHALLAZGO EN LA 1: SÍ\nHALLAZGO EN LA 2: SÍ"
+    },
+    {
+      "pareja": "NOR-10_protocolo-esterilizacion-instrumental.docx (documento completo) ↔ CLI-12_manual-calidad-clinica.docx (documento completo)",
+      "vez": 9,
+      "respuesta": "**PREGUNTA 1: EL DATO**\n\nSí. Los dos textos dicen cosas distintas sobre el mismo dato:\n\n- **Responsable último de la esterilización.** NOR-10, apartado 2.1: «El responsable último del cumplimiento de este protocolo en cada centro es el Director Clínico». CLI-12, apartado 3.1: «El responsable último de la esterilización del instrumental en cada clínica es el Coordinador de Calidad del centro, no el Director Clínico».\n- **Periodicidad del control biológico.** NOR-10, apartado 10.2: «se realiza semanalmente, todos los lunes a primera hora». CLI-12, apartado 12.1: «se realiza con periodicidad mensual, el primer día laborable de cada mes».\n- **Caducidad del material esterilizado.** NOR-10, apartado 13.4: «un máximo de 6 meses». CLI-12, apartado 16.2: «un periodo máximo de 12 meses».\n\n**PREGUNTA 2: EL CUMPLIMIENTO**\n\nSí, hay un conflicto normativo. Un texto enuncia un principio que el otro permite justo lo que excluye.\n\n- **Principio (CLI-12, apartado 3.1):** «separar la responsabilidad de un proceso crítico de seguridad del paciente de la persona que, en su rol de Director Clínico, gestiona simultáneamente la agenda asistencial».\n- **Permiso (NOR-10, apartado 2.4):** el Coordinador de Calidad «puede recaer en el propio Director Clínico».\n\nSi el Director Clínico ejerce también de Coordinador de Calidad, como permite NOR-10, no se cumple el principio de separación de CLI-12. Y si se cumple la separación, no se puede usar el permiso. Es una colisión entre reglas que no se puede resolver con «basta con no usar el permiso».\n\nEtiqueta: norma_contra_norma.\n\nHALLAZGO EN LA 1: SÍ\nHALLAZGO EN LA 2: SÍ"
+    },
+    {
+      "pareja": "NOR-10_protocolo-esterilizacion-instrumental.docx (documento completo) ↔ CLI-12_manual-calidad-clinica.docx (documento completo)",
+      "vez": 10,
+      "respuesta": "**PREGUNTA 1 · EL DATO**\n\n**SÍ.** Los textos dan valores distintos a tres datos:\n\n1. **Quién es el responsable último de la esterilización:**\n   - NOR-10, apartado 2.1: «El responsable último del cumplimiento de este protocolo en cada centro es el Director Clínico de la clínica correspondiente».\n   - CLI-12, apartado 3.1: «El responsable último de la esterilización del instrumental en cada clínica es el Coordinador de Calidad del centro, no el Director Clínico».\n\n2. **Periodicidad del control biológico del autoclave:**\n   - NOR-10, apartado 10.2: «El control biológico del autoclave se realiza semanalmente, todos los lunes a primera hora».\n   - CLI-12, apartado 12.1: «El control biológico del autoclave se realiza con periodicidad mensual, el primer día laborable de cada mes».\n\n3. **Duración de la esterilidad del material envasado:**\n   - NOR-10, apartado 13.4: «mantiene su esterilidad durante un máximo de 6 meses desde la fecha de esterilización impresa en la etiqueta».\n   - CLI-12, apartado 16.2: «el material esterilizado y envasado se considera válido durante un periodo máximo de 12 meses desde su esterilización».\n\n**PREGUNTA 2 · EL CUMPLIMIENTO**\n\n**SÍ.** Ambos textos son reglas, y hay una pareja de frases que no se pueden cumplir a la vez. Es un caso de «norma_contra_norma»:\n\n- NOR-10, apartado 2.1: la decisión de retirar del servicio un autoclave que no supere un control biológico «no es delegable y recae siempre sobre esta figura» (el Director Clínico).\n- CLI-12, apartado 3.1: el Coordinador de Calidad decide «sin necesidad de validación adicional del Director Clínico, la retirada de servicio de un autoclave que no supere un control biológico. El Director Clínico es informado de estas decisiones pero no interviene en ellas como autoridad jerárquica».\n\nUna retirada de autoclave no puede ser, a la vez, una decisión indelegable del Director Clínico y una decisión en la que el Director Clínico no interviene. Cumplir una regla implica incumplir la otra.\n\nHay además un segundo conflicto de este tipo: la regla de caducidad de CLI-12 (validez de 12 meses, y marcar como no conforme solo lo que supere ese plazo) permite usar material de entre 6 y 12 meses, que NOR-10 obliga a reprocesar.\n\nHALLAZGO EN LA 1: SÍ\nHALLAZGO EN LA 2: SÍ"
+    },
+    {
+      "pareja": "NOR-10_protocolo-esterilizacion-instrumental.docx (documento completo) ↔ CLI-12_manual-calidad-clinica.docx (documento completo)",
+      "vez": 11,
+      "respuesta": "**PREGUNTA 1 · EL DATO**\n\nSí. Los dos textos dan valores distintos a varios datos:\n\n- **Periodicidad del control biológico.** NOR-10, apartado 10.2: «El control biológico del autoclave se realiza semanalmente, todos los lunes a primera hora». CLI-12, apartado 12.1: «El control biológico del autoclave se realiza con periodicidad mensual, el primer día laborable de cada mes».\n- **Caducidad del material esterilizado.** NOR-10, apartado 13.4: «mantiene su esterilidad durante un máximo de 6 meses». CLI-12, apartado 16.2: «se considera válido durante un periodo máximo de 12 meses».\n- **Responsable último de la esterilización.** NOR-10, apartado 2.1: «El responsable último del cumplimiento de este protocolo en cada centro es el Director Clínico». CLI-12, apartado 3.1: «El responsable último de la esterilización del instrumental en cada clínica es el Coordinador de Calidad del centro, no el Director Clínico».\n\n**PREGUNTA 2 · EL CUMPLIMIENTO**\n\nSí. Hay al menos un par de reglas que no se pueden cumplir a la vez:\n\n- **Principio de separación frente a una permisión** (norma contra norma). CLI-12, apartado 3.1, enuncia el principio de separar la responsabilidad de la esterilización de la persona que dirige la clínica: «separar la responsabilidad de un proceso crítico de seguridad del paciente de la persona que, en su rol de Director Clínico, gestiona simultáneamente la agenda asistencial». NOR-10, apartado 2.4, permite justo lo contrario: «Cada clínica cuenta con un Coordinador de Calidad, figura que puede recaer en el propio Director Clínico». Si el Director Clínico ejerce de Coordinador de Calidad, se incumple el principio de CLI-12. Si no lo ejerce, no se usa la permisión de NOR-10. Ninguna de las dos situaciones cumple las dos reglas a la vez, así que se trata de un conflicto normativo.\n\nHALLAZGO EN LA 1: SÍ\nHALLAZGO EN LA 2: SÍ"
+    },
+    {
+      "pareja": "NOR-10_protocolo-esterilizacion-instrumental.docx (documento completo) ↔ CLI-12_manual-calidad-clinica.docx (documento completo)",
+      "vez": 12,
+      "respuesta": "**PREGUNTA 1: EL DATO**\n\nSí. Los dos textos dan valores distintos a varios datos concretos:\n\n- **Responsable último de la esterilización.** NOR-10, apartado 2.1: «El responsable último del cumplimiento de este protocolo en cada centro es el Director Clínico de la clínica correspondiente.» CLI-12, apartado 3.1: «El responsable último de la esterilización del instrumental en cada clínica es el Coordinador de Calidad del centro, no el Director Clínico.»\n- **Frecuencia del control biológico.** NOR-10, apartado 10.2: «El control biológico del autoclave se realiza semanalmente, todos los lunes a primera hora.» CLI-12, apartado 12.1: «El control biológico del autoclave se realiza con periodicidad mensual, el primer día laborable de cada mes.»\n- **Caducidad de la esterilidad del material envasado.** NOR-10, apartado 13.4: «mantiene su esterilidad durante un máximo de 6 meses desde la fecha de esterilización impresa en la etiqueta». CLI-12, apartado 16.2: «se considera válido durante un periodo máximo de 12 meses desde su esterilización».\n\n**PREGUNTA 2: EL CUMPLIMIENTO**\n\nNo. Los pares de reglas en conflicto regulan la misma materia: quién responde, con qué periodicidad se hace el control biológico y cuánto dura la esterilidad del envasado. Por eso su hallazgo corresponde a la pregunta 1. Ninguna pareja de reglas sobre materias distintas resulta incompatible: la caducidad de 6 meses de NOR-10 y el tope de 12 meses de CLI-12 podrían cumplirse a la vez reprocesando al llegar a 6 meses, pero eso no elimina el dato contradictorio de la pregunta 1.\n\nHALLAZGO EN LA 1: SÍ\nHALLAZGO EN LA 2: NO"
+    },
+    {
+      "pareja": "NOR-10_protocolo-esterilizacion-instrumental.docx (documento completo) ↔ CLI-12_manual-calidad-clinica.docx (documento completo)",
+      "vez": 13,
+      "respuesta": "**PREGUNTA 1 · EL DATO**\n\nSí. Los dos textos dan valores distintos a datos concretos:\n\n- **Periodicidad del control biológico del autoclave.**\n  - NOR-10, apartado 10.2: «El control biológico del autoclave se realiza semanalmente, todos los lunes a primera hora».\n  - CLI-12, apartado 12.1: «El control biológico del autoclave se realiza con periodicidad mensual, el primer día laborable de cada mes».\n- **Plazo de caducidad de la esterilidad del material envasado en bolsa mixta.**\n  - NOR-10, apartado 13.4: «mantiene su esterilidad durante un máximo de 6 meses desde la fecha de esterilización».\n  - CLI-12, apartado 16.2: «el material esterilizado y envasado se considera válido durante un periodo máximo de 12 meses desde su esterilización».\n\n**PREGUNTA 2 · EL CUMPLIMIENTO**\n\nSí. Ambos textos son reglas que reparten responsabilidades sobre la misma decisión, y no se pueden cumplir a la vez:\n\n- **Retirada de un autoclave que no supera un control biológico.** Es un caso de «norma_contra_norma».\n  - NOR-10, apartado 2.1: la decisión de retirar del servicio un autoclave que no supere un control biológico «no es delegable y recae siempre sobre esta figura» (el Director Clínico).\n  - CLI-12, apartado 3.1: el Coordinador de Calidad decide «sin necesidad de validación adicional del Director Clínico, la retirada de servicio de un autoclave que no supere un control biológico. El Director Clínico es informado de estas decisiones pero no interviene en ellas».\n  - Cumplir NOR-10 exige que el Director Clínico decida, y cumplir CLI-12 exige que no intervenga. Además, CLI-12 apartado 3.4 da prevalencia al Coordinador, lo que deja sin efecto la regla de NOR-10.\n\nHALLAZGO EN LA 1: SÍ\nHALLAZGO EN LA 2: SÍ"
+    },
+    {
+      "pareja": "NOR-10_protocolo-esterilizacion-instrumental.docx (documento completo) ↔ CLI-12_manual-calidad-clinica.docx (documento completo)",
+      "vez": 14,
+      "respuesta": "**PREGUNTA 1 · EL DATO**\n\nSí, los dos textos dicen cosas distintas sobre el mismo dato. Hay tres casos:\n\n1. **Frecuencia del control biológico del autoclave.**\n   - NOR-10, §10.2: «El control biológico del autoclave se realiza semanalmente, todos los lunes a primera hora».\n   - CLI-12, §12.1: «El control biológico del autoclave se realiza con periodicidad mensual, el primer día laborable de cada mes».\n\n2. **Plazo de caducidad de la esterilidad del material envasado.**\n   - NOR-10, §13.4: «mantiene su esterilidad durante un máximo de 6 meses desde la fecha de esterilización».\n   - CLI-12, §16.2: «el material esterilizado y envasado se considera válido durante un periodo máximo de 12 meses desde su esterilización».\n\n3. **Responsable último de la esterilización.**\n   - NOR-10, §2.1: «El responsable último del cumplimiento de este protocolo en cada centro es el Director Clínico».\n   - CLI-12, §3.1: «El responsable último de la esterilización del instrumental en cada clínica es el Coordinador de Calidad del centro, no el Director Clínico».\n\n**PREGUNTA 2 · EL CUMPLIMIENTO**\n\nLos dos textos contienen reglas, así que cabe preguntar si se pueden cumplir a la vez. Los conflictos anteriores recaen sobre el mismo dato (la periodicidad, el plazo, el responsable), por lo que pertenecen a la pregunta 1 y no hacen falta aquí.\n\nSi se buscan pares de reglas que mandan sobre cosas distintas, no encuentro ninguno que no se pueda cumplir. Por ejemplo, reesterilizar a los 6 meses (NOR-10) y no tratar como no conforme ningún paquete de más de 12 meses (CLI-12) se cumplen a la vez. Tampoco hay una regla que permita algo que otra prohíba sobre un asunto distinto.\n\nHALLAZGO EN LA 1: SÍ\nHALLAZGO EN LA 2: NO"
+    }
+  ],
+  "registro": {
+    "peticiones": [
+      {
+        "n": 1,
+        "etapa": "juez",
+        "pareja": "facac5fd-ca7a-4f04-abf9-4926bb955e0a",
+        "modelo": "claude-haiku-5-5",
+        "vuelta": 1,
+        "intento": 1,
+        "resultado": "ok",
+        "estadoHttp": 200,
+        "latenciaMs": 11305,
+        "esperaMs": 0,
+        "comienzoMs": 4,
+        "tokens": {
+          "entrada": 49409,
+          "salida": 2734,
+          "escrituraCache": 0,
+          "lecturaCache": 0
+        },
+        "parametros": {
+          "maxTokens": 16000,
+          "temperatura": "sin_enviar",
+          "esfuerzo": "medium"
+        }
+      },
+      {
+        "n": 2,
+        "etapa": "juez",
+        "pareja": "facac5fd-ca7a-4f04-abf9-4926bb955e0a",
+        "modelo": "claude-haiku-5-5",
+        "vuelta": 1,
+        "intento": 1,
+        "resultado": "ok",
+        "estadoHttp": 200,
+        "latenciaMs": 12634,
+        "esperaMs": 0,
+        "comienzoMs": 8,
+        "tokens": {
+          "entrada": 49409,
+          "salida": 2874,
+          "escrituraCache": 0,
+          "lecturaCache": 0
+        },
+        "parametros": {
+          "maxTokens": 16000,
+          "temperatura": "sin_enviar",
+          "esfuerzo": "medium"
+        }
+      },
+      {
+        "n": 3,
+        "etapa": "juez",
+        "pareja": "facac5fd-ca7a-4f04-abf9-4926bb955e0a",
+        "modelo": "claude-haiku-5-5",
+        "vuelta": 1,
+        "intento": 1,
+        "resultado": "ok",
+        "estadoHttp": 200,
+        "latenciaMs": 18836,
+        "esperaMs": 0,
+        "comienzoMs": 0,
+        "tokens": {
+          "entrada": 49409,
+          "salida": 4356,
+          "escrituraCache": 0,
+          "lecturaCache": 0
+        },
+        "parametros": {
+          "maxTokens": 16000,
+          "temperatura": "sin_enviar",
+          "esfuerzo": "medium"
+        }
+      },
+      {
+        "n": 4,
+        "etapa": "juez",
+        "pareja": "facac5fd-ca7a-4f04-abf9-4926bb955e0a",
+        "modelo": "claude-haiku-5-5",
+        "vuelta": 1,
+        "intento": 1,
+        "resultado": "ok",
+        "estadoHttp": 200,
+        "latenciaMs": 26485,
+        "esperaMs": 0,
+        "comienzoMs": 6,
+        "tokens": {
+          "entrada": 49409,
+          "salida": 6156,
+          "escrituraCache": 0,
+          "lecturaCache": 0
+        },
+        "parametros": {
+          "maxTokens": 16000,
+          "temperatura": "sin_enviar",
+          "esfuerzo": "medium"
+        }
+      },
+      {
+        "n": 5,
+        "etapa": "juez",
+        "pareja": "facac5fd-ca7a-4f04-abf9-4926bb955e0a",
+        "modelo": "claude-haiku-5-5",
+        "vuelta": 1,
+        "intento": 1,
+        "resultado": "ok",
+        "estadoHttp": 200,
+        "latenciaMs": 15897,
+        "esperaMs": 0,
+        "comienzoMs": 26491,
+        "tokens": {
+          "entrada": 49409,
+          "salida": 3269,
+          "escrituraCache": 0,
+          "lecturaCache": 0
+        },
+        "parametros": {
+          "maxTokens": 16000,
+          "temperatura": "sin_enviar",
+          "esfuerzo": "medium"
+        }
+      },
+      {
+        "n": 6,
+        "etapa": "juez",
+        "pareja": "facac5fd-ca7a-4f04-abf9-4926bb955e0a",
+        "modelo": "claude-haiku-5-5",
+        "vuelta": 1,
+        "intento": 1,
+        "resultado": "ok",
+        "estadoHttp": 200,
+        "latenciaMs": 16627,
+        "esperaMs": 0,
+        "comienzoMs": 26495,
+        "tokens": {
+          "entrada": 49409,
+          "salida": 3801,
+          "escrituraCache": 0,
+          "lecturaCache": 0
+        },
+        "parametros": {
+          "maxTokens": 16000,
+          "temperatura": "sin_enviar",
+          "esfuerzo": "medium"
+        }
+      },
+      {
+        "n": 7,
+        "etapa": "juez",
+        "pareja": "facac5fd-ca7a-4f04-abf9-4926bb955e0a",
+        "modelo": "claude-haiku-5-5",
+        "vuelta": 1,
+        "intento": 1,
+        "resultado": "ok",
+        "estadoHttp": 200,
+        "latenciaMs": 16775,
+        "esperaMs": 0,
+        "comienzoMs": 26497,
+        "tokens": {
+          "entrada": 49409,
+          "salida": 3680,
+          "escrituraCache": 0,
+          "lecturaCache": 0
+        },
+        "parametros": {
+          "maxTokens": 16000,
+          "temperatura": "sin_enviar",
+          "esfuerzo": "medium"
+        }
+      },
+      {
+        "n": 8,
+        "etapa": "juez",
+        "pareja": "facac5fd-ca7a-4f04-abf9-4926bb955e0a",
+        "modelo": "claude-haiku-5-5",
+        "vuelta": 1,
+        "intento": 1,
+        "resultado": "ok",
+        "estadoHttp": 200,
+        "latenciaMs": 16906,
+        "esperaMs": 0,
+        "comienzoMs": 26493,
+        "tokens": {
+          "entrada": 49409,
+          "salida": 3872,
+          "escrituraCache": 0,
+          "lecturaCache": 0
+        },
+        "parametros": {
+          "maxTokens": 16000,
+          "temperatura": "sin_enviar",
+          "esfuerzo": "medium"
+        }
+      },
+      {
+        "n": 9,
+        "etapa": "juez",
+        "pareja": "facac5fd-ca7a-4f04-abf9-4926bb955e0a",
+        "modelo": "claude-haiku-5-5",
+        "vuelta": 1,
+        "intento": 1,
+        "resultado": "ok",
+        "estadoHttp": 200,
+        "latenciaMs": 15450,
+        "esperaMs": 0,
+        "comienzoMs": 43405,
+        "tokens": {
+          "entrada": 49409,
+          "salida": 3476,
+          "escrituraCache": 0,
+          "lecturaCache": 0
+        },
+        "parametros": {
+          "maxTokens": 16000,
+          "temperatura": "sin_enviar",
+          "esfuerzo": "medium"
+        }
+      },
+      {
+        "n": 10,
+        "etapa": "juez",
+        "pareja": "facac5fd-ca7a-4f04-abf9-4926bb955e0a",
+        "modelo": "claude-haiku-5-5",
+        "vuelta": 1,
+        "intento": 1,
+        "resultado": "ok",
+        "estadoHttp": 200,
+        "latenciaMs": 20150,
+        "esperaMs": 0,
+        "comienzoMs": 43401,
+        "tokens": {
+          "entrada": 49409,
+          "salida": 4763,
+          "escrituraCache": 0,
+          "lecturaCache": 0
+        },
+        "parametros": {
+          "maxTokens": 16000,
+          "temperatura": "sin_enviar",
+          "esfuerzo": "medium"
+        }
+      },
+      {
+        "n": 11,
+        "etapa": "juez",
+        "pareja": "facac5fd-ca7a-4f04-abf9-4926bb955e0a",
+        "modelo": "claude-haiku-5-5",
+        "vuelta": 1,
+        "intento": 1,
+        "resultado": "ok",
+        "estadoHttp": 200,
+        "latenciaMs": 21856,
+        "esperaMs": 0,
+        "comienzoMs": 43399,
+        "tokens": {
+          "entrada": 49409,
+          "salida": 5097,
+          "escrituraCache": 0,
+          "lecturaCache": 0
+        },
+        "parametros": {
+          "maxTokens": 16000,
+          "temperatura": "sin_enviar",
+          "esfuerzo": "medium"
+        }
+      },
+      {
+        "n": 12,
+        "etapa": "juez",
+        "pareja": "facac5fd-ca7a-4f04-abf9-4926bb955e0a",
+        "modelo": "claude-haiku-5-5",
+        "vuelta": 1,
+        "intento": 1,
+        "resultado": "ok",
+        "estadoHttp": 200,
+        "latenciaMs": 23215,
+        "esperaMs": 0,
+        "comienzoMs": 43407,
+        "tokens": {
+          "entrada": 49409,
+          "salida": 5341,
+          "escrituraCache": 0,
+          "lecturaCache": 0
+        },
+        "parametros": {
+          "maxTokens": 16000,
+          "temperatura": "sin_enviar",
+          "esfuerzo": "medium"
+        }
+      },
+      {
+        "n": 13,
+        "etapa": "juez",
+        "pareja": "facac5fd-ca7a-4f04-abf9-4926bb955e0a",
+        "modelo": "claude-haiku-5-5",
+        "vuelta": 1,
+        "intento": 1,
+        "resultado": "ok",
+        "estadoHttp": 200,
+        "latenciaMs": 12037,
+        "esperaMs": 0,
+        "comienzoMs": 66622,
+        "tokens": {
+          "entrada": 49409,
+          "salida": 2794,
+          "escrituraCache": 0,
+          "lecturaCache": 0
+        },
+        "parametros": {
+          "maxTokens": 16000,
+          "temperatura": "sin_enviar",
+          "esfuerzo": "medium"
+        }
+      },
+      {
+        "n": 14,
+        "etapa": "juez",
+        "pareja": "facac5fd-ca7a-4f04-abf9-4926bb955e0a",
+        "modelo": "claude-haiku-5-5",
+        "vuelta": 1,
+        "intento": 1,
+        "resultado": "ok",
+        "estadoHttp": 200,
+        "latenciaMs": 22493,
+        "esperaMs": 0,
+        "comienzoMs": 66625,
+        "tokens": {
+          "entrada": 49409,
+          "salida": 5085,
+          "escrituraCache": 0,
+          "lecturaCache": 0
+        },
+        "parametros": {
+          "maxTokens": 16000,
+          "temperatura": "sin_enviar",
+          "esfuerzo": "medium"
+        }
+      }
+    ],
+    "sinEtapa": 0,
+    "fueraDelDetalle": null
+  }
+}
