@@ -17,7 +17,7 @@ vi.mock('./llm-client', () => ({
   callLLMWithUsage: async () => ({ text: '', usage: {} }),
 }));
 
-import { judgeAllDocuments } from './judge';
+import { buildAnalyzedDocumentText, judgeAllDocuments, promptDelJuez } from './judge';
 import { INTERRUPTOR_PAREJA_ENTERA } from './judge';
 import type { StoredChunk } from '@/lib/read-chunks';
 
@@ -51,6 +51,17 @@ describe('el testigo del prompt del juez', () => {
   it('la pareja entera (interruptor a «1», los dos caben): el prompt enviado, byte a byte', async () => {
     vi.stubEnv(INTERRUPTOR_PAREJA_ENTERA, '1');
     expect(huella(await prompt(doc('Analizado', 5, 300), doc('Candidato', 4, 200), 'pareja_entera'))).toBe('67a2be2647d9f368');
+  });
+
+  it('promptDelJuez, llamada a mano con la pareja entera, da EL MISMO prompt que el juez envía (es lo que hará el ensayo de d4)', async () => {
+    vi.stubEnv(INTERRUPTOR_PAREJA_ENTERA, '1');
+    const a = doc('Analizado', 5, 300), c = doc('Candidato', 4, 200);
+    const enviado = await prompt(a, c, 'pareja_entera');
+    const amano = promptDelJuez({
+      nombreDelAnalizado: 'NOR-10.docx', textoAnalizado: buildAnalyzedDocumentText(a, 'NOR-10.docx'), avisoDeLoOmitido: '',
+      nombreDelCandidato: 'CLI-12.docx', fuenteDelCandidato: 'manual', bloqueCandidato: buildAnalyzedDocumentText(c, 'CLI-12.docx'),
+    });
+    expect(amano).toBe(enviado);
   });
 
   it('el corte honesto (interruptor a «1», no caben): el prompt enviado, byte a byte', async () => {

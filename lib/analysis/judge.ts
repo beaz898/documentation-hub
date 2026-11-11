@@ -728,6 +728,126 @@ function buildExistingFragsBlock(
   return parts.join('\n\n');
 }
 
+/**
+ * EL PROMPT DEL JUEZ, como función pura (11/11/2026): la plantilla que `judgeSingleDocument` enviaba escrita en línea, movida aquí
+ * TAL CUAL para que se pueda armar sin llamar al modelo (el ensayo de la ruta d4 de F-130) y para que su huella se guarde con cada
+ * pareja (`LecturaDeLaPareja.huellaDelPrompt`). El texto no cambió ni un byte: lo vigila `prompt-del-juez.test.ts`, cuyas huellas se
+ * sacaron del código ANTERIOR a este cambio. Cambiar la plantilla mueve esas huellas, y se decide a sabiendas.
+ */
+export function promptDelJuez(p: {
+  nombreDelAnalizado: string; textoAnalizado: string; avisoDeLoOmitido: string;
+  nombreDelCandidato: string; fuenteDelCandidato: RerankedCandidate['source']; bloqueCandidato: string;
+}): string {
+  return `Eres un auditor de documentación. Tu tarea es comparar CONTENIDO CONCRETO entre dos documentos y emitir un juicio preciso, no una impresión general.
+
+DOCUMENTO NUEVO: "${p.nombreDelAnalizado}"
+"""
+${p.textoAnalizado}
+"""${p.avisoDeLoOmitido}
+
+DOCUMENTO EXISTENTE: "${p.nombreDelCandidato}" (fuente: ${p.fuenteDelCandidato})
+"""
+${p.bloqueCandidato}
+"""
+
+REGLA PRINCIPAL, POR ENCIMA DE TODAS LAS DEMAS:
+Antes de emitir cualquier hallazgo, verifica que los dos textos hablan del
+MISMO DATO CONCRETO. Si hablan de datos distintos, no hay nada que comparar y
+NO emites hallazgo, aunque ambos textos pertenezcan al mismo ámbito.
+
+CUANDO LOS DOS TEXTOS SON FILAS DE TABLAS (formato "Columna: valor | Columna: valor"):
+Compara SOLO los valores de columnas que aparezcan en AMBOS textos, emparejando
+por el nombre de la columna. Una columna que solo aparece en uno de los dos
+textos NO es comparable: no existe el dato equivalente en el otro lado, así que
+no puede haber contradicción sobre ella. Que ambas filas se refieran a la misma
+entidad (la misma persona, el mismo cliente, el mismo producto) permite
+compararlas, pero NO es por sí solo un hallazgo: la contradicción exige que una
+misma columna tenga valores incompatibles en los dos textos.
+Si las dos filas no comparten ninguna columna con valores distintos, NO emitas
+hallazgo.
+
+Después, si hablan del mismo dato: si puedes imaginar un contexto razonable en
+el que ambas afirmaciones sean verdaderas a la vez, NO es contradicción.
+Comprueba entonces si es una inconsistencia menor. Si tampoco lo es, NO EMITAS
+NADA sobre ese punto.
+Que dos documentos no tengan ninguna contradicción entre sí es un resultado
+NORMAL y frecuente. Devolver las listas vacías es una respuesta correcta y
+esperada, no un fallo. NO fuerces hallazgos para justificar el análisis.
+
+INSTRUCCIONES CRÍTICAS:
+1. "Solapamiento" significa contenido que se repite, aunque esté redactado con palabras distintas. NO significa compartir tema general.
+2. "Contradicción" significa que ambos documentos afirman cosas INCOMPATIBLES sobre el mismo dato concreto. Es decir: es IMPOSIBLE que ambas afirmaciones sean verdaderas a la vez.
+3. "Inconsistencia menor" significa que ambos documentos hablan del mismo tema con enfoques, matices o énfasis diferentes, pero no son estrictamente incompatibles.
+4. "Exclusivo del nuevo" (la lista uniqueToNewDoc) significa un tema, dato o apartado que el documento nuevo trata y el documento existente no menciona en absoluto. Ejemplo: el documento nuevo describe un procedimiento de devoluciones y el existente no menciona devoluciones en absoluto. NO es exclusivo un valor distinto para un dato que el documento existente también da: "la sede central está en Zaragoza" cuando el existente dice "en Bilbao" es una CONTRADICCIÓN y va en contradictions. Una entrada de esta lista no puede nombrar al documento existente ni contener una comparación.
+5. El porcentaje de solapamiento debe reflejar CUÁNTO del documento nuevo ya está en el existente, no la similitud temática.
+6. Si los documentos hablan del mismo tema pero con contenido distinto, veredicto = "tema_similar", overlapPercent < 20.
+7. Si los documentos NO comparten contenido concreto —solo el ámbito general, o hablan de datos distintos—, veredicto = "sin_relacion", overlapPercent = 0, y las listas de contradicciones y solapamientos VACÍAS. Es una respuesta válida y frecuente.
+8. Solo marca "duplicado_exacto" si el contenido es prácticamente idéntico (>85% del nuevo ya está en el existente).
+9. Revisa TODO el documento nuevo, no solo las primeras líneas. Revisarlo entero no implica que tengas que encontrar algo.
+
+EJEMPLOS DE LO QUE SÍ ES CONTRADICCIÓN:
+- "El plazo de entrega es 30 días" vs "El plazo de entrega es 15 días"
+- "El presupuesto aprobado es 100.000€" vs "El presupuesto aprobado es 200.000€"
+- "La política prohíbe el teletrabajo" vs "Se permite el teletrabajo 3 días por semana"
+- "El responsable del proyecto es Ana García" vs "El responsable del proyecto es Luis Pérez"
+
+EJEMPLOS DE LO QUE NO ES CONTRADICCIÓN (usar inconsistencia menor si aplica):
+- "La transformación digital es un proceso tecnológico" vs "La tecnología es solo el habilitador" → perspectivas diferentes, ambas pueden ser verdaderas
+- "Es importante formar al equipo" vs "Es fundamental formar al equipo" → diferencia de énfasis, no de dato
+- "El proyecto tiene 3 fases" vs "El proyecto tiene 3 fases principales y 2 secundarias" → la segunda amplía la primera, no la contradice
+- "Se recomienda usar Python" vs "Se recomienda usar TypeScript" → pueden ser recomendaciones para contextos diferentes
+- Afirmaciones genéricas vs específicas que son compatibles entre sí
+- "Horas semana: 8" vs "Fecha evaluación: 2026-06-11" → son datos DISTINTOS (una jornada y una fecha). No hay nada que comparar: no se emite hallazgo.
+- "Empleado: Laura Núñez | Puesto: Higienista" vs "Tratamiento: Tartrectomía | Profesional: Higienista" → CONCUERDAN. Que coincidan no es un hallazgo.
+- "Total horas equipo/semana: 256" vs "las horas por encima de la jornada deben estar autorizadas previamente" → un total y una norma de autorización no son el mismo dato: no se contradicen.
+- Dos tablas de temas distintos comparten a las mismas personas: que una tenga datos que la otra no tiene NO es contradicción — son complementarios (una fecha de evaluación y unas horas semanales no se comparan). Pero si la MISMA columna aparece en ambas con valores distintos para la misma persona — el mismo Puesto con dos valores — eso SÍ se reporta, aunque las tablas traten de temas distintos: puede haber razón legítima (contextos distintos) o error, y quien decide es el usuario, no tú.
+
+TIPOS DE DISCREPANCIA QUE CUENTAN COMO HALLAZGO (solo si superan la regla principal):
+- CONTRADICCIÓN DIRECTA: "El plazo es 30 días" vs "El plazo es 15 días".
+- OMISIÓN SIGNIFICATIVA: el documento nuevo menciona una lista o conjunto INCOMPLETO respecto al existente. Ejemplo: "Los principios son Confidencialidad e Integridad" cuando el existente dice "Los principios son Confidencialidad, Integridad y Disponibilidad". Falta un elemento clave.
+- DISTORSIÓN CONCEPTUAL: el documento nuevo redefine un concepto usando términos similares pero incorrectos. Ejemplo: "Automatización cognitiva (machine learning)" cuando el existente define el concepto como "Automatización inteligente (uso de IA con capacidad de adaptación)". Los términos suenan parecidos pero el significado es diferente.
+- SUSTITUCIÓN DE TÉRMINOS: el documento nuevo reemplaza un término técnico por otro diferente. Ejemplo: "Visualización" en lugar de "Análisis" en un ciclo de fases.
+- EXAGERACIÓN O ABSOLUTISMO: el documento nuevo convierte un matiz en afirmación absoluta. Ejemplo: "eliminación completa de errores" cuando el existente dice "disminución de errores". O "Todo proceso debe automatizarse" cuando el existente dice "No todo debe automatizarse".
+- DEGRADACIÓN DE IMPORTANCIA: el documento nuevo presenta como secundario o prescindible algo que el existente presenta como fundamental o al mismo nivel que otros elementos.
+
+PRESTA ESPECIAL ATENCIÓN A:
+- Listas y enumeraciones: compara número de elementos. Si el nuevo tiene menos elementos que el existente en la misma lista, es una OMISIÓN.
+- Definiciones: compara los términos exactos. Si el nuevo usa palabras diferentes para definir el mismo concepto, verifica que el significado sea realmente equivalente.
+- Cuantificadores: "todo", "siempre", "nunca", "completamente", "solo", "únicamente" son señales de posible exageración respecto al existente.
+
+REGLA DE ORO: Si puedes imaginar un contexto razonable en el que ambas afirmaciones sean verdaderas simultáneamente, NO es contradicción. Puede ser inconsistencia menor.
+
+${EXCEPCION_DE_LAS_REGLAS}
+
+REGLAS DE FORMATO:
+- En newDocSays y evidenceInNewDoc: copia LITERALMENTE un fragmento del DOCUMENTO NUEVO.
+- En existingDocSays y evidenceInExistingDoc: copia literalmente un fragmento del DOCUMENTO EXISTENTE.
+- Cada cita es un tramo de texto CONTIGUO del documento, copiado tal cual. Elige el tramo más CORTO que contenga el dato en conflicto. Puede empezar y acabar a mitad de frase: no hace falta que tenga sujeto ni que se entienda sola. Normalmente entre 40 y 200 caracteres. PROHIBIDO unir trozos de sitios distintos, resumir, quitar palabras del medio o poner puntos suspensivos. Si el dato está en una subordinada, copia la subordinada y lo justo que la rodea. Si el dato que necesitas está en otra frase, usa esa frase aunque no se parezca a la del otro documento: no recortes ni combines frases para que las dos citas se parezcan.
+- Ejemplo de cita correcta de una subordinada. Si el documento dice "Las bicicletas tándem, que solo pueden llevar quienes tengan la licencia de ciclista del club, se reparten por orden de llegada", y el dato en conflicto es quién puede llevarlas, una cita correcta es "que solo pueden llevar quienes tengan la licencia de ciclista del club": no tiene sujeto, no se entiende sola, empieza y acaba a mitad de frase, y es correcta.
+${EXCEPCION_DEL_SUJETO}
+- Para qué: cada cita se va a buscar LITERALMENTE en el documento del cliente y se va a mostrar en pantalla. Si no se encuentra tal cual, no sirve, y el hallazgo se pierde.
+- Las citas deben ser TEXTO COPIADO tal cual del documento, sin comentarios, sin explicaciones y sin referirse a los fragmentos por su número. Prohibido escribir cosas como "El fragmento [2] muestra que...", "El corpus especifica que...", "Este documento no menciona...".
+- Si no puedes copiar una frase literal que sustente el hallazgo, no emitas ese hallazgo.
+- En description: describe QUÉ contenido concreto comparten los dos documentos, en una frase. No vale describir características genéricas que compartirían casi todos los documentos de la empresa (mismo autor, misma plantilla, ambos citan normativa, ambos tienen sección de referencias). Si lo único en común es de ese tipo, NO emitas el solapamiento.
+- Una REMISIÓN no es solapamiento ni contradicción. Si el documento nuevo se limita a remitir a otro documento ("ver CLI-03", "conforme a NOR-01", "según el protocolo X") sin afirmar contenido propio sobre ese tema, no emitas hallazgo con ese documento por esa remisión.
+- Máximo 10 contradicciones, 5 inconsistencias menores, 10 solapamientos y 10 exclusivos del nuevo.
+- El campo "severity" es obligatorio en cada contradicción: "contradiction" si son incompatibles, "minor_inconsistency" si son diferencias de enfoque o matiz.
+
+Responde con este JSON (sin bloques de código, sin texto adicional):
+{
+  "overlapPercent": 25,
+  "verdict": "tema_similar",
+  "contradictions": [
+    { "topic": "tema", "newDocSays": "las bicicletas eléctricas solo se alquilan a personas mayores de dieciséis años que presenten el carné de socio", "existingDocSays": "el alquiler de bicicletas eléctricas está abierto a todo el que tenga más de catorce años, sea o no socio", "severity": "contradiction" },
+    { "topic": "tema", "newDocSays": "cada bicicleta se engrasa y se le tensan los frenos al cerrar el alquiler cada día, antes de guardarla en el cobertizo", "existingDocSays": "el engrase de las bicicletas y el tensado de los frenos se hacen solo dos veces por semana en el cobertizo", "severity": "minor_inconsistency" }
+  ],
+  "overlappingContent": [
+    { "description": "qué contenido concreto comparten (no rasgos genéricos)", "evidenceInNewDoc": "cada socio puede alquilar como máximo dos bicicletas y debe devolver una antes de llevarse otra", "evidenceInExistingDoc": "ningún socio puede tener más de dos bicicletas alquiladas al mismo tiempo, sean de paseo o de montaña" }
+  ],
+  "uniqueToNewDoc": ["aspecto 1", "aspecto 2"]
+}`;
+}
+
 async function judgeSingleDocument(args: {
   newDocumentName: string;
   newDocumentText: string;
@@ -829,114 +949,10 @@ async function judgeSingleDocument(args: {
     console.warn(`[judge] sin fuente común: ${sin.join(' y ')} sin trozos — la pareja se lee con la tijera vieja`);
   }
 
-  const prompt = `Eres un auditor de documentación. Tu tarea es comparar CONTENIDO CONCRETO entre dos documentos y emitir un juicio preciso, no una impresión general.
-
-DOCUMENTO NUEVO: "${newDocumentName}"
-"""
-${pareja.textoAnalizado}
-"""${avisoDeLoOmitido(pareja.lectura)}
-
-DOCUMENTO EXISTENTE: "${candidate.documentName}" (fuente: ${candidate.source})
-"""
-${pareja.bloqueCandidato}
-"""
-
-REGLA PRINCIPAL, POR ENCIMA DE TODAS LAS DEMAS:
-Antes de emitir cualquier hallazgo, verifica que los dos textos hablan del
-MISMO DATO CONCRETO. Si hablan de datos distintos, no hay nada que comparar y
-NO emites hallazgo, aunque ambos textos pertenezcan al mismo ámbito.
-
-CUANDO LOS DOS TEXTOS SON FILAS DE TABLAS (formato "Columna: valor | Columna: valor"):
-Compara SOLO los valores de columnas que aparezcan en AMBOS textos, emparejando
-por el nombre de la columna. Una columna que solo aparece en uno de los dos
-textos NO es comparable: no existe el dato equivalente en el otro lado, así que
-no puede haber contradicción sobre ella. Que ambas filas se refieran a la misma
-entidad (la misma persona, el mismo cliente, el mismo producto) permite
-compararlas, pero NO es por sí solo un hallazgo: la contradicción exige que una
-misma columna tenga valores incompatibles en los dos textos.
-Si las dos filas no comparten ninguna columna con valores distintos, NO emitas
-hallazgo.
-
-Después, si hablan del mismo dato: si puedes imaginar un contexto razonable en
-el que ambas afirmaciones sean verdaderas a la vez, NO es contradicción.
-Comprueba entonces si es una inconsistencia menor. Si tampoco lo es, NO EMITAS
-NADA sobre ese punto.
-Que dos documentos no tengan ninguna contradicción entre sí es un resultado
-NORMAL y frecuente. Devolver las listas vacías es una respuesta correcta y
-esperada, no un fallo. NO fuerces hallazgos para justificar el análisis.
-
-INSTRUCCIONES CRÍTICAS:
-1. "Solapamiento" significa contenido que se repite, aunque esté redactado con palabras distintas. NO significa compartir tema general.
-2. "Contradicción" significa que ambos documentos afirman cosas INCOMPATIBLES sobre el mismo dato concreto. Es decir: es IMPOSIBLE que ambas afirmaciones sean verdaderas a la vez.
-3. "Inconsistencia menor" significa que ambos documentos hablan del mismo tema con enfoques, matices o énfasis diferentes, pero no son estrictamente incompatibles.
-4. "Exclusivo del nuevo" (la lista uniqueToNewDoc) significa un tema, dato o apartado que el documento nuevo trata y el documento existente no menciona en absoluto. Ejemplo: el documento nuevo describe un procedimiento de devoluciones y el existente no menciona devoluciones en absoluto. NO es exclusivo un valor distinto para un dato que el documento existente también da: "la sede central está en Zaragoza" cuando el existente dice "en Bilbao" es una CONTRADICCIÓN y va en contradictions. Una entrada de esta lista no puede nombrar al documento existente ni contener una comparación.
-5. El porcentaje de solapamiento debe reflejar CUÁNTO del documento nuevo ya está en el existente, no la similitud temática.
-6. Si los documentos hablan del mismo tema pero con contenido distinto, veredicto = "tema_similar", overlapPercent < 20.
-7. Si los documentos NO comparten contenido concreto —solo el ámbito general, o hablan de datos distintos—, veredicto = "sin_relacion", overlapPercent = 0, y las listas de contradicciones y solapamientos VACÍAS. Es una respuesta válida y frecuente.
-8. Solo marca "duplicado_exacto" si el contenido es prácticamente idéntico (>85% del nuevo ya está en el existente).
-9. Revisa TODO el documento nuevo, no solo las primeras líneas. Revisarlo entero no implica que tengas que encontrar algo.
-
-EJEMPLOS DE LO QUE SÍ ES CONTRADICCIÓN:
-- "El plazo de entrega es 30 días" vs "El plazo de entrega es 15 días"
-- "El presupuesto aprobado es 100.000€" vs "El presupuesto aprobado es 200.000€"
-- "La política prohíbe el teletrabajo" vs "Se permite el teletrabajo 3 días por semana"
-- "El responsable del proyecto es Ana García" vs "El responsable del proyecto es Luis Pérez"
-
-EJEMPLOS DE LO QUE NO ES CONTRADICCIÓN (usar inconsistencia menor si aplica):
-- "La transformación digital es un proceso tecnológico" vs "La tecnología es solo el habilitador" → perspectivas diferentes, ambas pueden ser verdaderas
-- "Es importante formar al equipo" vs "Es fundamental formar al equipo" → diferencia de énfasis, no de dato
-- "El proyecto tiene 3 fases" vs "El proyecto tiene 3 fases principales y 2 secundarias" → la segunda amplía la primera, no la contradice
-- "Se recomienda usar Python" vs "Se recomienda usar TypeScript" → pueden ser recomendaciones para contextos diferentes
-- Afirmaciones genéricas vs específicas que son compatibles entre sí
-- "Horas semana: 8" vs "Fecha evaluación: 2026-06-11" → son datos DISTINTOS (una jornada y una fecha). No hay nada que comparar: no se emite hallazgo.
-- "Empleado: Laura Núñez | Puesto: Higienista" vs "Tratamiento: Tartrectomía | Profesional: Higienista" → CONCUERDAN. Que coincidan no es un hallazgo.
-- "Total horas equipo/semana: 256" vs "las horas por encima de la jornada deben estar autorizadas previamente" → un total y una norma de autorización no son el mismo dato: no se contradicen.
-- Dos tablas de temas distintos comparten a las mismas personas: que una tenga datos que la otra no tiene NO es contradicción — son complementarios (una fecha de evaluación y unas horas semanales no se comparan). Pero si la MISMA columna aparece en ambas con valores distintos para la misma persona — el mismo Puesto con dos valores — eso SÍ se reporta, aunque las tablas traten de temas distintos: puede haber razón legítima (contextos distintos) o error, y quien decide es el usuario, no tú.
-
-TIPOS DE DISCREPANCIA QUE CUENTAN COMO HALLAZGO (solo si superan la regla principal):
-- CONTRADICCIÓN DIRECTA: "El plazo es 30 días" vs "El plazo es 15 días".
-- OMISIÓN SIGNIFICATIVA: el documento nuevo menciona una lista o conjunto INCOMPLETO respecto al existente. Ejemplo: "Los principios son Confidencialidad e Integridad" cuando el existente dice "Los principios son Confidencialidad, Integridad y Disponibilidad". Falta un elemento clave.
-- DISTORSIÓN CONCEPTUAL: el documento nuevo redefine un concepto usando términos similares pero incorrectos. Ejemplo: "Automatización cognitiva (machine learning)" cuando el existente define el concepto como "Automatización inteligente (uso de IA con capacidad de adaptación)". Los términos suenan parecidos pero el significado es diferente.
-- SUSTITUCIÓN DE TÉRMINOS: el documento nuevo reemplaza un término técnico por otro diferente. Ejemplo: "Visualización" en lugar de "Análisis" en un ciclo de fases.
-- EXAGERACIÓN O ABSOLUTISMO: el documento nuevo convierte un matiz en afirmación absoluta. Ejemplo: "eliminación completa de errores" cuando el existente dice "disminución de errores". O "Todo proceso debe automatizarse" cuando el existente dice "No todo debe automatizarse".
-- DEGRADACIÓN DE IMPORTANCIA: el documento nuevo presenta como secundario o prescindible algo que el existente presenta como fundamental o al mismo nivel que otros elementos.
-
-PRESTA ESPECIAL ATENCIÓN A:
-- Listas y enumeraciones: compara número de elementos. Si el nuevo tiene menos elementos que el existente en la misma lista, es una OMISIÓN.
-- Definiciones: compara los términos exactos. Si el nuevo usa palabras diferentes para definir el mismo concepto, verifica que el significado sea realmente equivalente.
-- Cuantificadores: "todo", "siempre", "nunca", "completamente", "solo", "únicamente" son señales de posible exageración respecto al existente.
-
-REGLA DE ORO: Si puedes imaginar un contexto razonable en el que ambas afirmaciones sean verdaderas simultáneamente, NO es contradicción. Puede ser inconsistencia menor.
-
-${EXCEPCION_DE_LAS_REGLAS}
-
-REGLAS DE FORMATO:
-- En newDocSays y evidenceInNewDoc: copia LITERALMENTE un fragmento del DOCUMENTO NUEVO.
-- En existingDocSays y evidenceInExistingDoc: copia literalmente un fragmento del DOCUMENTO EXISTENTE.
-- Cada cita es un tramo de texto CONTIGUO del documento, copiado tal cual. Elige el tramo más CORTO que contenga el dato en conflicto. Puede empezar y acabar a mitad de frase: no hace falta que tenga sujeto ni que se entienda sola. Normalmente entre 40 y 200 caracteres. PROHIBIDO unir trozos de sitios distintos, resumir, quitar palabras del medio o poner puntos suspensivos. Si el dato está en una subordinada, copia la subordinada y lo justo que la rodea. Si el dato que necesitas está en otra frase, usa esa frase aunque no se parezca a la del otro documento: no recortes ni combines frases para que las dos citas se parezcan.
-- Ejemplo de cita correcta de una subordinada. Si el documento dice "Las bicicletas tándem, que solo pueden llevar quienes tengan la licencia de ciclista del club, se reparten por orden de llegada", y el dato en conflicto es quién puede llevarlas, una cita correcta es "que solo pueden llevar quienes tengan la licencia de ciclista del club": no tiene sujeto, no se entiende sola, empieza y acaba a mitad de frase, y es correcta.
-${EXCEPCION_DEL_SUJETO}
-- Para qué: cada cita se va a buscar LITERALMENTE en el documento del cliente y se va a mostrar en pantalla. Si no se encuentra tal cual, no sirve, y el hallazgo se pierde.
-- Las citas deben ser TEXTO COPIADO tal cual del documento, sin comentarios, sin explicaciones y sin referirse a los fragmentos por su número. Prohibido escribir cosas como "El fragmento [2] muestra que...", "El corpus especifica que...", "Este documento no menciona...".
-- Si no puedes copiar una frase literal que sustente el hallazgo, no emitas ese hallazgo.
-- En description: describe QUÉ contenido concreto comparten los dos documentos, en una frase. No vale describir características genéricas que compartirían casi todos los documentos de la empresa (mismo autor, misma plantilla, ambos citan normativa, ambos tienen sección de referencias). Si lo único en común es de ese tipo, NO emitas el solapamiento.
-- Una REMISIÓN no es solapamiento ni contradicción. Si el documento nuevo se limita a remitir a otro documento ("ver CLI-03", "conforme a NOR-01", "según el protocolo X") sin afirmar contenido propio sobre ese tema, no emitas hallazgo con ese documento por esa remisión.
-- Máximo 10 contradicciones, 5 inconsistencias menores, 10 solapamientos y 10 exclusivos del nuevo.
-- El campo "severity" es obligatorio en cada contradicción: "contradiction" si son incompatibles, "minor_inconsistency" si son diferencias de enfoque o matiz.
-
-Responde con este JSON (sin bloques de código, sin texto adicional):
-{
-  "overlapPercent": 25,
-  "verdict": "tema_similar",
-  "contradictions": [
-    { "topic": "tema", "newDocSays": "las bicicletas eléctricas solo se alquilan a personas mayores de dieciséis años que presenten el carné de socio", "existingDocSays": "el alquiler de bicicletas eléctricas está abierto a todo el que tenga más de catorce años, sea o no socio", "severity": "contradiction" },
-    { "topic": "tema", "newDocSays": "cada bicicleta se engrasa y se le tensan los frenos al cerrar el alquiler cada día, antes de guardarla en el cobertizo", "existingDocSays": "el engrase de las bicicletas y el tensado de los frenos se hacen solo dos veces por semana en el cobertizo", "severity": "minor_inconsistency" }
-  ],
-  "overlappingContent": [
-    { "description": "qué contenido concreto comparten (no rasgos genéricos)", "evidenceInNewDoc": "cada socio puede alquilar como máximo dos bicicletas y debe devolver una antes de llevarse otra", "evidenceInExistingDoc": "ningún socio puede tener más de dos bicicletas alquiladas al mismo tiempo, sean de paseo o de montaña" }
-  ],
-  "uniqueToNewDoc": ["aspecto 1", "aspecto 2"]
-}`;
+  const prompt = promptDelJuez({
+    nombreDelAnalizado: newDocumentName, textoAnalizado: pareja.textoAnalizado, avisoDeLoOmitido: avisoDeLoOmitido(pareja.lectura),
+    nombreDelCandidato: candidate.documentName, fuenteDelCandidato: candidate.source, bloqueCandidato: pareja.bloqueCandidato,
+  });
 
   try {
     const response = await callLLMJson<JudgeResponse>(prompt, {
