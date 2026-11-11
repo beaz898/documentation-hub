@@ -7825,3 +7825,46 @@ Los positivos de D por cualquier ruta, sobre 42, FUERA del 26-40 derivado
 a57417610fdf5a0a mutar_instrumento_d3.mjs
 b8b874a728dd6385 herramientas/instrumento_d3.ts (sin cambio)
 ```
+
+### EL GUARDIÁN PASA A VIGILAR LOS INDECIDIBLES, CON SU UMBRAL DERIVADO (arquitecto y Code, 11/11/2026)
+**Lo ha visto Code, antes de pulsar, sobre algo que el arquitecto había aprobado una hora antes. Es la segunda vez en el día que el
+prerregistro se corrige porque lo leen dos.** El 26–40 de positivos se derivó para un día fijo. Con ±15 puntos entre días (±6
+respuestas sobre 42), el guardián saltaría tanto si falló una derivación como si simplemente hoy es otro día. Y ensanchado para
+absorber el día (algo como 20–42) no saltaría nunca: **un guardián que no puede fallar no vigila nada.**
+
+**Corrección del arquitecto: el guardián vigila los INDECIDIBLES, no los positivos.** Lo que se pedía era cazar el caso de 20
+positivos y 4 negaciones en el que los que faltan se han ido a indecidibles: que el instrumento pierda respuestas sin que ningún
+mecanismo lo prevea. **El efecto del día mueve el VEREDICTO del juez; no mueve la capacidad del instrumento para encontrar una cita
+literal.** Los indecidibles son del instrumento, no del juez.
+
+**EL UMBRAL, DERIVADO** (`umbral_indecidibles.mjs`, scratchpad; beta-binomial predictiva exacta para 42, con prior uniforme). Literal:
+```
+12 de 126 (06/11 + 09/11 + 10/11): tasa 9.5 % (Wilson 5.5-15.9 %) · media predictiva 4.3 de 42 · UMBRAL 8: P(más de 8) = 4.3 % · P(más de 7) = 8.5 % · (control: suma 1.000000)
+6 de 84 (sólo X, 06/11 + 09/11): tasa 7.1 % (Wilson 3.3-14.7 %) · media predictiva 3.4 de 42 · UMBRAL 7: P(más de 7) = 4.5 % · P(más de 6) = 8.8 % · (control: suma 1.000000)
+```
+- **La base es 12 de 126**: los 6 PARCIAL de 84 de X (06/11 y 09/11) y los 6 de 42 de d2 del 10/11, que es el mismo formato de
+  líneas que d3. **Umbral: 8. Con 9 o más indecidibles, se para y se lee.** Con sólo 6 de 84 saldría 7.
+- **La ventana más ancha NO baja el umbral, y está medido, no supuesto**: el arquitecto esperaba que lo bajara, porque una cita que no
+  pasaba la puerta por caer fuera del trozo 6 podría estar ahora dentro de CLI-12 entero. Pero la prueba de inercia pasó el
+  instrumento de d3 (documentos enteros y la ruta del §3.1) por las 42 de d2 del 10/11, y **los 6 PARCIAL siguieron PARCIAL.** Hay
+  además una fuente nueva en el sentido contrario: con el §3.1 a la vista, citar su frase de A frente al permiso da PARCIAL. Si eso
+  pasa a menudo, el guardián lo cazará, que es para lo que está.
+- Los fallos de línea, la otra fuente de indecidibles, fueron 0 de 42 el 10/11: no mueven la base.
+
+**En el corredor:**
+- **5b · EL GUARDIÁN**: más de 8 indecidibles → «SE PARA Y SE LEE, porque ninguna derivación previó que el instrumento perdiera
+  tantas, aunque la casilla de arriba señale un mecanismo».
+- **El intervalo de positivos se queda, como información y no como puerta**, con su etiqueta literal: «SÓLO INFORMACIÓN, NO ES UN
+  CRITERIO: positivos 26–40, derivado sin el efecto del día; con ±15 puntos entre días no descarta nada.»
+- **La tabla de negaciones no se toca**: distingue mecanismos por el MOTIVO, y un motivo no se mueve con el día.
+- Pruebas: 20 positivos, 4 negaciones y 18 indecidibles → la tabla dice MECANISMO_1 y el guardián la para; 20 positivos con 2
+  indecidibles (el efecto del día) → el guardián no salta; y sus bordes: 8 vale, 9 para. **21 mutantes, mueren los 21.**
+
+**Las huellas, para aprobar:**
+```
+593341c3d3ae7579 herramientas/correr_d3.ts
+32d976f87969df7e herramientas/correr_d3.test.ts
+25a6c826690ddd30 mutar_instrumento_d3.mjs
+5b3987f1590c7b58 umbral_indecidibles.mjs
+b8b874a728dd6385 herramientas/instrumento_d3.ts (sin cambio)
+```
