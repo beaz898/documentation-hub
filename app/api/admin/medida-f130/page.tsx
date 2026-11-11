@@ -9,7 +9,7 @@ export default function MedidaF130() {
   const [salida, setSalida] = useState('');
   const [ocupado, setOcupado] = useState(false);
 
-  async function medir(ruta: 'vecindad' | 'pregunta' | 'limpia?ensayo=1' | 'limpia' | 'quinto?ensayo=1' | 'quinto' | 'd?ensayo=1' | 'd' | 'd2?ensayo=1' | 'd2' | 'd3?ensayo=1' | 'd3?sondeo=1' | 'd3') {
+  async function medir(ruta: 'vecindad' | 'pregunta' | 'limpia?ensayo=1' | 'limpia' | 'quinto?ensayo=1' | 'quinto' | 'd?ensayo=1' | 'd' | 'd2?ensayo=1' | 'd2' | 'd3?ensayo=1' | 'd3?sondeo=1' | 'd3' | 'd4?ensayo=1' | 'd4?sondeo=1' | 'd4') {
     setOcupado(true);
     setSalida(`Midiendo ${ruta}…`);
     try {
@@ -56,6 +56,12 @@ export default function MedidaF130() {
         <button disabled={ocupado} onClick={() => medir('d3?ensayo=1')}>D3 · ensayo: los dos documentos enteros y el prompt (sin modelo, no gasta)</button>{' '}
         <button disabled={ocupado} onClick={() => medir('d3?sondeo=1')}>D3 · sondeo: UNA sola llamada, para medir la latencia (gasta unos 0,006 $)</button>{' '}
         <button disabled={ocupado} onClick={() => medir('d3')}>D3 · una pulsación: la pareja entera, 14 veces (gasta en la API, unos 0,10 $; son tres pulsaciones)</button>
+      </p>
+      <p>El JUEZ DEL PRODUCTO, con el PROMPT DEL PRODUCTO (11/11). Uno a uno y sólo cuando el arquitecto lo diga: primero el ensayo, luego el sondeo, y las pulsaciones las últimas:</p>
+      <p>
+        <button disabled={ocupado} onClick={() => medir('d4?ensayo=1')}>D4 · ensayo: el prompt del producto (sin modelo, no gasta)</button>{' '}
+        <button disabled={ocupado} onClick={() => medir('d4?sondeo=1')}>D4 · sondeo: UNA sola llamada, para medir la latencia (gasta menos de 0,01 $)</button>{' '}
+        <button disabled={ocupado} onClick={() => medir('d4')}>D4 · una pulsación: el juez del producto, 14 veces (gasta en la API, unos 0,10 $)</button>
       </p>
       <p>Copia todo lo que salga abajo y pégaselo a Claude Code.</p>
       <pre style={{ whiteSpace: 'pre-wrap', background: '#f4f4f4', padding: '1rem', minHeight: '10rem' }}>{salida}</pre>
