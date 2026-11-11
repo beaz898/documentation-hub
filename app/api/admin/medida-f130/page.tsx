@@ -9,7 +9,7 @@ export default function MedidaF130() {
   const [salida, setSalida] = useState('');
   const [ocupado, setOcupado] = useState(false);
 
-  async function medir(ruta: 'vecindad' | 'pregunta' | 'limpia?ensayo=1' | 'limpia' | 'quinto?ensayo=1' | 'quinto' | 'd?ensayo=1' | 'd' | 'd2?ensayo=1' | 'd2' | 'd3?ensayo=1' | 'd3?sondeo=1' | 'd3' | 'd4?ensayo=1' | 'd4?sondeo=1' | 'd4' | 'd4b?ensayo=1' | 'd4b?sondeo=1' | 'd4b' | 'd4c?ensayo=1' | 'd4c?sondeo=1' | 'd4c') {
+  async function medir(ruta: 'vecindad' | 'pregunta' | 'limpia?ensayo=1' | 'limpia' | 'quinto?ensayo=1' | 'quinto' | 'd?ensayo=1' | 'd' | 'd2?ensayo=1' | 'd2' | 'd3?ensayo=1' | 'd3?sondeo=1' | 'd3' | 'd4?ensayo=1' | 'd4?sondeo=1' | 'd4' | 'd4b?ensayo=1' | 'd4b?sondeo=1' | 'd4b' | 'd4c?ensayo=1' | 'd4c?sondeo=1' | 'd4c' | 'm1?ensayo=1' | 'm1?sondeo=1' | 'm1') {
     setOcupado(true);
     setSalida(`Midiendo ${ruta}…`);
     try {
@@ -73,6 +73,12 @@ export default function MedidaF130() {
         <button disabled={ocupado} onClick={() => medir('d4c?ensayo=1')}>D4C · ensayo: el trozo de D y trozos neutros (sin modelo, no gasta)</button>{' '}
         <button disabled={ocupado} onClick={() => medir('d4c?sondeo=1')}>D4C · sondeo: UNA sola llamada (gasta menos de 0,01 $)</button>{' '}
         <button disabled={ocupado} onClick={() => medir('d4c')}>D4C · una pulsación: sin competencia, 14 veces (gasta en la API, unos 0,03 $)</button>
+      </p>
+      <p>El CAMBIO CANDIDATO M1 (11/11): prosa y luego la casilla, sobre los documentos enteros, dos llamadas por vez. Sólo cuando el arquitecto lo diga, y después de D4:</p>
+      <p>
+        <button disabled={ocupado} onClick={() => medir('m1?ensayo=1')}>M1 · ensayo: los dos prompts y las supresiones (sin modelo, no gasta)</button>{' '}
+        <button disabled={ocupado} onClick={() => medir('m1?sondeo=1')}>M1 · sondeo: UNA vez, dos llamadas (gasta unos 0,02 $)</button>{' '}
+        <button disabled={ocupado} onClick={() => medir('m1')}>M1 · una pulsación: 14 veces, dos llamadas cada una (gasta en la API, unos 0,20 $)</button>
       </p>
       <p>Copia todo lo que salga abajo y pégaselo a Claude Code.</p>
       <pre style={{ whiteSpace: 'pre-wrap', background: '#f4f4f4', padding: '1rem', minHeight: '10rem' }}>{salida}</pre>
