@@ -7906,3 +7906,22 @@ c55b7565cd880864 herramientas/instrumento_d3.ts
 ea4a254b41b0c369 mutar_instrumento_d3.mjs
 89119ff3d2f8d522 herramientas/desglose_d2.test.ts
 ```
+
+### LAS HUELLAS DEL DESGLOSE, APROBADAS; Y UN POSIBLE DEFECTO DE PRODUCTO: CUASI-ACIERTOS DE CITA (arquitecto y Code, 11/11/2026)
+- **Aprobadas las seis huellas** del desglose (bloque anterior).
+- ⚠️ **INFERENCIA DEL ARQUITECTO, sin verificar todavía**: las 5 reescrituras de d2 fallan por una o dos palabras («la figura [de
+  Coordinador de Calidad] puede recaer…» frente a «figura que puede recaer…»; «en el Director Clínico…» frente a «por el Director
+  Clínico…»). Son hallazgos correctos que la puerta tira por un artículo y una preposición, y sus repliegues (la glosa y el tramo) no
+  cubren esta familia. Medido: 5 de 42 el 10/11, con la puerta tal como la usa el instrumento (`comprobadorDeLado` +
+  `comprobarConRepliegues` con `verifyQuote`, las funciones del producto). **Si el camino del producto usa esa misma puerta con los
+  mismos repliegues, el producto pierde hallazgos buenos por cuasi-aciertos de cita, y el cliente no lo ve, porque no ve lo que no
+  sale.**
+- **LO QUE FALTA PARA AFIRMARLO, Y NO SE HACE AHORA**: confirmar, byte a byte, que el camino del producto (`fixQuotesInJudgment`,
+  `lib/analysis/judge.ts`) usa esa misma puerta con los mismos repliegues, y no una variante. Code apunta dos cosas que esa
+  comprobación tendrá que mirar: el paso del tramo sólo se aplica en el producto a las CONTRADICCIONES (`CLAUDE.md`, la puerta de
+  citas, paso 3), y el producto sólo exige que la cita esté en el texto entregado, mientras que el instrumento exige además que caiga
+  en el párrafo de D.
+- **Si se confirma**: a la lista de deuda con prioridad alta y con esas dos citas como caso. Y, si procede, junto con la deuda del
+  19/10 del salto de «Mejora con IA» que coge la primera aparición de la cita: **las dos son la misma familia, la cita como
+  identificador frágil.**
+- No bloquea las pulsaciones.
