@@ -7979,3 +7979,34 @@ que no decide nada:
 - **No se concluye nada.** Lo que la lectura muestra es una forma que la tabla no tenía: con los documentos enteros, el juez llena las
   dos preguntas con A, B y C, que son evidentes. 21 veces los presenta como conflicto normativo en la 2, y 12 veces niega la 2
   diciendo que todo es de la 1. **Decide el arquitecto qué se hace.**
+
+### LO QUE QUEDA DE LA TANDA DE d3: NO ES UNA CALIBRACIÓN, EL DESPLAZAMIENTO ES DEL MEDIDOR, Y LO QUE EL PRODUCTO HACE CON D (arquitecto y Code, 11/11/2026)
+- **EL 90 % CONTRA EL 14 %, resuelto y retirado** (bloque anterior): el 36 de 40 es de la pareja del §3.1, contado con un ancla sola
+  y sin leer el veredicto; medía si se citaba la frase, no si se encontraba el conflicto. **La memoria del arquitecto acertó la
+  retirada y falló el sitio y la fecha**: la marca es del 04/11 (`:2313-2316`), y a Fable se le dijo en el §0.3 de la adenda.
+- **LA CALIBRACIÓN, con la redacción de Code**: 3 de 21 (el producto, 30-31/10, documentos enteros) frente a 7 de 42 (d3, 11/11): Fisher
+  bilateral p = 1,00. **«Cifras compatibles por caminos que no consta que sean el mismo; la calibración queda pendiente de saber por
+  qué se pierden las 18 del producto.»** Lo que separa las dos mediciones: el prompt (el del auditor, que pide una lista en JSON, frente
+  a la pregunta cerrada partida en dos); lo que viene después del juez (puerta, verificador y publicación, frente a sólo el juez con la
+  pareja entregada); la regla de cuenta (`SQL_34_06` frente a `instrumento_d3`); y el día. La p = 1,00 no prueba igualdad: los dos
+  intervalos admiten del 8 % al 31 %.
+- **EL MODELO DE LAS 21 DEL 30-31/10, comprobado en el archivo**: Haiku 5.5 en todas (`Medida_F130_E3_Y_Vecindad_29-10-2026.md:808-841`,
+  salida de `SQL_34_05`, columna de modelo por pasada).
+- **EL DESPLAZAMIENTO ES DEL MEDIDOR, no del producto** (arquitecto): el producto publicó A, B y C 21 de 21 y ADEMÁS D 3 de 21. En la
+  herramienta, la pregunta 2 sólo admite una respuesta. **Se retiran dos cosas del arquitecto escritas el 11/11**: el relato «lo
+  evidente tapa lo sutil» como hallazgo de producto, y **el §4 de la adenda a Fable, «dar menos texto de una vez funciona mejor»**: los
+  28 de 42 con trozos frente a los 7 de 42 con documentos enteros pueden ser enteramente el artefacto de la elección forzada. La adenda
+  a Fable queda retirada otra vez; el arquitecto la reescribe sobre el único número que es del producto, 3 de 21.
+- ⚠️ **LA COMPROBACIÓN DECISIVA, Y SÍ TIENE DATOS: EN EL PRODUCTO, EL JUEZ NO ESCRIBIÓ D EN AL MENOS 17 DE LAS 18 PASADAS SIN D.** El
+  arquitecto avisó de que lo que el juez emite antes de la puerta no se guarda (deuda del 05/11, `:5819-5821`). **Es verdad para lo
+  crudo, pero no impide la respuesta**: la puerta guarda cada descarte CON sus dos citas (`judgments[].descartesPorCita`), y el
+  verificador y la cascada guardan sus descartes como número, por motivo (`judgments[].discarded`). `SQL_34_05` lo contó para las 21 de
+  la línea base (cabecera de `SQL_34_05_d_por_pasada.sql`; salida en `Medida_F130_E3…:827-829`): **muertas en la puerta, con texto: 0
+  pasadas; sin texto: 1 hallazgo, en la pasada 8, sin D publicada y sin la etiqueta**, con el control «pasadas sin juicio de CLI-12 o
+  sin `discarded` guardado: 0». Así que en 17 de las 18 pasadas sin D no hay rastro de D en ningún sitio, y en la 18.ª, como mucho, un
+  descarte sin texto que pudo serlo. **Lo que pierde D en el producto no es la puerta ni el verificador: es que el juez no la
+  escribe.** Por qué no la escribe (si A, B y C tienen algo que ver) no está medido.
+  ⚠️ Matiz que se le dice al arquitecto: los datos del producto no prueban que «lo evidente no impide lo sutil». Prueban que encontrar
+  A, B y C no impide PUBLICAR D cuando se escribe, y que D se escribe 3 veces de 21.
+- **La regla del director, a `CLAUDE.md`** con el caso corregido por Code: lo propio de la herramienta es tener que elegir, no la
+  distinción «misma cosa → contradicción», que es del producto (`EXCEPCION_DE_LAS_REGLAS`).

@@ -716,7 +716,20 @@ El dueño del proyecto NO es programador. Vercel deploya automáticamente al hac
   tres defectos conocidos de polaridad (el 10/11, «Hallazgo: sí» leído como
   «sí, se pueden cumplir»). Si falla más con unas redacciones que con otras, y
   la redacción cambia con el día, parte de la dispersión es nuestra y no del
-  juez. La lección de «días, no respuestas» se sostiene igual. El cálculo está archivado en
+  juez. La lección de «días, no respuestas» se sostiene igual.
+- **TODA DIFERENCIA ENTRE EL MEDIDOR Y EL PRODUCTO TIENE QUE SER UNA DE DOS: UN
+  CAMBIO CANDIDATO QUE QUIZÁ SE ADOPTE, O UN CONTROL DECLARADO DEL QUE SE CONOCE
+  LA DIRECCIÓN DEL EFECTO. UNA DIFERENCIA QUE SÓLO ES COMODIDAD DE MEDICIÓN ES UN
+  DEFECTO, Y PRODUCE RESPUESTAS QUE EL PRODUCTO NO PUEDE DAR.**
+  El caso, del 11/11/2026: la pregunta cerrada de F-130 parte la respuesta en
+  dos preguntas, con una sola respuesta para la 2, y el producto no: publica
+  varios hallazgos por pareja. Con los documentos enteros, A, B y C ocuparon la
+  pregunta 2 en 33 de 42 respuestas (21 como conflicto normativo y 12
+  negándola por «ser de la 1»). En cambio, el 30-31/10 el producto publicó A, B
+  y C 21 de 21 y además D 3 de 21. La distinción «misma cosa → contradicción» sí
+  es del producto (`EXCEPCION_DE_LAS_REGLAS`, con su «ORDEN OBLIGATORIO»); lo
+  que no es del producto es tener que elegir. Promovida por el director el
+  11/11/2026; el caso, corregido por Code sobre el prompt del producto. El cálculo está archivado en
   `claude/Predicciones_34_Conflicto_Normativo.md`. Promovida por el arquitecto
   el 10/11/2026.
 - **UNA REGLA DE CLASIFICACIÓN NO ESTÁ ESCRITA HASTA QUE TODOS LOS CASOS
