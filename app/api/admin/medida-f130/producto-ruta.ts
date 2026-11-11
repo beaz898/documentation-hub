@@ -10,8 +10,8 @@ import { fuenteDelProducto, interruptorEncendido, juzgarConElProducto, promptDeL
 import { marcasDe, trozosDelBrazo, type Brazo } from './brazos';
 
 /**
- * LO COMÚN DE d4, d4b Y d4c (11/11/2026): el juez del producto (`judgeAllDocuments` en rápido) con el prompt del producto, sobre la
- * pareja de D. TEMPORAL como toda la carpeta. LA ÚNICA DIFERENCIA entre las tres rutas es QUÉ TROZOS ENTRAN, y la decide `brazos.ts`
+ * LO COMÚN DE d4 Y d4b (11/11/2026): el juez del producto (`judgeAllDocuments` en rápido) con el prompt del producto, sobre la
+ * pareja de D. TEMPORAL como toda la carpeta. LA ÚNICA DIFERENCIA entre las dos rutas es QUÉ TROZOS ENTRAN, y la decide `brazos.ts`
  * (los tres brazos, y lo que no igualan). El prompt, la llamada, la frontera y la puerta son los mismos; la puerta comprueba cada
  * cita contra lo que se entregó a ese brazo.
  * El dato declarado: D tal como la escribe el juez del producto con el prompt del producto, después de la puerta y antes del
@@ -50,12 +50,12 @@ export async function medirConElProducto(req: NextRequest, condicion: Brazo) {
 
   const armado = promptDeLaPareja({ analizado: ladoX, candidato: ladoY });
   if (!armado.ok) return NextResponse.json({ error: armado.motivo, regimen: armado.regimen }, { status: 409 });
-  // el texto del analizado que el producto le pasa al juez (`newDocumentSample`): el del documento entero en d4; en d4b y d4c, lo
+  // el texto del analizado que el producto le pasa al juez (`newDocumentSample`): el del documento entero en d4; en d4b, lo
   // entregado
   const textoDelAnalizado = condicion !== 'documentos' ? armado.textoAnalizado
     : typeof filaX.full_text === 'string' && filaX.full_text.trim() !== '' ? filaX.full_text : armado.textoAnalizado;
 
-  const que = { documentos: 'los dos DOCUMENTOS ENTEROS', competencia: 'el trozo de D y los de A, B y C de cada lado (d4b)', neutros: 'el trozo de D y trozos NEUTROS hasta el tamaño de d4b, de cada lado (d4c)' }[condicion];
+  const que = { documentos: 'los dos DOCUMENTOS ENTEROS', competencia: 'el trozo de D y los de A, B y C de cada lado (d4b)' }[condicion];
   const medida = `F-130 · el JUEZ DEL PRODUCTO, con el PROMPT DEL PRODUCTO, sobre la pareja de D de la siembra (§2.4 ↔ §3.5), ${que} (pareja_entera), después de la puerta y antes del verificador, ${VECES_DE_D4} veces por pulsación`;
   // en el ensayo, cada trozo entregado con su tamaño y sus marcas, para comprobar el brazo sobre lo que de verdad se entrega
   const detalle = (ts: typeof todosX) => condicion === 'documentos' ? undefined : ts.map(c => ({ trozo: c.chunkIndex, caracteres: c.text.length, marcas: marcasDe(c.text) }));

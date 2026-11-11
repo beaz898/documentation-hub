@@ -79,22 +79,21 @@ describe('d4: el juez del producto (11/11)', () => {
     expect(resumenDelPromptD4(prompt, textoA, 'otro', 'h').enSuSitio.documento2).toBe(false);
   });
 
-  it('d4, d4b y d4c: cada ruta llama a la lógica común con SU brazo, y nada más', () => {
-    const [d4, d4b, d4c] = ['d4', 'd4b', 'd4c'].map(r => leer(`app/api/admin/medida-f130/${r}/route.ts`));
+  it('d4 y d4b: cada ruta llama a la lógica común con SU brazo, y nada más', () => {
+    const [d4, d4b] = ['d4', 'd4b'].map(r => leer(`app/api/admin/medida-f130/${r}/route.ts`));
     expect(d4).toContain("return medirConElProducto(req, 'documentos');");
     expect(d4b).toContain("return medirConElProducto(req, 'competencia');");
-    expect(d4c).toContain("return medirConElProducto(req, 'neutros');");
-    for (const r of [d4, d4b, d4c]) { expect(r.split('medirConElProducto(').length - 1).toBe(1); expect(r).toContain('export const maxDuration = 300;'); }
+    for (const r of [d4, d4b]) { expect(r.split('medirConElProducto(').length - 1).toBe(1); expect(r).toContain('export const maxDuration = 300;'); }
   });
 
   it('⚠️ LOS BRAZOS SON d4 CON LO ÚNICO CAMBIADO, QUÉ TEXTO ENTRA: sustituyendo los documentos por otros trozos, el prompt es idéntico', () => {
     const a = doc('Analizado', 5, 300), c = doc('Candidato', 4, 200);
     const d4 = promptDeLaPareja(pareja(a, c));
-    const d4c = promptDeLaPareja(pareja([a[2]], [c[1]]));
-    if (!d4.ok || !d4c.ok) throw new Error('no se armó');
-    expect(d4.prompt.split(d4.textoAnalizado).join(d4c.textoAnalizado).split(d4.bloqueCandidato).join(d4c.bloqueCandidato)).toBe(d4c.prompt);
-    expect(d4c.lectura.regimen).toBe('pareja_entera');
-    expect(d4c.huella).not.toBe(d4.huella);
+    const d4b = promptDeLaPareja(pareja([a[1], a[2]], [c[1], c[3]]));
+    if (!d4.ok || !d4b.ok) throw new Error('no se armó');
+    expect(d4.prompt.split(d4.textoAnalizado).join(d4b.textoAnalizado).split(d4.bloqueCandidato).join(d4b.bloqueCandidato)).toBe(d4b.prompt);
+    expect(d4b.lectura.regimen).toBe('pareja_entera');
+    expect(d4b.huella).not.toBe(d4.huella);
   });
 
   it('LA LÓGICA COMÚN: los trozos de cada lado son los del brazo; fuera de documentos, el texto del analizado es lo entregado', () => {
