@@ -8010,3 +8010,24 @@ que no decide nada:
   A, B y C no impide PUBLICAR D cuando se escribe, y que D se escribe 3 veces de 21.
 - **La regla del director, a `CLAUDE.md`** con el caso corregido por Code: lo propio de la herramienta es tener que elegir, no la
   distinción «misma cosa → contradicción», que es del producto (`EXCEPCION_DE_LAS_REGLAS`).
+
+### CORRECCIÓN: EL DESPLAZAMIENTO EN EL PRODUCTO NO ESTÁ MUERTO, ESTÁ SIN MEDIR; EL FALLO ESTÁ EN LA GENERACIÓN; Y LA HIPÓTESIS DE LA FORMA (arquitecto y Code, 11/11/2026)
+- **Corrige el bloque anterior** («EL DESPLAZAMIENTO ES DEL MEDIDOR, no del producto»), que era demasiado fuerte. Con las palabras de
+  Code: **los datos del producto prueban que el camino de PUBLICACIÓN no bloquea D —cuando el juez la escribe, sale aunque salgan A,
+  B y C—; no prueban que lo evidente no la tape DENTRO del juez.** Lo que sí es del medidor es la elección forzada de la pregunta 2.
+  Si A, B y C impiden que el juez del producto escriba D, **está sin medir**.
+- **LO ESTABLECIDO, y sustituye a todo lo contado antes sobre por qué el producto pierde D**: en 17 de las 18 pasadas sin D del
+  30-31/10, **el juez no la escribió**; no la mataron ni la puerta ni el verificador (`SQL_34_05`, por eliminación sobre los tres
+  sitios donde queda rastro; bloque anterior). **El fallo está en la generación, no en el filtrado.**
+- **HIPÓTESIS DEL ARQUITECTO, SIN MEDIR (11/11)**: el producto pide `contradictions: [{ topic, newDocSays, existingDocSays,
+  severity, conflictoNormativo }]`. Para que D salga, el juez tiene que meterla en una casilla de CONTRADICCIÓN y marcarla con un
+  campo, y D no es una contradicción: nadie da dos valores del mismo dato; es un permiso contra un principio. «newDocSays /
+  existingDocSays» pregunta qué dice cada uno sobre un tema, y D no tiene esa forma. **D no se escribiría porque la forma de la
+  salida no tiene sitio para ella.** Sería estructural, no de redacción, y explicaría que el bloque `EXCEPCION_DE_LAS_REGLAS` esté en
+  el prompt y no baste.
+- **Descartado como causa: el tope de 10 contradicciones** («Máximo 10 contradicciones…», `lib/analysis/judge.ts`): para esta
+  pareja son cuatro.
+- **`ReanalyzeButtons`, cerrado**: manda `exhaustive: true` siempre (30 créditos, y el exhaustivo no usa la pareja entera), y deja
+  fila y huellas. No reproduce nada.
+- **Encargo: la ruta `d4`, con el prompt del producto** (`judgeAllDocuments` en rápido, NOR-10 como documento nuevo y CLI-12 como
+  único candidato).
