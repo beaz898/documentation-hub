@@ -62,7 +62,7 @@ function containsNarration(text: string | undefined): boolean {
   return NARRATION_PATTERNS.some(pattern => pattern.test(text));
 }
 
-interface JudgeResponse {
+export interface JudgeResponse {
   overlapPercent: number;
   verdict: 'duplicado_exacto' | 'reformulacion' | 'solapamiento_parcial' | 'tema_similar' | 'sin_relacion';
   contradictions: Array<{
@@ -839,7 +839,17 @@ ${EXCEPCION_DEL_SUJETO}
 - Máximo 10 contradicciones, 5 inconsistencias menores, 10 solapamientos y 10 exclusivos del nuevo.
 - El campo "severity" es obligatorio en cada contradicción: "contradiction" si son incompatibles, "minor_inconsistency" si son diferencias de enfoque o matiz.
 
-Responde con este JSON (sin bloques de código, sin texto adicional):
+${INSTRUCCION_DE_SALIDA_DEL_JUEZ}`;
+}
+
+/**
+ * EL BLOQUE FINAL DE LA INSTRUCCIÓN DE SALIDA DEL JUEZ (11/11/2026, F-130 `m1`): sacado de `promptDelJuez` sin cambiar una letra (lo
+ * vigilan las huellas de `prompt-del-juez.test.ts`), para que una medida de cambio candidato lo pueda sustituir o reutilizar
+ * sin copiarlo. ⚠️ NO ES TODA LA INSTRUCCIÓN DE SALIDA: el esquema se nombra también en las REGLAS DE FORMATO, en las
+ * instrucciones 4, 6 y 7, en `EXCEPCION_DE_LAS_REGLAS` (el campo `conflictoNormativo` y su ejemplo) y en el sufijo que añade
+ * `callLLMJson`.
+ */
+export const INSTRUCCION_DE_SALIDA_DEL_JUEZ = `Responde con este JSON (sin bloques de código, sin texto adicional):
 {
   "overlapPercent": 25,
   "verdict": "tema_similar",
@@ -852,7 +862,21 @@ Responde con este JSON (sin bloques de código, sin texto adicional):
   ],
   "uniqueToNewDoc": ["aspecto 1", "aspecto 2"]
 }`;
-}
+
+/**
+ * CÓMO SE OBTIENE LA RESPUESTA DEL JUEZ PARA UN PROMPT (11/11/2026, F-130 `m1`). El producto hace UNA llamada en JSON
+ * (`callLLMJson`), y es el defecto. Una medida de cambio candidato puede sustituirla —por ejemplo, prosa y luego extracción— y todo
+ * lo que viene después (la frontera, la puerta de citas, la lectura) sigue siendo el del producto, sin copiarlo. Recibe el prompt
+ * del producto y las opciones de la llamada del producto, con su etiqueta, así que sus llamadas se registran como las del juez.
+ * NO ES ANDAMIO DE MEDICIÓN (arquitecto, 11/11): es la primera línea de M1 —el juez en dos llamadas—, con el defecto intacto.
+ * ⚠️ SI M1 SE RECHAZA, LA COSTURA SE RETIRA. La carpeta de medida caduca el 15/12/2026; la costura no caduca sola.
+ * ⚠️ LOS TRES INVARIANTES QUE LA VIGILAN: la etiqueta del juez sigue en línea en la llamada y la sustituta recibe esas mismas
+ * opciones (`etiquetas-de-llamada.test.ts`); hay UN sitio donde entra la respuesta del juez y POR DEFECTO ese sitio es
+ * `callLLMJson` (`evidencia-archivada.test.ts`); y NINGÚN FICHERO DEL PRODUCTO pasa `obtenerRespuesta`, sólo la carpeta de medida
+ * (`costura-del-juez.test.ts`).
+ */
+export type ObtenerRespuestaDelJuez = (prompt: string, opciones: NonNullable<Parameters<typeof callLLMJson>[1]>) => Promise<JudgeResponse>;
+const respuestaDelProducto: ObtenerRespuestaDelJuez = (prompt, opciones) => callLLMJson<JudgeResponse>(prompt, opciones);
 
 async function judgeSingleDocument(args: {
   newDocumentName: string;
@@ -872,6 +896,8 @@ async function judgeSingleDocument(args: {
   analizadoConTrozos: boolean;
   /** 3.1.3: el reparto ya decidido por la segunda selección, si la hubo. */
   elegido?: RepartoElegido;
+  /** 11/11 (F-130 `m1`): sin él, la llamada del producto. */
+  obtenerRespuesta?: ObtenerRespuestaDelJuez;
 }): Promise<{ judgment: DocumentJudgment; evidence: JudgmentEvidence; lectura: LecturaDeLaPareja }> {
   const { newDocumentName, newDocumentText, candidate, chunksByDocument } = args;
 
@@ -963,7 +989,7 @@ async function judgeSingleDocument(args: {
   lectura.huellaDelPrompt = huellaDelPrompt(prompt);
 
   try {
-    const response = await callLLMJson<JudgeResponse>(prompt, {
+    const response = await (args.obtenerRespuesta ?? respuestaDelProducto)(prompt, {
       maxOutputTokens: delJuez.maxOutputTokens,
       ...(delJuez.temperature === undefined ? { sinTemperatura: true } : { temperature: delJuez.temperature }),
       modeloExacto: delJuez.modelo,
@@ -1139,6 +1165,8 @@ export async function judgeAllDocuments(args: {
   fallbackTexts?: Map<string, string>;
   /** 3.1.3: por candidato, el reparto que decidió la segunda selección (`segundaSeleccion`). */
   repartos?: Map<string, RepartoElegido>;
+  /** 11/11 (F-130 `m1`): cómo se obtiene cada respuesta del juez; sin él, la llamada del producto (`ObtenerRespuestaDelJuez`). */
+  obtenerRespuesta?: ObtenerRespuestaDelJuez;
 }): Promise<JudgeAllResult> {
   if (args.candidates.length === 0) return { judgments: [], evidences: [], lecturaDeLasParejas: [] };
 
@@ -1208,6 +1236,7 @@ export async function judgeAllDocuments(args: {
       finesDelAnalizado,
       analizadoConTrozos: hasChunks,
       elegido: args.repartos?.get(candidate.documentId),
+      obtenerRespuesta: args.obtenerRespuesta,
     }),
     { batchSize: JUDGE_CONCURRENCY },
   );

@@ -159,8 +159,14 @@ describe('la evidencia archivada se sigue leyendo como siempre', { timeout: TOPE
     const juez = readFileSync('lib/analysis/judge.ts', 'utf8');
     const llamadas = [...juez.matchAll(/traducirSolapamientosDelJuez\(([^)]*)\)/g)].map(m => m[1]);
     expect(llamadas).toEqual(['response.overlappingContent']);
-    // Y `response` es la respuesta del modelo, declarada una sola vez.
-    expect(juez.match(/const response = await callLLMJson</g)).toHaveLength(1);
+    // Y `response` es la respuesta del modelo, declarada una sola vez. 11/11/2026 (F-130 m1, la costura aprobada por el arquitecto):
+    // el invariante pasa a ser DOS cosas. Hay UN solo sitio donde entra la respuesta del juez; y POR DEFECTO ese sitio es
+    // callLLMJson —`respuestaDelProducto` ES callLLMJson, y `obtenerRespuesta` cae en ella cuando no se pasa—. La segunda es la que
+    // no puede cambiar en silencio nunca.
+    expect(juez.match(/const response = /g)).toHaveLength(1);
+    expect(juez.match(/const response = await \(args\.obtenerRespuesta \?\? respuestaDelProducto\)\(prompt, \{/g)).toHaveLength(1);
+    expect(juez).toContain('const respuestaDelProducto: ObtenerRespuestaDelJuez = (prompt, opciones) => callLLMJson<JudgeResponse>(prompt, opciones);');
+    expect(juez.match(/\bcallLLMJson\s*</g)).toHaveLength(1);
   });
 
   it('CONTROL — si la traducción tocara algo guardado, se notaría: los valores no cambian, pero la cuenta del nombre viejo sí', () => {

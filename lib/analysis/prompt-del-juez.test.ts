@@ -18,7 +18,7 @@ vi.mock('./llm-client', () => ({
 }));
 
 import { buildAnalyzedDocumentText, judgeAllDocuments, promptDelJuez } from './judge';
-import { INTERRUPTOR_PAREJA_ENTERA } from './judge';
+import { INSTRUCCION_DE_SALIDA_DEL_JUEZ, INTERRUPTOR_PAREJA_ENTERA } from './judge';
 import type { StoredChunk } from '@/lib/read-chunks';
 
 const huella = (s: string) => createHash('sha256').update(s).digest('hex').slice(0, 16);
@@ -69,5 +69,42 @@ describe('el testigo del prompt del juez', () => {
   it('el corte honesto (interruptor a «1», no caben): el prompt enviado, byte a byte', async () => {
     vi.stubEnv(INTERRUPTOR_PAREJA_ENTERA, '1');
     expect(huella(await prompt(doc('Analizado', 12, 12_000), doc('Candidato', 12, 12_000), 'corte_honesto'))).toBe('5bb0b401cfe714a5');
+  });
+
+  it('el bloque final de la instrucción de salida es UNA constante, y el prompt acaba en ella', () => {
+    const p = promptDelJuez({ nombreDelAnalizado: 'N', textoAnalizado: 'X', avisoDeLoOmitido: '', nombreDelCandidato: 'E', fuenteDelCandidato: 'manual', bloqueCandidato: 'Y' });
+    expect(p.endsWith(INSTRUCCION_DE_SALIDA_DEL_JUEZ)).toBe(true);
+    expect(p.split(INSTRUCCION_DE_SALIDA_DEL_JUEZ).length - 1).toBe(1);
+    expect(INSTRUCCION_DE_SALIDA_DEL_JUEZ.startsWith('Responde con este JSON')).toBe(true);
+  });
+});
+
+describe('la costura de la respuesta del juez (11/11, F-130 m1)', () => {
+  afterEach(() => { vi.unstubAllEnvs(); });
+
+  it('con obtenerRespuesta, la recibe el mismo prompt que el producto enviaría, NO se llama a callLLMJson, y lo que devuelve pasa por la puerta', async () => {
+    vi.stubEnv(INTERRUPTOR_PAREJA_ENTERA, '1');
+    const a = doc('Analizado', 5, 300), c = doc('Candidato', 4, 200);
+    const delProducto = await prompt(a, c, 'pareja_entera');
+    enviados.length = 0;
+    const recibidos: string[] = [];
+    const r = await judgeAllDocuments({
+      newDocumentName: 'NOR-10.docx', newDocumentSample: a.map(x => x.text).join('\n\n'), newDocumentChunks: a,
+      chunksByDocument: new Map([['c', c]]),
+      candidates: [{ documentId: 'c', documentName: 'CLI-12.docx', source: 'manual', rerankReason: '', rerankConfidence: 'alta',
+        fragments: [{ text: c[0].text, documentId: 'c', documentName: 'CLI-12.docx', source: 'manual', score: 0.9, chunkIndex: 0 }] }],
+      obtenerRespuesta: async p => {
+        recibidos.push(p);
+        return { overlapPercent: 0, verdict: 'sin_relacion', overlappingContent: [], uniqueToNewDoc: [], contradictions: [
+          { topic: 'real', newDocSays: a[1].text.slice(0, 120), existingDocSays: c[2].text.slice(0, 120), severity: 'contradiction' },
+          { topic: 'inventada', newDocSays: 'esta frase no está en ninguno de los dos documentos y la puerta la tiene que tirar', existingDocSays: c[2].text.slice(0, 120), severity: 'contradiction' },
+        ] };
+      },
+    });
+    expect(enviados).toHaveLength(0);
+    expect(recibidos).toEqual([delProducto]);
+    expect(r.lecturaDeLasParejas[0].huellaDelPrompt).toBe(huella(delProducto));
+    expect(r.judgments[0].contradictions.map(x => x.topic)).toEqual(['real']);
+    expect(r.judgments[0].descartesPorCita?.map(x => [x.tema, x.ladoFallido])).toEqual([['inventada', 'nuevo']]);
   });
 });
