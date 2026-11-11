@@ -8061,3 +8061,21 @@ literal cuando llegue.
   10/11 por los ±15 puntos entre días.
 - **El orden**: el director sube → abre `SQL_34_13` en GitHub y la ejecuta → en paralelo, el ensayo y el sondeo de `d4` → **las
   pulsaciones de `d4` esperan a leer la consulta.**
+
+### EL TEXTO DE FABLE DEL 11/11, YA ARCHIVADO LITERAL (Code, 11/11/2026)
+Corrige el aviso del bloque anterior («el texto de Fable no le ha llegado a Code»). Los cuatro textos, pegados por el director,
+están en `consultas-fable/F-130_2026-11-11_por-que-el-juez-no-escribe-el-caso-sutil.md`: la consulta (a), la respuesta (b) y los
+añadidos de las 13:40 (c) y de las 15:40 (d), literales y por script, con sus huellas (`46efd5903d0b56cc`, `921d22921bacb5f1`,
+`e2a84134c1b7bdac`, `56c5e026e291ccb6`).
+**Lo que Code comprobó de lo que Fable afirma sobre el repositorio y el archivo:**
+- **«El prompt abre con "REGLA PRINCIPAL, POR ENCIMA DE TODAS…" y el bloque del principio va debajo»: se sostiene** (`promptDelJuez`,
+  `lib/analysis/judge.ts`: la REGLA PRINCIPAL va justo después de los dos documentos; `EXCEPCION_DE_LAS_REGLAS`, después de la
+  REGLA DE ORO).
+- **«Las respuestas crudas, como pedí en F-122»: se sostiene.** F-122 lo pidió (`F-122_2026-10-09_…:426`), y el archivo ya anotaba
+  entonces que no se persisten (`:541-542`).
+- **«De las veces que D salió, la mayoría sin la etiqueta»: se sostiene** (4 de 5; bloque anterior).
+- ⚠️ **Su punto 4 se apoya en algo que no tiene la condición del producto.** «El mismo modelo, preguntado en cerrado, decía "sí" la
+  mayoría de las veces en las tandas que habéis retirado»: esas tandas son con los TROZOS (de 22 a 28 de 42). Con los documentos
+  enteros, la pregunta cerrada dio 7 de 42 (d3, 11/11), con el defecto de la elección forzada. Así que «el modelo ve D cuando la
+  pregunta tiene la forma de D» está medido con los trozos y no con la condición del producto. El argumento contra el límite de
+  capacidad es más débil de lo que lo presenta. **Lo decide el arquitecto, y se le dice a Fable con el resto.**
