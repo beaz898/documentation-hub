@@ -795,6 +795,17 @@ El dueño del proyecto NO es programador. Vercel deploya automáticamente al hac
   **Lo que sigue prohibido:** citar «el juez encontró D 36 veces de 42 el
   06/11» como rendimiento del producto. No fue el dato declarado de aquella
   tanda y no lo será nunca. Promovida por el arquitecto el 10/11/2026.
+- **TODO HASH QUE APAREZCA EN UN MENSAJE TIENE QUE VENIR DE UNA ORDEN EJECUTADA
+  EN ESE MISMO TURNO.** Si no se ha leído de `git` en el turno en que se
+  escribe, no se escribe: se nombran el fichero y el cambio, que es lo que de
+  verdad identifica la cosa. Es un hábito, no buena intención.
+  Los tres casos, de Code y de la misma semana: `e5939aab` por `92dba818`;
+  `5b0f5d31` por `f8b49e72` (10/11); y `9b0e…` por `634dd260` (11/11). Los dos
+  falsos que se pueden buscar no existen en el repositorio (`git cat-file`), y
+  ninguno de los tres llegó a un fichero (`grep` sobre `claude/`, `CLAUDE.md`,
+  `SQL_*.sql`, `app/` y `lib/`, 11/11): vivían sólo en el chat. **Pero el
+  cuarto puede acabar en un fichero, y entonces el archivo miente.** Promovida
+  por el arquitecto el 11/11/2026.
 - **UNA FILA AFIRMA LA EXISTENCIA DE AQUELLO DE LO QUE ES FILA, NO DE AQUELLO A
   LO QUE APUNTA.** Un análisis existe desde que ocurre — no desde que se decide
   qué hacer con su resultado. Su propietario es lo que ya existe cuando ocurre, y
