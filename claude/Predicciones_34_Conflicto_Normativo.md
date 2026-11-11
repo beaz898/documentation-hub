@@ -8006,6 +8006,9 @@ que no decide nada:
   sin `discarded` guardado: 0». Así que en 17 de las 18 pasadas sin D no hay rastro de D en ningún sitio, y en la 18.ª, como mucho, un
   descarte sin texto que pudo serlo. **Lo que pierde D en el producto no es la puerta ni el verificador: es que el juez no la
   escribe.** Por qué no la escribe (si A, B y C tienen algo que ver) no está medido.
+  ⚠️ **ES UNA INFERENCIA, NO UNA MEDICIÓN (marcado el 11/11/2026, tras la respuesta de Fable)**: la eliminación miró lo publicado, la
+  puerta y el verificador, y NO miró `overlappingContent` ni `uniqueToNewDoc` del juicio. Las respuestas crudas del juez no se
+  guardan (sólo el log, que del 30/10 ya no existe). La confirma o la tumba `SQL_34_13`.
   ⚠️ Matiz que se le dice al arquitecto: los datos del producto no prueban que «lo evidente no impide lo sutil». Prueban que encontrar
   A, B y C no impide PUBLICAR D cuando se escribe, y que D se escribe 3 veces de 21.
 - **La regla del director, a `CLAUDE.md`** con el caso corregido por Code: lo propio de la herramienta es tener que elegir, no la
@@ -8019,6 +8022,8 @@ que no decide nada:
 - **LO ESTABLECIDO, y sustituye a todo lo contado antes sobre por qué el producto pierde D**: en 17 de las 18 pasadas sin D del
   30-31/10, **el juez no la escribió**; no la mataron ni la puerta ni el verificador (`SQL_34_05`, por eliminación sobre los tres
   sitios donde queda rastro; bloque anterior). **El fallo está en la generación, no en el filtrado.**
+  ⚠️ **INFERENCIA, hasta que `SQL_34_13` la confirme o la tumbe** (marcado el 11/11): faltan por mirar dos listas del juicio
+  (`overlappingContent` y `uniqueToNewDoc`). Si D aparece en alguna, el fallo NO es de generación sino de COLOCACIÓN.
 - **HIPÓTESIS DEL ARQUITECTO, SIN MEDIR (11/11)**: el producto pide `contradictions: [{ topic, newDocSays, existingDocSays,
   severity, conflictoNormativo }]`. Para que D salga, el juez tiene que meterla en una casilla de CONTRADICCIÓN y marcarla con un
   campo, y D no es una contradicción: nadie da dos valores del mismo dato; es un permiso contra un principio. «newDocSays /
@@ -8031,3 +8036,28 @@ que no decide nada:
   fila y huellas. No reproduce nada.
 - **Encargo: la ruta `d4`, con el prompt del producto** (`judgeAllDocuments` en rápido, NOR-10 como documento nuevo y CLI-12 como
   único candidato).
+
+### LA RESPUESTA DE FABLE DEL 11/11, Y LO QUE SE LE DEVUELVE (arquitecto y Code, 11/11/2026)
+⚠️ **El texto de Fable no le ha llegado a Code**: aquí está lo que el arquitecto transmitió de él y lo que se decidió. Se archiva
+literal cuando llegue.
+- **Su objeción**: la eliminación del «17 de 18» no miró todas las listas del JSON. **Acotada por Code**: `minor_inconsistency` ya
+  estaba mirada (va a `discrepancies` con su severidad, `synthesize.ts:69-100`, y `SQL_34_05` contaba ahí sin filtrar). **El agujero
+  son DOS listas, `overlappingContent` y `uniqueToNewDoc`**, y lo cierra `SQL_34_13`. Mientras tanto, **el 17 de 18 es una
+  INFERENCIA**, y está marcado así en sus dos sitios de este fichero.
+- **Su predicción sobre las 3 D publicadas: la mitad no predice.** «Al menos 2 de las 3 sin la etiqueta» está archivado desde el
+  31/10 (`Medida_F130_E3…:827-829`: las tres «sin especie»), así que no podía fallar. **Lo único falsable es que el `topic` esté
+  formulado como un dato con dos valores**, y lo dirá el bloque 1 de `SQL_34_13`. **Una predicción de algo que ya está en el archivo
+  no es una predicción** (el arquitecto, con el mismo rigor que Fable nos aplica).
+- **Su afirmación sobre nuestro archivo** («de las veces que D salió, la mayoría sin la etiqueta»), **verificada: se sostiene.** 4 de 5
+  (3 de 3 en la línea base, 1 de 2 en la tanda del 28/10).
+- **Su propuesta de guardar el crudo del juez**: a la deuda, como tercer caso de la entrada «una condición que hace falta para
+  interpretar una medición se guarda con la medición» (`Estado_Y_Pendientes…` §5).
+- **La guarda de M1 de Fable, archivada para cuando toque**, con la nota del arquitecto: sus criterios de reversión (el caso P3 de
+  Excel y los falsos de NOR-11 ↔ CLI-13) exigen mediciones sobre OTRAS parejas, y tropiezan con el mismo coste que el reanálisis.
+  Cuando se llegue a M1, se verá si son ejecutables o hay que sustituirlos. No se resuelve ahora.
+- **Lo que hay que devolverle, y lo escribe el arquitecto después de leer `SQL_34_13`**: que su diseño «en el producto entero, 21
+  pasadas por día, dos días por condición» no se puede ejecutar (reanalizar lanza un exhaustivo de 30 créditos con el régimen
+  equivocado y deja fila y huellas; `d4` es lo más cercano); y que su diseño de X usa el corte de 24, que está SUSPENDIDO desde el
+  10/11 por los ±15 puntos entre días.
+- **El orden**: el director sube → abre `SQL_34_13` en GitHub y la ejecuta → en paralelo, el ensayo y el sondeo de `d4` → **las
+  pulsaciones de `d4` esperan a leer la consulta.**
