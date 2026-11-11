@@ -8145,3 +8145,88 @@ de `d3`), y `d4b` por encima de `d4` lo bastante para cruzar el umbral si el paj
 
 **M1, M2 y M3 siguen APARCADAS hasta leer este contraste.** Los ensayos y sondeos de `d4` y `d4b`, en paralelo con `SQL_34_13`; las
 pulsaciones, cuando se haya leído la consulta.
+
+### PRERREGISTRO DE m1, EL CAMBIO CANDIDATO DE FABLE, Y EL NUEVO ORDEN DE LAS TANDAS (arquitecto y Code, 11-12/11/2026, ANTES DE PULSAR)
+**Corrige el bloque anterior en dos cosas:** `d4c` NO se retira (vuelve, la última; abajo) y la próxima tanda mide el ARREGLO antes que el
+diagnóstico. El arquitecto: «`d4` contra `d4b` no puede cambiar el producto ni en el mejor de los casos; sólo nos dice por dónde. Para
+saber si el arreglo de Fable sirve no hace falta saber por qué falla el juez: basta medirlo.»
+
+**LA CONVENCIÓN** (cabecera de `medida-f130.ts`): las rutas `d…` son de DIAGNÓSTICO y nunca pueden llegar al producto; las `m…` son
+CAMBIOS CANDIDATOS, que podrían. `m1` es un cambio candidato DECLARADO.
+
+**`m1` = el borrador en prosa y luego la casilla, sobre los documentos enteros, dos llamadas** (`app/api/admin/medida-f130/cambio-m1.ts`):
+- **Llamada 1:** el prompt del producto CON SUPRESIONES, no un texto nuevo. Cada supresión borra un trozo literal de las instrucciones
+  (nunca de los documentos), y el bloque final («Responde con este JSON…») se sustituye por la instrucción de prosa, el ÚNICO texto
+  añadido. Va en texto (`callLLM`), así que tampoco va el sufijo de JSON de `callLLMJson`.
+  - FUERA: los nombres de los campos, los nombres de las categorías, los topes (10/5/10/10, el cierre de lista que señala Fable), el
+    ejemplo JSON y el sufijo.
+  - DENTRO, tal cual: la REGLA PRINCIPAL; el RAZONAMIENTO de la excepción (es lo que autoriza a D; sólo se van su nombre de campo, sus
+    nombres de valor y su ejemplo JSON); y la exigencia de citas literales, que la instrucción de prosa pide «entre comillas» (el detector
+    es la puerta de citas).
+  - **Corte completo** (arquitecto): «La pregunta de mañana es "¿funciona M1?", no "¿qué parte de M1 funciona?". La dosis se afina
+    después de probar que hay efecto, no antes.»
+- **Llamada 2:** esa prosa de entrada y el esquema JSON del producto de salida. Extraer, no volver a juzgar.
+- **Detector y punto de cuenta: los de `d4`.** La frontera, la puerta de citas y la lectura del producto, por la costura, y se cuenta
+  DESPUÉS DE LA PUERTA Y ANTES DEL VERIFICADOR (el arquitecto corrigió su frase «y su verificador»).
+- **Se guarda la prosa CRUDA de cada vez**, con las huellas de los dos prompts enviados: el crudo que el producto no guarda.
+- ⚠️ **LO QUE NO CUBRE:** la instrucción de prosa y el prompt de extracción son NUESTROS, no de Fable. Si `m1` sale plano, esta versión de
+  M1 no sirve; no que M1 no sirva.
+
+**LA DOSIS, sacada del módulo por script** (`scratchpad/herramientas/dosis_m1.test.ts`), con la plantilla de prueba de
+`cambio-m1.test.ts`, cuya huella fija la prueba:
+```
+huella del módulo cambio-m1.ts: 4581659b0774f007
+prompt del producto (plantilla de prueba): 18460 caracteres, huella aaf2d72e66a26856
+prompt de la llamada 1 (misma plantilla): 16615 caracteres, huella b49f3240bfdbfa6a
+supresiones: 20, 1101 caracteres en total
+   1. instrucción 4: el nombre de la lista de exclusivos: 26
+   2. instrucción 4: el nombre de la lista de contradicciones: 23
+   3. instrucción 6: el veredicto y el porcentaje: 49
+   4. instrucción 7: el veredicto y el porcentaje: 50
+   5. instrucción 8 entera: la categoría duplicado_exacto: 117
+   6. reglas de formato: los campos del lado nuevo: 34
+   7. reglas de formato: los campos del lado existente: 44
+   8. reglas de formato: el campo description: 16
+   9. reglas de formato: los topes: 100
+  10. reglas de formato: el campo severity y sus dos valores: 159
+  11. excepción: el campo conflictoNormativo: 81
+  12. excepción: el nombre del valor norma_contra_norma, en la lista: 22
+  13. excepción: el nombre del valor norma_contra_practica, en la lista: 25
+  14. excepción, orden obligatorio: «no lleva el campo»: 20
+  15. excepción, cómo se distingue: «no lleva el campo»: 20
+  16. excepción, lo que no es conflicto: «no lleva el campo»: 22
+  17. excepción: el nombre del valor en el primer ejemplo: 24
+  18. excepción: el nombre del valor en el segundo ejemplo: 27
+  19. excepción: el nombre del valor al final del ejemplo del principio: 25
+  20. excepción: el ejemplo JSON: 217
+sustitución: el bloque final del producto (1194) por la instrucción de prosa (450)
+instrucción de prosa, literal: Responde en PROSA, sin listas, sin JSON y sin ningún esquema. Escribe un párrafo por cada hallazgo —cada contradicción, inconsistencia menor, solapamiento o contenido exclusivo del documento nuevo—, diciendo de qué tipo es y con sus citas copiadas literalmente entre comillas, como piden las reglas de formato. Termina con un párrafo que diga cuánto del documento nuevo ya está en el existente y cuál es tu veredicto. Si no hay ningún hallazgo, dilo.
+plantilla de la llamada 2: 2871 caracteres, huella 1f583d2960f82f7f
+```
+Las cuentas cuadran carácter a carácter: 18.460 − 1.101 − 1.194 + 450 = 16.615, y la prueba lo exige.
+
+**LA COSTURA DEL JUEZ, aprobada por el arquitecto** (`ObtenerRespuestaDelJuez`, `lib/analysis/judge.ts`): «No es andamio de medición:
+es la primera línea de M1.» El defecto queda intacto, y la vigilan tres invariantes:
+- **(a)** la etiqueta del juez sigue en línea en la llamada, y la sustituta recibe esas mismas opciones (`etiquetas-de-llamada.test.ts`);
+- **(b)** hay UN sitio donde entra la respuesta del juez, y POR DEFECTO ese sitio es `callLLMJson` (`evidencia-archivada.test.ts`);
+- **(c)** NINGÚN FICHERO DEL PRODUCTO pasa `obtenerRespuesta`, sólo la carpeta de medida; censo sobre `app`, `lib`, `components` y
+  `worker` (`costura-del-juez.test.ts`).
+⚠️ **SI M1 SE RECHAZA, LA COSTURA SE RETIRA.** La carpeta de medida caduca el 15/12; la costura no caduca sola.
+
+**`d4c` VUELVE**, tal como estaba y la última en la cola. El arquitecto: «Un brazo cuyo positivo informa y cuyo negativo no, por tres
+céntimos, se pulsa.» **Su positivo se interpreta** (D con el §3.1 ausente: el §3.5 sí funciona con texto pequeño, prueba directa del
+pajar); **su cero no** (no distingue «sin competencia» de «sin ancla»).
+
+**EL ORDEN, Y NADA SE PULSA HASTA QUE LO DIGA EL ARQUITECTO:**
+```
+1. SQL_34_13 .......... gratis. Primero: comprueba la inferencia del «17 de 18».
+2. d4  · 14 ........... ~0,10 $. EL CONTROL: el producto tal como está hoy.
+3. m1  · 14 ........... ~0,20 $ (dos llamadas). EL ARREGLO DE FABLE.
+4. d4b · 14 ........... ~0,03 $. El pajar, si hace falta.
+5. d4c · 14 ........... ~0,03 $. Por su positivo.
+```
+**Los umbrales: los del contraste del pajar** (el bloque anterior: Fisher exacto bilateral, dos etapas, error de tipo I máximo del
+3,42 %), ahora para `m1` contra `d4`. Con `d4` en 2 de 14, `m1` cruza en 8; con `d4` en 3, en 10.
+
+**LA PREDICCIÓN DEL ARQUITECTO PARA m1, escrita antes:** por encima de `d4` y cruzando el umbral. **La refuta que `m1` quede igual o
+por debajo de `d4`**, y entonces el diagnóstico de Fable es incompleto.
