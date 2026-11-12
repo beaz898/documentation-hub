@@ -806,6 +806,21 @@ El dueño del proyecto NO es programador. Vercel deploya automáticamente al hac
   `SQL_*.sql`, `app/` y `lib/`, 11/11): vivían sólo en el chat. **Pero el
   cuarto puede acabar en un fichero, y entonces el archivo miente.** Promovida
   por el arquitecto el 11/11/2026.
+- **LAS CONSULTAS CORTAS A FABLE LLEVAN CINCO COSAS, Y TIENEN UN LÍMITE.** Las
+  cinco, por este orden:
+  1. **qué se midió**: producto o herramienta, la pareja, el n, el día, la
+     regla de cuenta, y si lo verificó Code;
+  2. **el texto literal**, cuando la pregunta es sobre un texto;
+  3. **qué creemos y qué proponemos**;
+  4. **qué decisión depende de su respuesta**, y si es antes de pulsar;
+  5. **qué toca de lo suyo**, con su identificador (P-A3-4, F-122…).
+  ⚠️ **EL LÍMITE: LO QUE CAMBIE UN UMBRAL, UNA DEFINICIÓN O LO QUE PROMETE EL
+  PRODUCTO NO SE CIERRA CON UN SÍ RÁPIDO DE FABLE. LO DECIDE EL DIRECTOR.**
+  El caso, del 12/11/2026: en la consulta rápida de las 11:20, Fable aceptó
+  que la zona gris de la tanda de claridad contara como «no clara»; a las
+  13:05 el director lo cambió y la dejó a su juicio. Era una definición de
+  producto («qué se cierra»), y no le tocaba a un sí rápido. Promovida por el
+  arquitecto el 12/11/2026.
 - **UNA FILA AFIRMA LA EXISTENCIA DE AQUELLO DE LO QUE ES FILA, NO DE AQUELLO A
   LO QUE APUNTA.** Un análisis existe desde que ocurre — no desde que se decide
   qué hacer con su resultado. Su propietario es lo que ya existe cuando ocurre, y
