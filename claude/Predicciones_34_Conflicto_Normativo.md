@@ -8527,3 +8527,55 @@ SECUNDARIOS · §2.4 (sin A) ↔ §3.5
 
 **UNA OBSERVACIÓN DEL ARQUITECTO, ETIQUETADA COMO OBSERVACIÓN Y NO COMO HALLAZGO:** las 3 D publicadas citan la frase 2 (el principio)
 pero formulan el `topic` como pregunta de figura. «No sé si eso significa algo; no lo archives como explicación de nada.»
+
+### LA TANDA DE CLARIDAD: LA PREGUNTA R CORREGIDA, DECIDE N, Y LA PUERTA DE VALIDEZ (arquitecto, 12/11/2026, ANTES DE PULSAR)
+⚠️ **La respuesta rápida de Fable a la que responde esto NO le ha llegado a Code**: no está archivada, y lo que sigue sobre ella sale del
+mensaje del arquitecto. Se archiva literal cuando el director la pegue, y la pregunta R se coteja entonces con su texto.
+
+**1 · LA PREGUNTA R DE LA PAREJA PRIMARIA, CORREGIDA.** El defecto que declara Fable: la pregunta dice «el Texto 1 permite algo», y el
+Texto 1 permite DOS cosas (el propio Director o otro profesional designado), así que «DEPENDE de a quién se designe» sería una respuesta
+correcta y contaría en contra. Su redacción, en la cita del arquitecto (sacada por script de su mensaje y juntada en una línea; los
+saltos y la sangría eran de presentación). `tanda-de-claridad.test.ts` la busca aquí palabra por palabra:
+«El Texto 1 permite que el Coordinador de Calidad sea el propio Director Clínico. Si una clínica hace uso de ese permiso, ¿puede cumplir al mismo tiempo lo que establece el Texto 2? No vale responder que basta con no usar el permiso. Responde en la primera línea con una sola de estas opciones: NO PUEDE, SÍ PUEDE o DEPENDE. Después explica tu respuesta en tres frases como máximo.»
+
+- **Sólo en la pareja PRIMARIA.** La secundaria conserva la pregunta original: P-A3-4 se escribió sobre ella. La pregunta N no se toca.
+- **Huellas nuevas, congeladas por prueba:** primaria N `a053c1bbeb1b0ade` (no cambia), primaria R **`e8add83ec7be14a1`** (antes
+  `addc6853db1d36e6`); las secundarias no cambian (N `cef15935b2973843`, R `b8c3cca016783273`). La hoja de la lectura en papel, rehecha con
+  la R nueva; no se había repartido.
+
+**2 · ⚠️ LA REGLA DE DECISIÓN CAMBIA: DECIDE N, R PASA A SER CONTROL.** Fable: «R queda casi en el techo por construcción». Con la
+redacción corregida, R pregunta si la lógica se sostiene una vez enmarcada para el lector, y eso es casi analítico: un brazo en el techo
+por construcción no decide.
+```
+DECIDE:   el brazo N primario sobre 84, con los umbrales de Fable y la cuenta laxa, más las lecturas humanas.
+CONTROL:  el brazo R. Si R NO sale alto, algo va mal en la pareja o en el montaje, y entonces N no se lee. R no sube ni baja la decisión.
+```
+⚠️ **PENDIENTE ANTES DE PULSAR, señalado por Code: «si R no sale alto» no tiene cifra.** Hace falta un umbral escrito (por ejemplo, el
+de P-A3-7, 38 de 42) para que el control no se decida a la vista del resultado.
+
+**3 · LA PUERTA DE VALIDEZ DE N** (el segundo defecto de Fable: los dos textos difieren también en QUÉ HACE el Coordinador —supervisión
+documental en uno, responsable último de la esterilización en el otro—, y un CONFLICTO por ese motivo contaría como D sin serlo). La
+cuenta primaria no cambia; se añade un informe, con regla congelada:
+- **La regla** (`app/api/admin/medida-f130/regla-de-validez.ts`, huella **`c3a3f85dfca620a8`**, fijada por `regla-de-validez.test.ts`):
+  un CONFLICTO se explica por D si su explicación (todo lo que va después de la primera línea) lleva alguna de estas marcas, en minúsculas y
+  sin tildes: «misma persona», «separacion», «separar», «separad», «el propio director clinico», «ser el director clinico», «sea el
+  director clinico», «recaer en el», «recae en el», «acumul», «ambos cargos», «los dos cargos», «doble rol», «dos roles». Si no lleva
+  ninguna, va a OTRA COSA: el sesgo va contra nosotros. La primera línea no cuenta.
+- **La puerta** (arquitecto): si MÁS DE UNO DE CADA CINCO conflictos se explica por otra cosa, N NO ESTÁ MIDIENDO D y su cifra no se lee,
+  diga lo que diga. **El orden de lectura, prerregistrado: PRIMERO la puerta de validez, DESPUÉS la cuenta de N.**
+- La salida de cada tirada de N enseña la clase de cada CONFLICTO y sus marcas, para que se pueda auditar.
+
+**4 · LO QUE EL ARQUITECTO TRAE DE LA RESPUESTA DE FABLE** (en su mensaje; sin el texto de Fable, que falta):
+- **Predicciones nuevas, para la primaria, día 1 sobre 42, contadas aparte:** **P-A3-6**, N entre 31 y 39; **P-A3-7**, R con la pregunta
+  corregida, 38 o más. P-A3-4 y P-A3-5 siguen puntuándose contra los SECUNDARIOS, como las escribió.
+- **Su lectura de los dos textos, marcada NO CIEGA:** para él es un conflicto que el producto debe marcar; la única lectura compatible que
+  encuentra es «el Texto 2 restringe de hecho la opción del Texto 1», y aun así la corrección es la misma: quitar de §2.4 «puede recaer en
+  el propio Director Clínico». No lo ve como el quinto caso: allí se discutía si dos actividades son la misma; aquí no hay término que
+  discutir.
+- **Sus dos observaciones** (la segunda va pegada al resultado del paso 1 cuando llegue, porque limita lo que puede concluir):
+  - **(a)** con la frase de A del §3.1 dentro, D lleva una negación explícita («no el Director Clínico»), así que ya no es un permiso
+    contra un principio puro: está cerca de una contradicción ordinaria sobre «¿puede el Coordinador ser el Director?». Puede explicar que
+    las D del producto salgan sin etiqueta normativa.
+  - **(b)** ⚠️ **lo que se mide es la claridad de ESTA PAREJA, no de la clase «permiso contra principio».** Ningún brazo prueba el
+    principio solo, y no se puede, porque la frase 2 del §3.1 no se sostiene sin la 1.
+- **El formato de las consultas cortas y su límite**, a `CLAUDE.md`.

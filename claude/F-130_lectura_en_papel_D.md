@@ -7,7 +7,7 @@ CIEGA (conoce el caso).
 Los dos textos son EXACTAMENTE los que recibe el modelo en los brazos primarios de la tanda de claridad, carácter por carácter: sacados
 por script con la misma función que usa la ruta (`textosPrimarios`, `app/api/admin/medida-f130/tanda-de-claridad.ts`), sobre los
 trozos del corpus. Texto 1: el §2.4 de NOR-10 sin la frase que remite al §2.1. Texto 2: el §3.1 de CLI-12 entero, sus dos frases.
-Huellas de los dos prompts del modelo con estos textos: brazo N `a053c1bbeb1b0ade`, brazo R `addc6853db1d36e6` (tienen que coincidir con las del ensayo).
+Huellas de los dos prompts del modelo con estos textos: brazo N `a053c1bbeb1b0ade`, brazo R `e8add83ec7be14a1` (tienen que coincidir con las del ensayo).
 
 ⚠️ Sustituye a la versión de esta mañana, que tenía el §3.5 como Texto 2 y NO se llegó a repartir: el §3.5 sólo remite al principio
 («la separación de funciones descrita en el apartado 3.1»), y la pareja por la que publica el producto es la del §3.1.
@@ -30,4 +30,4 @@ Los dos textos son de la misma organización y están vigentes a la vez. ¿Hay u
 
 ## Pregunta (brazo R)
 
-El Texto 1 permite algo. Si una clínica hace uso de ese permiso, ¿puede cumplir al mismo tiempo lo que establece el Texto 2? No vale responder que basta con no usar el permiso. Responde en la primera línea con una sola de estas opciones: NO PUEDE, SÍ PUEDE o DEPENDE. Después explica tu respuesta en tres frases como máximo.
+El Texto 1 permite que el Coordinador de Calidad sea el propio Director Clínico. Si una clínica hace uso de ese permiso, ¿puede cumplir al mismo tiempo lo que establece el Texto 2? No vale responder que basta con no usar el permiso. Responde en la primera línea con una sola de estas opciones: NO PUEDE, SÍ PUEDE o DEPENDE. Después explica tu respuesta en tres frases como máximo.
