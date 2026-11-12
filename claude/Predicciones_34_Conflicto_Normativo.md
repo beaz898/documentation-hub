@@ -8230,3 +8230,38 @@ pajar); **su cero no** (no distingue «sin competencia» de «sin ancla»).
 
 **LA PREDICCIÓN DEL ARQUITECTO PARA m1, escrita antes:** por encima de `d4` y cruzando el umbral. **La refuta que `m1` quede igual o
 por debajo de `d4`**, y entonces el diagnóstico de Fable es incompleto.
+
+### SQL_34_13, Y LAS TANDAS d4, m1 Y d4b DEL 12/11 — LOS DATOS, CONTADOS POR CODE (12/11/2026)
+**Fuente:** el director pegó la salida de `SQL_34_13`, los tres ensayos y las tres tandas el 12/11. Sacados del registro de la conversación
+por script (`scratchpad/salidas_1211/extraer.mjs`), literales, con sus huellas: `sql_34_13.csv` `74e6783756f5375b`, `tanda_d4.json`
+`2dacbc2f646b15ce`, `tanda_m1.json` `8f6388b0ecaf5ff2`, `tanda_d4b.json` `6049b9d011956f91`, y los ensayos de `m1`, `d4b` y `d4c`.
+⚠️ **La tanda de `m1` llegó CORTADA**: el texto pegado acaba en el carácter 99.921, a mitad de la prosa de la vez 10. **Sólo las veces
+1 a 9 se pueden contar.** Lo de las veces 10 a 14 es lectura del arquitecto, sin verificar.
+
+**SQL_34_13 (la inferencia del «17 de 18»):** los seis controles en OK (21 pasadas rápidas, un CLI-12, un juicio por pasada, las dos listas
+guardadas como listas, y el control positivo en las pasadas 12, 17 y 21, como SQL_34_05).
+- **Las tres D publicadas:** citan el permiso contra el principio del §3.1 («separar la responsabilidad…»); `severity: contradiction`;
+  las tres SIN el campo `conflictoNormativo`. Temas: pasada 12, «Figura que puede ocupar el cargo de Coordinador de Calidad»; pasada 17,
+  «Figura del Coordinador de Calidad y separación de funciones respecto al Director Clínico»; pasada 21, «Puede ser Coordinador de
+  Calidad el propio Director Clínico».
+- **En las 18 pasadas sin D publicada, ninguna marca de D en ninguna de las listas guardadas:** contradicciones, solapamientos,
+  exclusivos, y descartes por cita de los dos tipos. Las cinco, a cero.
+- **Lo que queda sin poder leerse:** los descartes del verificador se guardan sólo como cuenta, sin texto, y la pasada 8 tiene uno.
+  Así que lo comprobado es «18 de 18 sin D en lo guardado», con una pasada (la 8) donde el verificador tiró algo que no se puede leer.
+
+**Las tandas, con el detector del arquitecto** (`salidas_1211/contar.mjs`: en las cuatro listas, marca de D en el lado NOR-10 o en el
+CLI-12, normalizado como `brazos.ts`). Da lo mismo con la regla de SQL_34_06 (sólo el lado NOR-10):
+```
+d4  (14 de 14 completas): D 2 · A 14 · B 14 · C 14 · las dos D en contradictions, SIN el campo, por el §3.1 (veces 8 y 11)
+d4b (14 de 14 completas): D 1 · A 14 · B 14 · C 14 · la D en contradictions, CON norma_contra_norma, por el §3.1 (vez 6)
+m1  (9 de 14 completas):  D 2 publicadas + 1 tirada por la puerta · A 8 · B 9 · C 9 · D en la prosa: 3 de 9
+     vez 1: contradictions, norma_contra_norma, por el §3.5 («nunca por el director clinico») y no por el §3.1
+     vez 5: contradictions, norma_contra_norma, por el §3.1
+     vez 7: descartes por cita, lado existente, paso sin_cabeza; la cita era «en el Director Clínico del propio centro…» y CLI-12
+            dice «nunca POR el Director Clínico del propio centro…»: la cita no es literal, y la prosa ya la traía mal
+     A en la vez 3: tirada por la puerta (cola_demasiado_lejos), con las dos citas empalmadas
+```
+**Intervalos** (`salidas_1211/intervalos.mjs`, Wilson al 95 %): D con el prompt del producto, agrupando línea base, `d4` y `d4b`, 6 de 49
+= 12,2 % [5,7 %, 24,2 %]; A, B y C, 49 de 49 cada una [92,7 %, 100 %]. `d4b − d4` = −7,1 puntos, Newcombe [−33,5, +19,3], Fisher
+p = 1. `m1 − d4` con la cifra del arquitecto (3 de 14) = +7,1 puntos, Newcombe [−22,0, +35,2], Fisher p = 1.
+**Según la regla prerregistrada, las dos comparaciones caen en «para»: NO DETECTADO a este n.**
