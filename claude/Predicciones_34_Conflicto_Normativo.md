@@ -8406,3 +8406,31 @@ nuestro) no cambia.
 - **La lectura en papel** (paso 0a): `claude/F-130_lectura_en_papel_D.md`, con los dos textos sacados por script con la misma función
   que usa la ruta (`textosDeClaridad`) y las dos preguntas aparte. Huellas de los dos prompts con esos textos: N `cef15935b2973843`, R
   `b8c3cca016783273`, que tienen que coincidir con las del ensayo.
+
+### LA TANDA DE CLARIDAD: LOS UMBRALES DE FABLE, Y EL 74 FUE UN ERROR (arquitecto, 12/11/2026, ANTES DE PULSAR)
+**Sustituye la decisión del bloque anterior.** La cuenta doble (laxa primaria, estricta secundaria), la lectura en papel y la zona gris
+al director no cambian.
+- ⚠️ **EL ERROR, del arquitecto y con sus palabras:** «Escalé la banda EN TASA: 37 de 42 son el 88,1 %, y puse 74 de 84, que es el mismo
+  88,1 %. Pero exigir la misma tasa con el doble de datos es una prueba MÁS DURA, no igual. Fable había puesto 68 de 84 —el 81,0 %, más
+  bajo que su primera etapa— y eso es lo correcto: con más datos se puede aceptar una tasa observada menor para la misma confianza. Le
+  cambié su umbral sin motivo y de ahí sale todo el coste que has encontrado.» El coste lo había sacado Code: con el 74, un caso claro
+  al 90 % se cerraba como no claro el 21,6 % de las veces, y uno al 85 %, el 73,2 %.
+- **LA REGLA, UNA SOLA: DOS DÍAS SIEMPRE, 42 por brazo cada día, y se decide sobre 84 con la cuenta laxa:**
+  **≥ 68 clara** (el 81,0 %, el umbral de segunda etapa de Fable) · **≤ 60 no clara** (el 71,4 %, su tasa de un día escalada) · **en
+  medio, ZONA GRIS**, que va al director (por defecto «no clara», si él no decide otra cosa). **Se quitan los atajos de un día**: con
+  estos umbrales, «41 o más en un día» saltaba el 6,8 % de las veces incluso con una tasa real del 90 %. Son 0,06 $ en total.
+- **La tabla, verificada por Code con binomial exacta** (`scratchpad/bandas_claridad_3.mjs`; coincide cifra a cifra con la del arquitecto):
+  ```
+   tasa real    clara    zona gris   no clara   gris + no clara
+     95 %      100,0 %      0,0 %      0,0 %       0,0 %
+     90 %       99,6 %      0,4 %      0,0 %       0,4 %
+     85 %       88,1 %     11,8 %      0,1 %      11,9 %
+     80 %       47,8 %     48,4 %      3,8 %      52,2 %
+     75 %       12,7 %     61,3 %     26,0 %      87,3 %
+     70 %        1,6 %     33,2 %     65,2 %      98,4 %
+     60 %        0,0 %      1,1 %     98,9 %     100,0 %
+  ```
+  La última columna es lo que se cierra con la zona gris en «no clara». **Sólo es un cierre ERRÓNEO en las filas donde el caso es de
+  verdad claro** (90 %: 0,4 %; 85 %: 11,9 %); en las del 75 % para abajo, cerrar es lo que dice la regla del director.
+- **En el código** (`tanda-de-claridad.ts`): `decisionSobre84`, con 68 y 60; ya no hay decisión de un día. Mueren 25 mutantes, entre ellos
+  el 67, el 69, el 59 y el 61, y uno que decide sobre 42.
