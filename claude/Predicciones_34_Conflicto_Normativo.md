@@ -8481,3 +8481,49 @@ delante, fijado hoy:
 ⚠️ **REGLA NUEVA: LA LECTURA EN PAPEL VA ANTES DE LA PRIMERA PULSACIÓN CON MODELO**, no sólo antes de ver el resultado. Si el juicio del
 director viene anclado por un número del modelo, ya no es independiente, y es lo que decide. **Las respuestas en papel —la suya y las de
 los otros lectores— se archivan ANTES de que se pulse Claridad N o R con modelo.** También en la cabecera de `tanda-de-claridad.ts`.
+
+### LA TANDA DE CLARIDAD, CON LA PAREJA PRIMARIA: §2.4 ↔ §3.1 (arquitecto, 12/11/2026, ANTES DE PULSAR)
+**El defecto de diseño, en palabras del arquitecto:** «EL TEXTO 2 ES EL §3.5, Y EL §3.5 NO LLEVA EL PRINCIPIO. Sólo remite a él («la
+separación de funciones descrita en el apartado 3.1»).» Se paró la tanda y la lectura en papel antes de repartirla.
+- **Una premisa del arquitecto, corregida por Code antes de montar:** «la vía del §3.5 sola no funciona NUNCA» no es exacta. En `m1`, la
+  vez 1 sacó D citando sólo el §3.5. Con el prompt del producto sí se sostiene: las 6 D (3 de la línea base, 2 de `d4`, 1 de `d4b`) citan
+  el §3.1; en `d3`, 0 sólo por el §3.5 y 1 por las dos.
+
+⚠️ **EL DESAJUSTE DE LA ETIQUETA, y que lo vea Fable:** el proyecto llama a D «§2.4 ↔ §3.5» en todas las cadenas de medida, y la pareja
+operativa es «§2.4 ↔ §3.1». **El error de origen es nuestro; Fable eligió el §3.5 porque es lo que dice nuestra etiqueta.** Corregida como
+CORRECCIÓN DE ETIQUETA, NO DE MEDIDA, en `producto-ruta.ts` (`d4`, `d4b`, `m1`): «(§2.4 ↔ §3.1, por la vía que publica; §3.5 la remite)».
+Lo medido no cambia: esas rutas entregan los documentos enteros o los trozos con el §3.1 dentro. **Dos excepciones, puestas por Code:**
+`d4c` NO entrega el §3.1 (sus neutros sólo llevan el trozo del §3.5), así que su etiqueta dice «(§2.4 ↔ §3.5; el §3.1 no se entrega)»; y
+en la tanda de claridad, «§3.5» describe el párrafo que se entrega en los brazos SECUNDARIOS, y es correcto.
+
+**EL MONTAJE DE LA PAREJA PRIMARIA** (`textosPrimarios`, `tanda-de-claridad.ts`): **la cirugía va SÓLO en el Texto 1.**
+- **Texto 1:** el §2.4 de NOR-10 sin la frase de A («no sustituye al Director Clínico en la responsabilidad última descrita en el apartado
+  2.1»), igual que en la secundaria.
+- **Texto 2:** el §3.1 de CLI-12 ENTERO, las dos frases: la de A del lado CLI-12 («…es el Coordinador de Calidad del centro, no el
+  Director Clínico») y la del principio («separar la responsabilidad…»). El arquitecto: «Eso es D, entero y sin inferencias: no puede ser
+  que el responsable sea "el Coordinador y no el Director Clínico" si el Coordinador puede ser el Director Clínico. Y la frase 2 aporta el
+  motivo, que es lo que lo convierte en permisión-contra-principio y no en un cruce de nombres.»
+- **A sigue sin poder formarse:** su lado NOR-10 es el §2.1, que no se entrega, y la única frase del Texto 1 que lo traía por referencia
+  es la que se quita. El lector sólo tiene un conflicto disponible: D.
+- **Negativas duras, antes del ensayo:** el Texto 2 contiene la frase con «no el Director Clínico»; ninguno de los dos textos contiene
+  rastros del §2.1 («responsable último del cumplimiento de este protocolo», «no es delegable», «retirar del servicio», «apartado 2.1»).
+  Las otras dos que pidió el arquitecto (el Texto 1 sin marcas de A; el Texto 2 con «separar la responsabilidad») **se cumplen por
+  construcción**: lo cazaron dos mutantes vivos, así que no se comprueban otra vez y el código dice por qué.
+- **La pareja va en la URL y es obligatoria** (`pareja=31` primaria, `pareja=35` secundaria): sin ella, la ruta se niega.
+
+**LOS CUATRO BRAZOS Y SUS DÍAS** (252 llamadas, unos 0,15 $):
+```
+PRIMARIOS, los que deciden · §2.4 (sin A) ↔ §3.1 ENTERO
+   N y R, DOS DÍAS cada uno, 42 por día → decisión sobre 84 con los umbrales de Fable
+   (≥68 clara, ≤60 no clara, en medio al juicio del director).
+SECUNDARIOS · §2.4 (sin A) ↔ §3.5
+   N y R, UN SOLO DÍA, 42 cada uno. No se tocan: P-A3-4 y P-A3-5 de Fable se escribieron sobre ESTA pareja y sobre 42.
+```
+**Huellas congeladas por prueba:** primaria N `a053c1bbeb1b0ade`, R `addc6853db1d36e6`; secundaria N `cef15935b2973843`, R
+`b8c3cca016783273` (las de los ensayos del 12/11).
+
+**LA LECTURA EN PAPEL SE REHACE CON LA PAREJA PRIMARIA** (`claude/F-130_lectura_en_papel_D.md`, sacada por script con `textosPrimarios`):
+«Los lectores son el recurso escaso: no se les da la pareja que no manda.» La versión con el §3.5 no se repartió.
+
+**UNA OBSERVACIÓN DEL ARQUITECTO, ETIQUETADA COMO OBSERVACIÓN Y NO COMO HALLAZGO:** las 3 D publicadas citan la frase 2 (el principio)
+pero formulan el `topic` como pregunta de figura. «No sé si eso significa algo; no lo archives como explicación de nada.»
