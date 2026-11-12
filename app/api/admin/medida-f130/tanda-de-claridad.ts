@@ -14,9 +14,15 @@ import { marcasDe } from './brazos';
  * habla de «Texto 1» y «Texto 2», así que las etiquetas hacen falta, y el Texto 1 es el permiso); que de cada sección va SÓLO EL
  * PÁRRAFO que contiene el ancla de D, sin el título; y la regla con que se quitan las frases de A (`sinFrasesDeA`).
  * LA CUENTA (Fable): sólo la primera línea. Positivo es CONFLICTO en N y NO PUEDE en R; todo lo demás cuenta en contra, incluidos
- * DEPENDE y cualquier respuesta sin la palabra. No se piden citas, así que no hay indecidibles. ⚠️ Nuestra concreción, escrita antes
- * de pulsar: la primera línea NO VACÍA, quitando marcas de formato (* _ # ` >), comillas y la puntuación del final, sin tildes y en
- * mayúsculas, TIENE QUE SER EXACTAMENTE la palabra. «Respuesta: CONFLICTO» cuenta en contra.
+ * DEPENDE y cualquier respuesta sin la palabra. No se piden citas. ⚠️ SE CUENTA DE DOS MANERAS Y SE PUBLICAN LAS DOS, prerregistrado
+ * por el arquitecto el 12/11 antes de pulsar («medir así mide obediencia al formato, no claridad»):
+ *   · PRIMARIA, LAXA: la primera línea no vacía, en mayúsculas, sin tildes y sin signos, EMPIEZA por una de las palabras permitidas
+ *     (como palabra entera) y NO CONTIENE ninguna de las otras dos. «CONFLICTO: el texto 1 permite…» cuenta como CONFLICTO;
+ *     «CONFLICTO o DEPENDE» es indecidible y cuenta en contra.
+ *   · SECUNDARIA, ESTRICTA (la de Fable): la primera línea, sin formato, comillas ni la puntuación del final, es EXACTAMENTE la palabra.
+ * LA DECISIÓN (arquitecto, 12/11): los dos brazos se pulsan HOY Y MAÑANA y se decide sobre 84 por brazo con la cuenta laxa: ≥74 clara,
+ * ≤60 no clara, en medio ZONA GRIS. Un día solo decide si es extremo: ≥41 de 42 clara, ≤25 no clara. La zona gris NO se repite: va
+ * al director como decisión de definición (la recomendación prerregistrada, que él confirma o cambia: por defecto, NO CLARA).
  */
 
 export const PREGUNTA_N = 'Los dos textos son de la misma organización y están vigentes a la vez. ¿Hay un conflicto entre lo que establecen? Responde en la primera línea con una sola palabra: CONFLICTO, COMPATIBLES o DEPENDE. Después explica tu respuesta en tres frases como máximo.';
@@ -72,23 +78,46 @@ export function primeraLinea(respuesta: string): string {
     .normalize('NFD').replace(/\p{Diacritic}/gu, '').toUpperCase().replace(/\s+/g, ' ');
 }
 
-/** El veredicto de una tirada: positivo sólo si la primera línea es exactamente la palabra del positivo. */
-export function veredicto(brazo: BrazoDeClaridad, respuesta: string): { linea: string; opcion: string; positivo: boolean } {
-  const linea = primeraLinea(respuesta);
-  const opcion = OPCIONES[brazo].includes(linea) ? linea : 'OTRA';
-  return { linea, opcion, positivo: linea === POSITIVO[brazo] };
+/** La primera línea para la cuenta LAXA: en mayúsculas, sin tildes y sin signos (sólo letras, cifras y espacios). */
+export function primeraLineaSinSignos(respuesta: string): string {
+  const linea = respuesta.split('\n').map(l => l.trim()).find(l => l !== '') ?? '';
+  return linea.normalize('NFD').replace(/\p{Diacritic}/gu, '').toUpperCase().replace(/[^A-Z0-9 ]+/g, ' ').replace(/\s+/g, ' ').trim();
 }
 
-/** La banda de una tanda de 42 (Fable): ≥37 clara · ≤30 no clara · 31–36 se repite otro día y se decide sobre 84 con ≥68. */
-export function banda(positivos: number): 'clara' | 'no_clara' | 'se_repite' {
-  return positivos >= 37 ? 'clara' : positivos <= 30 ? 'no_clara' : 'se_repite';
+/** La opción LAXA: la palabra permitida por la que EMPIEZA la línea, como palabra entera, si no contiene ninguna de las otras dos. */
+export function opcionLaxa(brazo: BrazoDeClaridad, respuesta: string): string {
+  const linea = primeraLineaSinSignos(respuesta);
+  const contiene = (w: string) => new RegExp(`(^| )${w}( |$)`).test(linea);
+  const empieza = OPCIONES[brazo].filter(w => linea === w || linea.startsWith(`${w} `));
+  if (empieza.length !== 1) return 'OTRA';
+  return OPCIONES[brazo].some(w => w !== empieza[0] && contiene(w)) ? 'INDECIDIBLE' : empieza[0];
 }
 
-/** La cuenta de una tanda: positivos, por opción, y la banda. */
+/** El veredicto de una tirada, con las dos cuentas: la laxa (primaria) y la estricta (la de Fable). */
+export function veredicto(brazo: BrazoDeClaridad, respuesta: string) {
+  const linea = primeraLinea(respuesta), laxa = opcionLaxa(brazo, respuesta);
+  const estricta = OPCIONES[brazo].includes(linea) ? linea : 'OTRA';
+  return { linea, laxa, positivoLaxo: laxa === POSITIVO[brazo], estricta, positivoEstricto: linea === POSITIVO[brazo] };
+}
+
+/** Lo que decide UN día de 42 (arquitecto): sólo si es extremo. ≥41 clara · ≤25 no clara · si no, al segundo día. */
+export function decisionDeUnDia(positivos: number): 'clara' | 'no_clara' | 'segundo_dia' {
+  return positivos >= 41 ? 'clara' : positivos <= 25 ? 'no_clara' : 'segundo_dia';
+}
+
+/** Lo que deciden los DOS días, sobre 84 (arquitecto): ≥74 clara · ≤60 no clara · en medio, ZONA GRIS, que va al director. */
+export function decisionSobre84(positivos: number): 'clara' | 'no_clara' | 'zona_gris' {
+  return positivos >= 74 ? 'clara' : positivos <= 60 ? 'no_clara' : 'zona_gris';
+}
+
+/** La cuenta de una tanda: las dos cuentas, por opción, y lo que decide el día con la laxa. */
 export function contarClaridad(brazo: BrazoDeClaridad, respuestas: string[]) {
   const v = respuestas.map(r => veredicto(brazo, r));
-  const porOpcion: Record<string, number> = {};
-  for (const x of v) porOpcion[x.opcion] = (porOpcion[x.opcion] ?? 0) + 1;
-  const positivos = v.filter(x => x.positivo).length;
-  return { tiradas: v.length, positivos, porOpcion, banda: v.length === TIRADAS_POR_BRAZO ? banda(positivos) : 'tanda_incompleta' as const };
+  const porOpcion = (k: 'laxa' | 'estricta') => { const o: Record<string, number> = {}; for (const x of v) o[x[k]] = (o[x[k]] ?? 0) + 1; return o; };
+  const laxos = v.filter(x => x.positivoLaxo).length, estrictos = v.filter(x => x.positivoEstricto).length;
+  return {
+    tiradas: v.length,
+    primaria: { regla: 'laxa', positivos: laxos, porOpcion: porOpcion('laxa'), decisionDelDia: v.length === TIRADAS_POR_BRAZO ? decisionDeUnDia(laxos) : 'tanda_incompleta' as const },
+    secundaria: { regla: 'estricta (Fable)', positivos: estrictos, porOpcion: porOpcion('estricta') },
+  };
 }

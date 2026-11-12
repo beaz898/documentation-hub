@@ -4,7 +4,8 @@ import { extractSegments, chunkSegments } from '@/lib/chunking';
 import { toStoredChunks } from '@/lib/read-chunks';
 import { marcasDe } from './brazos';
 import {
-  ANCLAS, PREGUNTA_N, PREGUNTA_R, TIRADAS_POR_BRAZO, banda, contarClaridad, primeraLinea, promptDeClaridad, sinFrasesDeA, textosDeClaridad, veredicto,
+  ANCLAS, PREGUNTA_N, PREGUNTA_R, TIRADAS_POR_BRAZO, contarClaridad, decisionDeUnDia, decisionSobre84, primeraLinea, promptDeClaridad, sinFrasesDeA,
+  textosDeClaridad, veredicto,
 } from './tanda-de-claridad';
 
 const leer = (f: string) => readFileSync(f, 'utf8');
@@ -42,25 +43,50 @@ describe('la tanda de claridad (paso 1 de Fable, 12/11)', () => {
     expect(r.endsWith(PREGUNTA_R)).toBe(true);
   });
 
-  it('LA PRIMERA LÍNEA: positivo sólo si es EXACTAMENTE la palabra, tras quitar formato, comillas y la puntuación del final', () => {
-    const casos: Array<[('n' | 'r'), string, boolean, string]> = [
-      ['n', 'CONFLICTO\nPorque…', true, 'CONFLICTO'], ['n', '**CONFLICTO**\n…', true, 'CONFLICTO'], ['n', 'Conflicto.', true, 'CONFLICTO'],
-      ['n', '\n\n  CONFLICTO  \n…', true, 'CONFLICTO'], ['n', '«CONFLICTO»', true, 'CONFLICTO'],
-      ['n', 'CONFLICTO: el texto 1 permite…', false, 'OTRA'], ['n', 'Respuesta: CONFLICTO', false, 'OTRA'],
-      ['n', 'DEPENDE\n…', false, 'DEPENDE'], ['n', 'COMPATIBLES', false, 'COMPATIBLES'], ['n', '', false, 'OTRA'],
-      ['r', 'NO PUEDE\n…', true, 'NO PUEDE'], ['r', 'No puede.', true, 'NO PUEDE'], ['r', '**NO  PUEDE**', true, 'NO PUEDE'],
-      ['r', 'SÍ PUEDE', false, 'SI PUEDE'], ['r', 'NO', false, 'OTRA'], ['r', 'DEPENDE', false, 'DEPENDE'], ['r', 'CONFLICTO', false, 'OTRA'],
+  it('LAS DOS CUENTAS DE LA PRIMERA LÍNEA: la laxa (primaria) y la estricta (la de Fable), caso a caso', () => {
+    // [brazo, respuesta, laxa, positivo laxo, estricta, positivo estricto]
+    const casos: Array<[('n' | 'r'), string, string, boolean, string, boolean]> = [
+      ['n', 'CONFLICTO\nPorque…', 'CONFLICTO', true, 'CONFLICTO', true],
+      ['n', '**CONFLICTO**\n…', 'CONFLICTO', true, 'CONFLICTO', true],
+      ['n', 'Conflicto.', 'CONFLICTO', true, 'CONFLICTO', true],
+      ['n', '\n\n  CONFLICTO  \n…', 'CONFLICTO', true, 'CONFLICTO', true],
+      ['n', '«CONFLICTO»', 'CONFLICTO', true, 'CONFLICTO', true],
+      ['n', 'CONFLICTO: el texto 1 permite…', 'CONFLICTO', true, 'OTRA', false],
+      ['n', 'CONFLICTO o DEPENDE', 'INDECIDIBLE', false, 'OTRA', false],
+      ['n', 'CONFLICTO, aunque depende del caso', 'INDECIDIBLE', false, 'OTRA', false],
+      ['n', 'Respuesta: CONFLICTO', 'OTRA', false, 'OTRA', false],
+      ['n', 'CONFLICTOS', 'OTRA', false, 'OTRA', false],
+      ['n', 'DEPENDE\n…', 'DEPENDE', false, 'DEPENDE', false],
+      ['n', 'COMPATIBLES', 'COMPATIBLES', false, 'COMPATIBLES', false],
+      ['n', '', 'OTRA', false, 'OTRA', false],
+      ['r', 'NO PUEDE\n…', 'NO PUEDE', true, 'NO PUEDE', true],
+      ['r', 'No puede.', 'NO PUEDE', true, 'NO PUEDE', true],
+      ['r', '**NO  PUEDE**', 'NO PUEDE', true, 'NO PUEDE', true],
+      ['r', 'NO PUEDE: si el Director Clínico es Coordinador…', 'NO PUEDE', true, 'OTRA', false],
+      ['r', 'NO PUEDE, salvo que sí puede si…', 'INDECIDIBLE', false, 'OTRA', false],
+      ['r', 'SÍ PUEDE', 'SI PUEDE', false, 'SI PUEDE', false],
+      ['r', 'NO', 'OTRA', false, 'OTRA', false],
+      ['r', 'DEPENDE', 'DEPENDE', false, 'DEPENDE', false],
+      ['r', 'CONFLICTO', 'OTRA', false, 'OTRA', false],
     ];
-    for (const [b, texto, pos, opcion] of casos) expect([b, texto, veredicto(b, texto).positivo, veredicto(b, texto).opcion]).toEqual([b, texto, pos, opcion]);
+    for (const [b, texto, laxa, pl, estricta, pe] of casos) {
+      const v = veredicto(b, texto);
+      expect([b, texto, v.laxa, v.positivoLaxo, v.estricta, v.positivoEstricto]).toEqual([b, texto, laxa, pl, estricta, pe]);
+    }
     expect(primeraLinea('# Sí puede.')).toBe('SI PUEDE');
   });
 
-  it('las bandas de Fable, en sus bordes: 37 clara, 36 y 31 se repite, 30 no clara; y una tanda que no es de 42 no tiene banda', () => {
-    expect([37, 36, 31, 30, 42, 0].map(banda)).toEqual(['clara', 'se_repite', 'se_repite', 'no_clara', 'clara', 'no_clara']);
+  it('LAS DECISIONES DEL ARQUITECTO, en sus bordes: un día, ≥41 clara y ≤25 no clara; sobre 84, ≥74 clara, ≤60 no clara, y la zona gris', () => {
+    expect([42, 41, 40, 26, 25, 0].map(decisionDeUnDia)).toEqual(['clara', 'clara', 'segundo_dia', 'segundo_dia', 'no_clara', 'no_clara']);
+    expect([84, 74, 73, 61, 60, 0].map(decisionSobre84)).toEqual(['clara', 'clara', 'zona_gris', 'zona_gris', 'no_clara', 'no_clara']);
     expect(TIRADAS_POR_BRAZO).toBe(42);
-    const c = contarClaridad('n', [...Array(37).fill('CONFLICTO'), ...Array(5).fill('DEPENDE')]);
-    expect(c).toEqual({ tiradas: 42, positivos: 37, porOpcion: { CONFLICTO: 37, DEPENDE: 5 }, banda: 'clara' });
-    expect(contarClaridad('n', ['CONFLICTO']).banda).toBe('tanda_incompleta');
+    const c = contarClaridad('n', [...Array(41).fill('CONFLICTO: porque…'), 'DEPENDE']);
+    expect(c).toEqual({
+      tiradas: 42,
+      primaria: { regla: 'laxa', positivos: 41, porOpcion: { CONFLICTO: 41, DEPENDE: 1 }, decisionDelDia: 'clara' },
+      secundaria: { regla: 'estricta (Fable)', positivos: 0, porOpcion: { OTRA: 41, DEPENDE: 1 } },
+    });
+    expect(contarClaridad('n', ['CONFLICTO']).primaria.decisionDelDia).toBe('tanda_incompleta');
   });
 
   it('LA RUTA: las negativas antes del ensayo y del modelo, una sola llamada, el sondeo de una, y la cuenta sobre las que trajeron texto', () => {
