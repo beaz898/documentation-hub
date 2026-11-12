@@ -8265,3 +8265,47 @@ m1  (9 de 14 completas):  D 2 publicadas + 1 tirada por la puerta · A 8 · B 9 
 = 12,2 % [5,7 %, 24,2 %]; A, B y C, 49 de 49 cada una [92,7 %, 100 %]. `d4b − d4` = −7,1 puntos, Newcombe [−33,5, +19,3], Fisher
 p = 1. `m1 − d4` con la cifra del arquitecto (3 de 14) = +7,1 puntos, Newcombe [−22,0, +35,2], Fisher p = 1.
 **Según la regla prerregistrada, las dos comparaciones caen en «para»: NO DETECTADO a este n.**
+
+### LAS SEIS RECTIFICACIONES DEL ARQUITECTO DEL 12/11, ANTES DE ARCHIVAR LA ADENDA 3 (literales, por script)
+Del mensaje del arquitecto del 12/11 (huella del bloque 85af75a2ee4e4ca5). Van delante de la adenda 3 y de la respuesta de Fable
+(`consultas-fable/F-130_2026-11-12_adenda-3-y-respuesta.md`), para que el archivo no guarde sus conclusiones malas como contexto.
+```
+1. «LAS 5 D MEDIDAS SALEN SIN EL CAMPO» ES FALSO. La D de d4b lleva
+   `norma_contra_norma` con el prompt del producto, sin reordenar nada.
+   Tienes razón: el juez SÍ aplica la excepción a veces. Mi inferencia de
+   la sección 8 queda muy debilitada. Y Fable añade un segundo golpe desde
+   otro lado: la plantilla JSON final NO lleva el campo, así que una D sin
+   etiqueta puede ser la plantilla y no la regla que aplicó el juez.
+   DOS ATAQUES INDEPENDIENTES A LA MISMA INFERENCIA. Cae.
+2. «NO ES EL PAJAR» INCUMPLE MI PROPIA REGLA, escrita por mí antes de
+   pulsar: «sin separar → NO DETECTADO a este n; NO establece que el pajar
+   sea inocente». 1 contra 2 es −7 puntos, IC de −33 a +19. Lo único
+   excluido es un efecto mayor de unos 20 puntos. Me salté mi regla en el
+   mensaje siguiente al que la escribió.
+3. «NO ES EL CIERRE DE LISTA» NO LO ESTABLECE `SQL_34_13`. Tienes razón: que
+   D no se escriba es justo lo que predice el cierre si la lista se cierra
+   antes de llegar a ella. Lo único que lo mide es `d4c`. LE DEVUELVO A d4c
+   EL VALOR QUE LE QUITÉ DOS VECES.
+4. LA VEZ 7 DE m1 NO ES UN FALLO DE LA PUERTA. La cita decía «en el Director
+   Clínico…» y el documento dice «nunca por el Director Clínico del propio
+   centro», y venía ya mal de la prosa. LA PUERTA HIZO SU TRABAJO: el juez
+   citó mal. La D era verdadera y se perdió, pero por la cita, no por la
+   puerta. Mi atribución estaba mal.
+5. «A, B y C 42/42» ES UN ERROR MÍO DE ALCANCE, y lo caza Fable. Los tres
+   brazos de hoy incluyen m1, donde A está en 12/14. Lo correcto:
+     A = 40 de 42 en los tres brazos · 28 de 28 con el prompt del producto
+     B = 42/42 · C = 42/42
+   Y el agrupado limpio es el tuyo, no el mío: SOLO PROMPT DEL PRODUCTO,
+   D = 6 de 49 = 12,2 % IC95 [6 %, 24 %]; A, B y C = 49/49 cada una;
+   D contra A p = 2·10⁻²¹. **Mi 16 de 105 mezclaba instrumentos (metía d3,
+   que retiramos como medida del producto, y m1, que es otra condición).
+   Se archiva el tuyo y se retira el mío.**
+6. Y la predicción del `topic` de Fable: mi «refutada» ES MI LECTURA, no una
+   regla contada. Fable lo admite y pide lo correcto: «fijad una regla y
+   contadla como salga». Queda pendiente, sin veredicto.
+```
+**Y lo que el arquitecto añade fuera del bloque:** las cifras de `m1` de las veces 10 a 14 (el «3 de 14», el «4 de 14 en la prosa» y
+el «A en 12 de 14») quedan «sin verificar» hasta que Code las cuente; y el orden cambia: primero si D es CLARA (los pasos 0 y 1 de
+Fable), y `m2` y el resto del diagnóstico sólo si sale clara. `m2`, cuando le toque: el texto LITERAL de Fable para la salvedad, los
+ajustes a las referencias de la excepción como supresiones registradas, y el título «REGLA PRINCIPAL, POR ENCIMA DE TODAS LAS DEMAS»
+pasa a «REGLA GENERAL», declarado como parte del cambio. `d4c` recupera valor (mide el cierre de lista) y va al paso 2.
