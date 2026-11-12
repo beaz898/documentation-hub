@@ -20,9 +20,12 @@ import { marcasDe } from './brazos';
  *     (como palabra entera) y NO CONTIENE ninguna de las otras dos. «CONFLICTO: el texto 1 permite…» cuenta como CONFLICTO;
  *     «CONFLICTO o DEPENDE» es indecidible y cuenta en contra.
  *   · SECUNDARIA, ESTRICTA (la de Fable): la primera línea, sin formato, comillas ni la puntuación del final, es EXACTAMENTE la palabra.
- * LA DECISIÓN (arquitecto, 12/11): los dos brazos se pulsan HOY Y MAÑANA y se decide sobre 84 por brazo con la cuenta laxa: ≥74 clara,
- * ≤60 no clara, en medio ZONA GRIS. Un día solo decide si es extremo: ≥41 de 42 clara, ≤25 no clara. La zona gris NO se repite: va
- * al director como decisión de definición (la recomendación prerregistrada, que él confirma o cambia: por defecto, NO CLARA).
+ * LA DECISIÓN (arquitecto, 12/11, con los umbrales de Fable): los dos brazos se pulsan DOS DÍAS SIEMPRE, 42 cada día, y se decide
+ * UNA SOLA VEZ, sobre 84 por brazo, con la cuenta laxa: ≥68 clara (el 81,0 %, el umbral de segunda etapa de Fable), ≤60 no clara (el
+ * 71,4 %, su tasa de un día escalada), en medio ZONA GRIS. Un día solo no decide nada. La zona gris NO se repite: va al director como
+ * decisión de definición (la recomendación prerregistrada, que él confirma o cambia: por defecto, NO CLARA).
+ * ⚠️ El 74 que hubo aquí (el 88,1 %) fue un error del arquitecto, corregido por él el 12/11: exigir la misma tasa con el doble de datos
+ * es una prueba más dura, no igual; con más datos se puede aceptar una tasa observada menor para la misma confianza.
  */
 
 export const PREGUNTA_N = 'Los dos textos son de la misma organización y están vigentes a la vez. ¿Hay un conflicto entre lo que establecen? Responde en la primera línea con una sola palabra: CONFLICTO, COMPATIBLES o DEPENDE. Después explica tu respuesta en tres frases como máximo.';
@@ -100,24 +103,20 @@ export function veredicto(brazo: BrazoDeClaridad, respuesta: string) {
   return { linea, laxa, positivoLaxo: laxa === POSITIVO[brazo], estricta, positivoEstricto: linea === POSITIVO[brazo] };
 }
 
-/** Lo que decide UN día de 42 (arquitecto): sólo si es extremo. ≥41 clara · ≤25 no clara · si no, al segundo día. */
-export function decisionDeUnDia(positivos: number): 'clara' | 'no_clara' | 'segundo_dia' {
-  return positivos >= 41 ? 'clara' : positivos <= 25 ? 'no_clara' : 'segundo_dia';
-}
-
-/** Lo que deciden los DOS días, sobre 84 (arquitecto): ≥74 clara · ≤60 no clara · en medio, ZONA GRIS, que va al director. */
+/** Lo que deciden los DOS días, sobre 84, con los umbrales de Fable: ≥68 clara · ≤60 no clara · en medio, ZONA GRIS, al director. */
+export const TIRADAS_DE_LA_DECISION = 2 * TIRADAS_POR_BRAZO;
 export function decisionSobre84(positivos: number): 'clara' | 'no_clara' | 'zona_gris' {
-  return positivos >= 74 ? 'clara' : positivos <= 60 ? 'no_clara' : 'zona_gris';
+  return positivos >= 68 ? 'clara' : positivos <= 60 ? 'no_clara' : 'zona_gris';
 }
 
-/** La cuenta de una tanda: las dos cuentas, por opción, y lo que decide el día con la laxa. */
+/** La cuenta de una tanda (un día): las dos cuentas y por opción. Un día no decide: la decisión es sobre los dos (`decisionSobre84`). */
 export function contarClaridad(brazo: BrazoDeClaridad, respuestas: string[]) {
   const v = respuestas.map(r => veredicto(brazo, r));
   const porOpcion = (k: 'laxa' | 'estricta') => { const o: Record<string, number> = {}; for (const x of v) o[x[k]] = (o[x[k]] ?? 0) + 1; return o; };
   const laxos = v.filter(x => x.positivoLaxo).length, estrictos = v.filter(x => x.positivoEstricto).length;
   return {
     tiradas: v.length,
-    primaria: { regla: 'laxa', positivos: laxos, porOpcion: porOpcion('laxa'), decisionDelDia: v.length === TIRADAS_POR_BRAZO ? decisionDeUnDia(laxos) : 'tanda_incompleta' as const },
+    primaria: { regla: 'laxa', positivos: laxos, porOpcion: porOpcion('laxa') },
     secundaria: { regla: 'estricta (Fable)', positivos: estrictos, porOpcion: porOpcion('estricta') },
   };
 }

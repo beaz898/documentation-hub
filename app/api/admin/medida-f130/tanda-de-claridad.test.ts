@@ -4,7 +4,7 @@ import { extractSegments, chunkSegments } from '@/lib/chunking';
 import { toStoredChunks } from '@/lib/read-chunks';
 import { marcasDe } from './brazos';
 import {
-  ANCLAS, PREGUNTA_N, PREGUNTA_R, TIRADAS_POR_BRAZO, contarClaridad, decisionDeUnDia, decisionSobre84, primeraLinea, promptDeClaridad, sinFrasesDeA,
+  ANCLAS, PREGUNTA_N, PREGUNTA_R, TIRADAS_POR_BRAZO, TIRADAS_DE_LA_DECISION, contarClaridad, decisionSobre84, primeraLinea, promptDeClaridad, sinFrasesDeA,
   textosDeClaridad, veredicto,
 } from './tanda-de-claridad';
 
@@ -76,17 +76,15 @@ describe('la tanda de claridad (paso 1 de Fable, 12/11)', () => {
     expect(primeraLinea('# Sí puede.')).toBe('SI PUEDE');
   });
 
-  it('LAS DECISIONES DEL ARQUITECTO, en sus bordes: un día, ≥41 clara y ≤25 no clara; sobre 84, ≥74 clara, ≤60 no clara, y la zona gris', () => {
-    expect([42, 41, 40, 26, 25, 0].map(decisionDeUnDia)).toEqual(['clara', 'clara', 'segundo_dia', 'segundo_dia', 'no_clara', 'no_clara']);
-    expect([84, 74, 73, 61, 60, 0].map(decisionSobre84)).toEqual(['clara', 'clara', 'zona_gris', 'zona_gris', 'no_clara', 'no_clara']);
-    expect(TIRADAS_POR_BRAZO).toBe(42);
+  it('LA DECISIÓN, UNA SOLA, SOBRE 84 Y CON LOS UMBRALES DE FABLE, en sus bordes: ≥68 clara, ≤60 no clara, y la zona gris en medio', () => {
+    expect([84, 68, 67, 61, 60, 0].map(decisionSobre84)).toEqual(['clara', 'clara', 'zona_gris', 'zona_gris', 'no_clara', 'no_clara']);
+    expect([TIRADAS_POR_BRAZO, TIRADAS_DE_LA_DECISION]).toEqual([42, 84]);
     const c = contarClaridad('n', [...Array(41).fill('CONFLICTO: porque…'), 'DEPENDE']);
     expect(c).toEqual({
       tiradas: 42,
-      primaria: { regla: 'laxa', positivos: 41, porOpcion: { CONFLICTO: 41, DEPENDE: 1 }, decisionDelDia: 'clara' },
+      primaria: { regla: 'laxa', positivos: 41, porOpcion: { CONFLICTO: 41, DEPENDE: 1 } },
       secundaria: { regla: 'estricta (Fable)', positivos: 0, porOpcion: { OTRA: 41, DEPENDE: 1 } },
     });
-    expect(contarClaridad('n', ['CONFLICTO']).primaria.decisionDelDia).toBe('tanda_incompleta');
   });
 
   it('LA RUTA: las negativas antes del ensayo y del modelo, una sola llamada, el sondeo de una, y la cuenta sobre las que trajeron texto', () => {
