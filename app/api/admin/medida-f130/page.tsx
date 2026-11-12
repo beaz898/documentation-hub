@@ -10,7 +10,8 @@ export default function MedidaF130() {
   const [ocupado, setOcupado] = useState(false);
 
   async function medir(ruta: 'vecindad' | 'pregunta' | 'limpia?ensayo=1' | 'limpia' | 'quinto?ensayo=1' | 'quinto' | 'd?ensayo=1' | 'd' | 'd2?ensayo=1' | 'd2' | 'd3?ensayo=1' | 'd3?sondeo=1' | 'd3' | 'd4?ensayo=1' | 'd4?sondeo=1' | 'd4' | 'd4b?ensayo=1' | 'd4b?sondeo=1' | 'd4b' | 'd4c?ensayo=1' | 'd4c?sondeo=1' | 'd4c' | 'm1?ensayo=1' | 'm1?sondeo=1' | 'm1'
-    | 'claridad?brazo=n&ensayo=1' | 'claridad?brazo=n&sondeo=1' | 'claridad?brazo=n' | 'claridad?brazo=r&ensayo=1' | 'claridad?brazo=r&sondeo=1' | 'claridad?brazo=r') {
+    | 'claridad?brazo=n&pareja=31&ensayo=1' | 'claridad?brazo=n&pareja=31&sondeo=1' | 'claridad?brazo=n&pareja=31' | 'claridad?brazo=r&pareja=31&ensayo=1' | 'claridad?brazo=r&pareja=31&sondeo=1' | 'claridad?brazo=r&pareja=31'
+    | 'claridad?brazo=n&pareja=35&ensayo=1' | 'claridad?brazo=n&pareja=35&sondeo=1' | 'claridad?brazo=n&pareja=35' | 'claridad?brazo=r&pareja=35&ensayo=1' | 'claridad?brazo=r&pareja=35&sondeo=1' | 'claridad?brazo=r&pareja=35') {
     setOcupado(true);
     setSalida(`Midiendo ${ruta}…`);
     try {
@@ -81,16 +82,28 @@ export default function MedidaF130() {
         <button disabled={ocupado} onClick={() => medir('m1?sondeo=1')}>M1 · sondeo: UNA vez, dos llamadas (gasta unos 0,02 $)</button>{' '}
         <button disabled={ocupado} onClick={() => medir('m1')}>M1 · una pulsación: 14 veces, dos llamadas cada una (gasta en la API, unos 0,20 $)</button>
       </p>
-      <p>LA TANDA DE CLARIDAD (12/11, paso 1 de Fable): ¿es D clara con las dos frases delante? Dos brazos de 42, el mismo día. Sólo cuando el arquitecto lo diga:</p>
+      <p>LA TANDA DE CLARIDAD (12/11, paso 1 de Fable): ¿es D clara con las dos frases delante? Sólo cuando el arquitecto lo diga, y DESPUÉS de archivar la lectura en papel.</p>
+      <p>PAREJA PRIMARIA, la que decide (§2.4 sin la frase de A ↔ §3.1 entero): N y R, DOS DÍAS cada uno.</p>
       <p>
-        <button disabled={ocupado} onClick={() => medir('claridad?brazo=n&ensayo=1')}>Claridad N · ensayo (sin modelo, no gasta)</button>{' '}
-        <button disabled={ocupado} onClick={() => medir('claridad?brazo=n&sondeo=1')}>Claridad N · sondeo: UNA tirada</button>{' '}
-        <button disabled={ocupado} onClick={() => medir('claridad?brazo=n')}>Claridad N · las 42 tiradas (unos 0,03 $)</button>
+        <button disabled={ocupado} onClick={() => medir('claridad?brazo=n&pareja=31&ensayo=1')}>Primaria N · ensayo (sin modelo, no gasta)</button>{' '}
+        <button disabled={ocupado} onClick={() => medir('claridad?brazo=n&pareja=31&sondeo=1')}>Primaria N · sondeo: UNA tirada</button>{' '}
+        <button disabled={ocupado} onClick={() => medir('claridad?brazo=n&pareja=31')}>Primaria N · las 42 tiradas (unos 0,03 $)</button>
       </p>
       <p>
-        <button disabled={ocupado} onClick={() => medir('claridad?brazo=r&ensayo=1')}>Claridad R · ensayo (sin modelo, no gasta)</button>{' '}
-        <button disabled={ocupado} onClick={() => medir('claridad?brazo=r&sondeo=1')}>Claridad R · sondeo: UNA tirada</button>{' '}
-        <button disabled={ocupado} onClick={() => medir('claridad?brazo=r')}>Claridad R · las 42 tiradas (unos 0,03 $)</button>
+        <button disabled={ocupado} onClick={() => medir('claridad?brazo=r&pareja=31&ensayo=1')}>Primaria R · ensayo (sin modelo, no gasta)</button>{' '}
+        <button disabled={ocupado} onClick={() => medir('claridad?brazo=r&pareja=31&sondeo=1')}>Primaria R · sondeo: UNA tirada</button>{' '}
+        <button disabled={ocupado} onClick={() => medir('claridad?brazo=r&pareja=31')}>Primaria R · las 42 tiradas (unos 0,03 $)</button>
+      </p>
+      <p>Pareja secundaria (§2.4 sin la frase de A ↔ §3.5): N y R, UN SOLO DÍA; puntúa las predicciones de Fable.</p>
+      <p>
+        <button disabled={ocupado} onClick={() => medir('claridad?brazo=n&pareja=35&ensayo=1')}>Secundaria N · ensayo (sin modelo, no gasta)</button>{' '}
+        <button disabled={ocupado} onClick={() => medir('claridad?brazo=n&pareja=35&sondeo=1')}>Secundaria N · sondeo: UNA tirada</button>{' '}
+        <button disabled={ocupado} onClick={() => medir('claridad?brazo=n&pareja=35')}>Secundaria N · las 42 tiradas (unos 0,03 $)</button>
+      </p>
+      <p>
+        <button disabled={ocupado} onClick={() => medir('claridad?brazo=r&pareja=35&ensayo=1')}>Secundaria R · ensayo (sin modelo, no gasta)</button>{' '}
+        <button disabled={ocupado} onClick={() => medir('claridad?brazo=r&pareja=35&sondeo=1')}>Secundaria R · sondeo: UNA tirada</button>{' '}
+        <button disabled={ocupado} onClick={() => medir('claridad?brazo=r&pareja=35')}>Secundaria R · las 42 tiradas (unos 0,03 $)</button>
       </p>
       <p>Copia todo lo que salga abajo y pégaselo a Claude Code.</p>
       <pre style={{ whiteSpace: 'pre-wrap', background: '#f4f4f4', padding: '1rem', minHeight: '10rem' }}>{salida}</pre>
