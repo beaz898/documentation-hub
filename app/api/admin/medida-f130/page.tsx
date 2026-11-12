@@ -9,7 +9,8 @@ export default function MedidaF130() {
   const [salida, setSalida] = useState('');
   const [ocupado, setOcupado] = useState(false);
 
-  async function medir(ruta: 'vecindad' | 'pregunta' | 'limpia?ensayo=1' | 'limpia' | 'quinto?ensayo=1' | 'quinto' | 'd?ensayo=1' | 'd' | 'd2?ensayo=1' | 'd2' | 'd3?ensayo=1' | 'd3?sondeo=1' | 'd3' | 'd4?ensayo=1' | 'd4?sondeo=1' | 'd4' | 'd4b?ensayo=1' | 'd4b?sondeo=1' | 'd4b' | 'd4c?ensayo=1' | 'd4c?sondeo=1' | 'd4c' | 'm1?ensayo=1' | 'm1?sondeo=1' | 'm1') {
+  async function medir(ruta: 'vecindad' | 'pregunta' | 'limpia?ensayo=1' | 'limpia' | 'quinto?ensayo=1' | 'quinto' | 'd?ensayo=1' | 'd' | 'd2?ensayo=1' | 'd2' | 'd3?ensayo=1' | 'd3?sondeo=1' | 'd3' | 'd4?ensayo=1' | 'd4?sondeo=1' | 'd4' | 'd4b?ensayo=1' | 'd4b?sondeo=1' | 'd4b' | 'd4c?ensayo=1' | 'd4c?sondeo=1' | 'd4c' | 'm1?ensayo=1' | 'm1?sondeo=1' | 'm1'
+    | 'claridad?brazo=n&ensayo=1' | 'claridad?brazo=n&sondeo=1' | 'claridad?brazo=n' | 'claridad?brazo=r&ensayo=1' | 'claridad?brazo=r&sondeo=1' | 'claridad?brazo=r') {
     setOcupado(true);
     setSalida(`Midiendo ${ruta}…`);
     try {
@@ -79,6 +80,17 @@ export default function MedidaF130() {
         <button disabled={ocupado} onClick={() => medir('m1?ensayo=1')}>M1 · ensayo: los dos prompts y las supresiones (sin modelo, no gasta)</button>{' '}
         <button disabled={ocupado} onClick={() => medir('m1?sondeo=1')}>M1 · sondeo: UNA vez, dos llamadas (gasta unos 0,02 $)</button>{' '}
         <button disabled={ocupado} onClick={() => medir('m1')}>M1 · una pulsación: 14 veces, dos llamadas cada una (gasta en la API, unos 0,20 $)</button>
+      </p>
+      <p>LA TANDA DE CLARIDAD (12/11, paso 1 de Fable): ¿es D clara con las dos frases delante? Dos brazos de 42, el mismo día. Sólo cuando el arquitecto lo diga:</p>
+      <p>
+        <button disabled={ocupado} onClick={() => medir('claridad?brazo=n&ensayo=1')}>Claridad N · ensayo (sin modelo, no gasta)</button>{' '}
+        <button disabled={ocupado} onClick={() => medir('claridad?brazo=n&sondeo=1')}>Claridad N · sondeo: UNA tirada</button>{' '}
+        <button disabled={ocupado} onClick={() => medir('claridad?brazo=n')}>Claridad N · las 42 tiradas (unos 0,03 $)</button>
+      </p>
+      <p>
+        <button disabled={ocupado} onClick={() => medir('claridad?brazo=r&ensayo=1')}>Claridad R · ensayo (sin modelo, no gasta)</button>{' '}
+        <button disabled={ocupado} onClick={() => medir('claridad?brazo=r&sondeo=1')}>Claridad R · sondeo: UNA tirada</button>{' '}
+        <button disabled={ocupado} onClick={() => medir('claridad?brazo=r')}>Claridad R · las 42 tiradas (unos 0,03 $)</button>
       </p>
       <p>Copia todo lo que salga abajo y pégaselo a Claude Code.</p>
       <pre style={{ whiteSpace: 'pre-wrap', background: '#f4f4f4', padding: '1rem', minHeight: '10rem' }}>{salida}</pre>
