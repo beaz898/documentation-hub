@@ -8374,3 +8374,35 @@ sin D son las del arquitecto (D en la prosa 4 de 14, sin verificar); la mitad de
   «clara» y los lectores de acuerdo → D es clara y difícil de ver, y se sigue al paso 2.
 - **Las predicciones de Fable:** P-A3-4, brazo R, 37 o más de 42. P-A3-5, brazo N, entre 26 y 35 de 42, con confianza baja.
 - **El paso 0a (la lectura humana, en papel y sin contexto) es del director y de una o dos personas más**, antes de ver ningún resultado.
+
+### LA TANDA DE CLARIDAD, PRERREGISTRO CORREGIDO POR EL ARQUITECTO (12/11/2026, ANTES DE PULSAR)
+**Sustituye, en la cuenta y en las bandas, al prerregistro del bloque anterior.** Lo demás (las preguntas de Fable, el montaje y lo que es
+nuestro) no cambia.
+- **LA CUENTA, DE DOS MANERAS, Y SE PUBLICAN LAS DOS** (arquitecto: «medir así mide obediencia al formato, no claridad»):
+  - **PRIMARIA, LAXA:** la primera línea, en mayúsculas, sin tildes y sin signos, EMPIEZA por una de las palabras permitidas (como palabra
+    entera) y NO CONTIENE ninguna de las otras dos. «CONFLICTO: el texto 1 permite…» cuenta como CONFLICTO; «CONFLICTO o DEPENDE» es
+    indecidible y cuenta en contra.
+  - **SECUNDARIA, ESTRICTA (la de Fable):** la primera línea es EXACTAMENTE la palabra.
+- **LA DECISIÓN:** los dos brazos se pulsan HOY Y MAÑANA, por diseño, y se decide sobre 84 por brazo con la cuenta laxa: **≥ 74 clara,
+  ≤ 60 no clara, en medio ZONA GRIS.** Un día solo decide si es extremo: **≥ 41 de 42 clara, ≤ 25 no clara.** El segundo día sirve
+  para quitar el efecto día (τ ≈ 15,4), que la binomial no incluye.
+- ⚠️ **LA ZONA GRIS NO SE REPITE: va al director como decisión de definición.** La recomendación del arquitecto, prerregistrada, que el
+  director tiene que confirmar o cambiar ANTES de pulsar: **por defecto, la zona gris cae en NO CLARA y el frente se cierra**, por su
+  regla del 01/11 («sólo se firma lo que se deduce sin duda»). Si él decide otra cosa, manda él.
+- **Las cifras del arquitecto, verificadas por Code con binomial exacta** (`scratchpad/bandas_claridad_2.mjs`): las bandas de Fable
+  están en el 88,1 % y el 71,4 %; con una tasa real del 80 %, la zona gris es del 75,3 % en 42 y del 92,5 % en 84; con una del 70 %,
+  «no clara» en un día sale el 63,7 % de las veces; con una del 80 %, ≥ 41 en un día cuesta el 0,10 %; con una del 70 %, ≤ 25 cuesta
+  el 9,67 %. **Las cinco, correctas.**
+- ⚠️ **Y EL COSTE DEL DISEÑO, que el arquitecto no dio** (misma herramienta, la regla entera de los dos días):
+  ```
+  tasa real 90 %:  clara 78,4 % · zona gris 21,6 % · no clara 0,0 %
+  tasa real 85 %:  clara 26,8 % · zona gris 73,1 % · no clara 0,1 %
+  tasa real 80 %:  clara  3,7 % · zona gris 92,4 % · no clara 3,8 %
+  tasa real 70 %:  clara  0,0 % · zona gris 34,7 % · no clara 65,3 %
+  ```
+  **Con la zona gris en «no clara» por defecto, un caso que de verdad sea claro al 90 % se cierra como no claro una vez de cada cinco
+  (21,6 %), y uno claro al 85 %, tres veces de cada cuatro.** Con la regla de dos etapas de Fable, el caso al 90 % salía «clara» el
+  99,6 % de las veces. Es la consecuencia de bajar el umbral de «sin duda»: lo decide el director sabiéndolo.
+- **La lectura en papel** (paso 0a): `claude/F-130_lectura_en_papel_D.md`, con los dos textos sacados por script con la misma función
+  que usa la ruta (`textosDeClaridad`) y las dos preguntas aparte. Huellas de los dos prompts con esos textos: N `cef15935b2973843`, R
+  `b8c3cca016783273`, que tienen que coincidir con las del ensayo.

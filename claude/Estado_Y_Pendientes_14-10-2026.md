@@ -2562,6 +2562,8 @@ Del inventario de Code (14/10), sobre las copias locales y el último censo del 
 
 | deuda | de dónde sale |
 |---|---|
+| ⚠️ **Guardar los bloques de razonamiento del juez en las rutas de medida.** El lector de la respuesta (`lib/llm/texto-de-la-respuesta.ts`) cuenta los bloques `thinking` / `redacted_thinking` y los descarta: no van a la base ni al log. Nos deja ciegos justo donde se vería el «difícil de ver». No se toca hasta que se encargue | F-130, paso 0c de Fable (arquitecto, 12/11/2026) |
+| **El hueco de la regla 3 del tramo literal** (`lib/analysis/tramo-de-cita.ts:164`): una cita con un ancla literal suficiente y un resto corto (la vez 7 de `m1`: ancla de 92 caracteres, resto «en», de 2) sale `resto_insuficiente` y muere, porque la regla está hecha para empalmes de dos tramos. Su propio frente, con la forma de Fable (respuesta 4 a la adenda 3): con el ancla suficiente por sí sola, se acepta, SE PUBLICA EL TRAMO REAL DEL DOCUMENTO y se verifica sobre él. ⚠️ No se toca hasta medirlo contra los controles de citas inventadas: aflojar la puerta es por donde entran los falsos | F-130, la vez 7 de `m1` (arquitecto, 12/11/2026) |
 | `pipeline.ts` pasa de 1.515 líneas y hay que partirlo, en su propio commit | fase 3.1, excepción consciente del 13/10 |
 | Un titular de menos de 25 caracteres se pega a la frase que titula, y la «frase real» sale con «## 6. Retirada» delante | fase 3.1, commit 2 |
 | El solape entre trozos: una frase puede estar en dos trozos y el tramo se atribuye a la copia donde cae | fase 3.1 |
