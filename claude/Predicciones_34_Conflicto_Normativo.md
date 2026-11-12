@@ -8309,3 +8309,68 @@ el «A en 12 de 14») quedan «sin verificar» hasta que Code las cuente; y el o
 Fable), y `m2` y el resto del diagnóstico sólo si sale clara. `m2`, cuando le toque: el texto LITERAL de Fable para la salvedad, los
 ajustes a las referencias de la excepción como supresiones registradas, y el título «REGLA PRINCIPAL, POR ENCIMA DE TODAS LAS DEMAS»
 pasa a «REGLA GENERAL», declarado como parte del cambio. `d4c` recupera valor (mide el cierre de lista) y va al paso 2.
+
+### LOS PASOS 0b, 0c Y 1 DEL PLAN DE FABLE (Code, 12/11/2026)
+**PASO 0b, sobre las prosas guardadas de `m1`** (`scratchpad/salidas_1211/paso0b.mjs`). ⚠️ Sólo hay **9 prosas completas** (veces 1 a 9) y
+la 10 a medias: la tanda llegó cortada. **REGLA DE CUENTA, escrita antes de contar:** D en la prosa = la frase del permiso («puede
+recaer»); PRINCIPIO = «separar la responsabilidad», «separacion de funciones», «separacion entre», «agenda asistencial», «presion
+asistencial» o «queden subordinadas»; PERMISO = «puede recaer», «recaer en el propio» u «otro profesional designado». Normalizado como
+`brazos.ts`; cada coincidencia sale con su contexto. Con raíces más amplias (`paso0b_amplio.mjs`: «separ», «independ», «recaer»,
+«designad», «ocupar»…) sólo aparecen falsos positivos («incompatibles», «coinciden»): no hay paráfrasis que se escape.
+```
+prosas completas SIN D: 6 (veces 2, 3, 4, 6, 8 y 9)
+   con el principio: 1 (la vez 8, «la separacion de funciones entre director clinico y coordinador de calidad», como solapamiento)
+   con el permiso:   0
+   con ninguno de los dos: 5
+la vez 10 (cortada, sin D en lo que llegó): ni el principio ni el permiso en lo que llegó
+```
+Lectura según Fable: 5 de 6 en «ninguno → capacidad (c.3)», 1 en «principio sí, permiso no → A consume el principio (c.2)», 0 en «los
+dos sin relacionarse (c.1)». **P-A3-2** (el principio en 6 o más de las 10 sin D; el permiso en 3 o menos): con 1 de las 6 vistas, la
+mitad del principio necesitaría que las 4 que faltan lo llevaran todas y aun así se quedaría en 5. **Refutada en esa mitad** si las 10
+sin D son las del arquitecto (D en la prosa 4 de 14, sin verificar); la mitad del permiso se cumple de momento (0 de 6).
+
+**PASO 0c, los cuatro datos que le faltan a Fable:**
+1. **Los bloques de razonamiento del juez NO se guardan.** El lector de la respuesta (`lib/llm/texto-de-la-respuesta.ts`) se queda sólo
+   con los bloques de texto; los de pensamiento (`thinking` / `redacted_thinking`) los cuenta y los descarta. No van a la base ni al log.
+2. **«Otro instrumento, prosa + 2 preguntas, 7/42» es `d3`**, el instrumento retirado: los documentos enteros, prosa, dos preguntas
+   cerradas al final y dos líneas de veredicto. Retirado como medida del producto (la elección forzada).
+3. **«A, B y C 42/42» fue un error de alcance del arquitecto** (su rectificación 5): A = 40 de 42 en los tres brazos de hoy, 28 de 28 con
+   el prompt del producto; B y C, 42 de 42. Con el prompt del producto agrupado (línea base, `d4` y `d4b`), 49 de 49 cada una.
+4. **La vez 7: el motivo literal y por qué (B) no la rescató.** El descarte guardado: lado `existente`, paso `sin_cabeza`, cita «en el
+   Director Clínico del propio centro, precisamente para mantener la separación de funciones». CLI-12 dice «nunca **por** el Director
+   Clínico del propio centro…», y la prosa ya la traía mal. **(B) encontró el ancla y la rechazó**, comprobado con la función de verdad
+   sobre CLI-12 entero (`herramientas/vez7_tramo.test.ts`): `localizarPorTramo` da `resto_insuficiente`, con un ancla de 92 caracteres
+   literales («el Director Clínico del propio centro, precisamente para mantener la separación de funciones») y un resto de 2 («en»). La
+   regla 3 de `tramo-de-cita.ts` exige que el resto mida 40 o más, o que no haya resto: (B) está hecha para empalmes de DOS tramos
+   literales, y una cita con la primera palabra mal copiada no es ni literal ni un empalme. **Es un hueco de la regla, con su caso;
+   cambiarla es una decisión, no un arreglo.**
+
+**PASO 1, LA TANDA DE CLARIDAD: PRERREGISTRO, ANTES DE PULSAR** (`app/api/admin/medida-f130/tanda-de-claridad.ts` y `claridad/route.ts`).
+- **Lo de Fable, literal:** las dos preguntas (una prueba las busca palabra por palabra en `F-130_2026-11-12_adenda-3-y-respuesta.md`);
+  el montaje (el modelo y el esfuerzo del juez, sin el prompt del juez, una llamada por tirada, dos brazos de 42 el mismo día); la cuenta
+  (sólo la primera línea; positivo CONFLICTO en N y NO PUEDE en R; todo lo demás en contra); y las bandas.
+- **Lo nuestro, declarado:** el encuadre («Texto 1:» y «Texto 2:» entre comillas triples; el Texto 1 es el permiso, porque el brazo R
+  dice «El Texto 1 permite algo»); de cada sección, SÓLO el párrafo que contiene el ancla de D, sin el título; y la frase de A que se
+  quita: «El Coordinador de Calidad no sustituye al Director Clínico en la responsabilidad última descrita en el apartado 2.1, sino que
+  actúa como apoyo operativo directo.» El §3.5 entra entero (no lleva marcas de A). La ruta se niega si un texto pierde su ancla de D o
+  conserva una marca de A.
+- ⚠️ **UNA CONCRECIÓN DE LA CUENTA, NUESTRA Y POR DECIDIR ANTES DE PULSAR:** la primera línea no vacía, sin formato (* _ # ` >), sin
+  comillas, sin la puntuación del final, sin tildes y en mayúsculas, **tiene que ser EXACTAMENTE la palabra**. «CONFLICTO: el texto 1
+  permite…» y «Respuesta: CONFLICTO» cuentan EN CONTRA. Es la lectura estricta de «responde en la primera línea con una sola palabra».
+  La salida da cada primera línea y su opción, así que si la regla pesa se verá.
+- **Las bandas, verificadas con binomial exacta** (`scratchpad/bandas_claridad.mjs`), por brazo, con la regla entera de dos días:
+  ```
+  tasa real 60 %: llegar a 37 en una tanda 0,007 % · declarar «clara» con la regla entera 0,010 %
+  tasa real 70 %: 0,535 % · 1,9 %
+  tasa real 80 %: 12,9 % · 48,5 %   (se repite otro día el 75 % de las veces)
+  tasa real 85 %: 38,3 % · 88,2 %
+  tasa real 90 %: quedarse en 30 o menos 0,062 % · declarar «clara» 99,6 %
+  ```
+  Las dos cifras de Fable se sostienen (0,007 % y 0,062 %, las dos por debajo del 0,1 %). ⚠️ La binomial no lleva la variación entre
+  días (τ ≈ 15 puntos en la ruta `d`): con ella, el «se repite otro día» no es una muestra más de la misma tasa, y los errores reales
+  son mayores que los de la tabla.
+- **La decisión, de Fable:** lectores que discrepan, o N y R «no clara» → D es interpretable y se cierra. N «no clara» y R «clara» → D
+  sólo es clara si el producto adopta la regla «un permiso que otro documento excluye es un conflicto», y decide el director. N y R
+  «clara» y los lectores de acuerdo → D es clara y difícil de ver, y se sigue al paso 2.
+- **Las predicciones de Fable:** P-A3-4, brazo R, 37 o más de 42. P-A3-5, brazo N, entre 26 y 35 de 42, con confianza baja.
+- **El paso 0a (la lectura humana, en papel y sin contexto) es del director y de una o dos personas más**, antes de ver ningún resultado.
