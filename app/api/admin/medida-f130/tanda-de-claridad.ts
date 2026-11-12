@@ -10,9 +10,12 @@ export { OPCIONES, POSITIVO, opcionLaxa, primeraLineaSinSignos, positivoLaxo, ty
  * se deduce sin duda con las dos frases delante, no si el juez la encuentra. Regla del director, la del producto desde el 01/11:
  * sólo se firma lo que se deduce sin duda leyendo las dos frases; en caso de duda, no se marca.
  * MONTAJE (Fable): el mismo modelo y el mismo esfuerzo que el juez (`modeloDelJuez`), SIN el prompt del juez, una llamada nueva por
- * tirada; sólo los dos párrafos (NOR-10 §2.4 y CLI-12 §3.5), SIN las frases de A; dos brazos de 42 tiradas, el mismo día.
- *   · Brazo N, neutro: `PREGUNTA_N`. Positivo: CONFLICTO.
- *   · Brazo R, con la regla del producto: `PREGUNTA_R`. Positivo: NO PUEDE.
+ * tirada; sólo dos párrafos, el Texto 1 (NOR-10 §2.4) sin las frases de A. CUATRO BRAZOS (arquitecto, 12/11; ver `textosPrimarios`):
+ *   · PRIMARIOS, los que deciden: §2.4 (sin A) ↔ CLI-12 §3.1 ENTERO; N y R, dos días cada uno, decisión sobre 84.
+ *   · SECUNDARIOS: §2.4 (sin A) ↔ CLI-12 §3.5 (`textosDeClaridad`); N y R, UN SOLO DÍA, 42; puntúan P-A3-4 y P-A3-5 de Fable.
+ *   · Brazo N, neutro: `PREGUNTA_N`. Positivo: CONFLICTO. Brazo R, con la regla del producto: `PREGUNTA_R`. Positivo: NO PUEDE.
+ * ⚠️ LA ETIQUETA DE D, corregida el 12/11 (corrección de etiqueta, no de medida): la pareja operativa es §2.4 ↔ §3.1; el §3.5 la remite
+ * («la separación de funciones descrita en el apartado 3.1»). Las cadenas de medida decían «§2.4 ↔ §3.5».
  * LAS DOS PREGUNTAS SON DE FABLE, LITERALES, SIN TOCAR UNA PALABRA (una prueba las busca en el texto archivado).
  * ⚠️ LO QUE ES NUESTRO, y se declara: el encuadre de los dos textos («Texto 1:» y «Texto 2:», entre comillas triples; el brazo R
  * habla de «Texto 1» y «Texto 2», así que las etiquetas hacen falta, y el Texto 1 es el permiso); que de cada sección va SÓLO EL
@@ -24,7 +27,7 @@ export { OPCIONES, POSITIVO, opcionLaxa, primeraLineaSinSignos, positivoLaxo, ty
  *     (como palabra entera) y NO CONTIENE ninguna de las otras dos. «CONFLICTO: el texto 1 permite…» cuenta como CONFLICTO;
  *     «CONFLICTO o DEPENDE» es indecidible y cuenta en contra.
  *   · SECUNDARIA, ESTRICTA (la de Fable): la primera línea, sin formato, comillas ni la puntuación del final, es EXACTAMENTE la palabra.
- * LA DECISIÓN (arquitecto, 12/11, con los umbrales de Fable): los dos brazos se pulsan DOS DÍAS SIEMPRE, 42 cada día, y se decide
+ * LA DECISIÓN (arquitecto, 12/11, con los umbrales de Fable), SÓLO CON LOS PRIMARIOS: se pulsan DOS DÍAS SIEMPRE, 42 cada día, y se decide
  * UNA SOLA VEZ, sobre 84 por brazo, con la cuenta laxa: ≥68 clara (el 81,0 %, el umbral de segunda etapa de Fable), ≤60 no clara (el
  * 71,4 %, su tasa de un día escalada), en medio ZONA GRIS. Un día solo no decide nada. La zona gris NO se repite y queda A JUICIO DEL
  * DIRECTOR (su decisión, 12/11 13:05), con el procedimiento prerregistrado: elige entre CERRAR y SEGUIR AL PASO 2, sin tercera opción,
@@ -72,6 +75,40 @@ export function textosDeClaridad(trozoNor: string, trozoCli: string):
     if (deA.length) return { ok: false, motivo: `${n}: sigue llevando marcas de A (${deA.join(', ')})` };
   }
   return { ok: true, texto1: t1.texto, texto2: t2.texto, quitadas: [...t1.quitadas, ...t2.quitadas] };
+}
+
+/**
+ * LAS DOS PAREJAS (arquitecto, 12/11). PRIMARIA, la que decide: §2.4 (sin A) ↔ §3.1 ENTERO, porque es la pareja por la que publica el
+ * producto (las 6 D medidas con su prompt citan el §3.1). SECUNDARIA: §2.4 (sin A) ↔ §3.5, la de `textosDeClaridad`, que NO SE TOCA (las
+ * predicciones P-A3-4 y P-A3-5 de Fable se escribieron sobre ella, y sobre 42). La cirugía va SÓLO en el Texto 1: el §3.1 entra con sus
+ * dos frases, la de A del lado CLI-12 incluida, porque A sigue sin poder formarse (su lado NOR-10, el §2.1, no se entrega, y la frase
+ * del §2.4 que lo traía por referencia es la que se quita). Con las dos frases del §3.1, D está entera: el responsable es «el Coordinador
+ * de Calidad, no el Director Clínico», el Coordinador «puede recaer en el propio Director Clínico», y la frase 2 da el principio.
+ */
+export type ParejaDeClaridad = 'primaria' | 'secundaria';
+export const ANCLA_DEL_3_1 = 'separar la responsabilidad';
+/** Lo que delata el §2.1 de NOR-10 (el lado NOR de A), que no puede entrar en ningún texto. */
+export const RASTROS_DEL_2_1 = ['responsable último del cumplimiento de este protocolo', 'no es delegable', 'retirar del servicio', 'apartado 2.1'] as const;
+
+/** Los dos textos de la pareja PRIMARIA, o la negativa. NEGATIVAS (arquitecto): el Texto 2 contiene la frase con «no el Director
+ *  Clínico» y la de «separar la responsabilidad»; el Texto 1, ninguna marca de A; ninguno de los dos, nada del §2.1 de NOR-10. */
+export function textosPrimarios(trozoNor: string, trozoCli31: string):
+  { ok: true; texto1: string; texto2: string; quitadas: string[] } | { ok: false; motivo: string } {
+  const p1 = parrafoQueContiene(trozoNor, ANCLAS.texto1), p2 = parrafoQueContiene(trozoCli31, ANCLA_DEL_3_1);
+  if (!p1.ok) return { ok: false, motivo: `Texto 1: ${p1.motivo}` };
+  if (!p2.ok) return { ok: false, motivo: `Texto 2: ${p2.motivo}` };
+  // Dos de las negativas del arquitecto se cumplen POR CONSTRUCCIÓN y no se vuelven a comprobar (una comprobación que no puede saltar
+  // decora; lo cazaron dos mutantes vivos): el Texto 1 no lleva marcas de A porque `sinFrasesDeA` quita toda frase que tenga una, con la
+  // misma `marcasDe`; y el Texto 2 contiene «separar la responsabilidad» porque es el párrafo que se eligió por contenerla.
+  const t1 = sinFrasesDeA(p1.parrafo), texto2 = p2.parrafo;
+  if (!t1.texto.includes(ANCLAS.texto1)) return { ok: false, motivo: 'Texto 1: al quitar las frases de A se ha ido el ancla de D' };
+  if (!texto2.includes('no el Director Clínico')) return { ok: false, motivo: 'Texto 2: no contiene la frase con «no el Director Clínico» (A del lado CLI-12)' };
+  const norm = (s: string) => s.toLowerCase().normalize('NFD').replace(/\p{Diacritic}/gu, '');
+  for (const [n, t] of [['Texto 1', t1.texto], ['Texto 2', texto2]] as const) {
+    const del21 = RASTROS_DEL_2_1.filter(r => norm(t).includes(norm(r)));
+    if (del21.length) return { ok: false, motivo: `${n}: lleva rastros del §2.1 de NOR-10 (${del21.join(', ')})` };
+  }
+  return { ok: true, texto1: t1.texto, texto2, quitadas: t1.quitadas };
 }
 
 /** El prompt de una tirada: los dos textos y la pregunta del brazo. */

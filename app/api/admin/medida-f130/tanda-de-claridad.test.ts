@@ -5,8 +5,9 @@ import { toStoredChunks } from '@/lib/read-chunks';
 import { marcasDe } from './brazos';
 import {
   ANCLAS, PREGUNTA_N, PREGUNTA_R, TIRADAS_POR_BRAZO, TIRADAS_DE_LA_DECISION, contarClaridad, decisionSobre84, primeraLinea, promptDeClaridad, sinFrasesDeA,
-  textosDeClaridad, veredicto,
+  textosDeClaridad, veredicto, textosPrimarios, ANCLA_DEL_3_1, RASTROS_DEL_2_1,
 } from './tanda-de-claridad';
+import { createHash } from 'node:crypto';
 
 const leer = (f: string) => readFileSync(f, 'utf8');
 const trozo = async (f: string, i: number) => toStoredChunks(chunkSegments(await extractSegments(readFileSync(`corpus-pruebas/${f}`), f), 'd', f, 'o')).find(c => c.chunkIndex === i)!.text;
@@ -25,6 +26,43 @@ describe('la tanda de claridad (paso 1 de Fable, 12/11)', () => {
     expect(t.texto2).toBe('En ausencia programada o imprevista del Coordinador de Calidad (vacaciones, baja), sus funciones son asumidas temporalmente por el Coordinador de Calidad de otra clínica de la red, nunca por el Director Clínico del propio centro, precisamente para mantener la separación de funciones descrita en el apartado 3.1. Esta sustitución se comunica formalmente a todo el personal del centro afectado.');
     expect(t.quitadas).toEqual(['El Coordinador de Calidad no sustituye al Director Clínico en la responsabilidad última descrita en el apartado 2.1, sino que actúa como apoyo operativo directo.']);
     for (const x of [t.texto1, t.texto2]) expect(marcasDe(x).filter(m => m.startsWith('A:'))).toEqual([]);
+    // ⚠️ LA PAREJA SECUNDARIA, CONGELADA: los dos prompts son los de la lectura en papel y los ensayos del 12/11 (huellas comprobadas)
+    const h = (s: string) => createHash('sha256').update(s).digest('hex').slice(0, 16);
+    expect([h(promptDeClaridad('n', t.texto1, t.texto2)), h(promptDeClaridad('r', t.texto1, t.texto2))]).toEqual(['cef15935b2973843', 'b8c3cca016783273']);
+  });
+
+  it('LA PAREJA PRIMARIA, SOBRE EL CORPUS: el Texto 1 igual que en la secundaria, y el §3.1 ENTERO, las dos frases, la de A incluida', async () => {
+    const nor = await trozo('NOR-10_protocolo-esterilizacion-instrumental.docx', 4);
+    const p = textosPrimarios(nor, await trozo('CLI-12_manual-calidad-clinica.docx', 3));
+    const s = textosDeClaridad(nor, await trozo('CLI-12_manual-calidad-clinica.docx', 6));
+    if (!p.ok || !s.ok) throw new Error('no se armó');
+    expect(p.texto1).toBe(s.texto1);
+    expect(p.texto2).toBe('El responsable último de la esterilización del instrumental en cada clínica es el Coordinador de Calidad del centro, no el Director Clínico. Esta asignación responde a un criterio deliberado del sistema de gestión de calidad: separar la responsabilidad de un proceso crítico de seguridad del paciente de la persona que, en su rol de Director Clínico, gestiona simultáneamente la agenda asistencial y puede verse sometida a presión de tiempo que entre en conflicto con el rigor exigido en esterilización.');
+    expect(p.quitadas).toEqual(s.quitadas);
+    expect(marcasDe(p.texto2)).toEqual(expect.arrayContaining(['A:responsable ultimo', 'A:no el director clinico', 'D:separar la responsabilidad']));
+    // ⚠️ CONGELADA: los dos prompts son los de la lectura en papel de la pareja primaria (claude/F-130_lectura_en_papel_D.md)
+    const h = (s: string) => createHash('sha256').update(s).digest('hex').slice(0, 16);
+    expect([h(promptDeClaridad('n', p.texto1, p.texto2)), h(promptDeClaridad('r', p.texto1, p.texto2))]).toEqual(['a053c1bbeb1b0ade', 'addc6853db1d36e6']);
+  });
+
+  it('LAS NEGATIVAS DE LA PRIMARIA (arquitecto): el Texto 2 sin la frase de A o sin el principio; el montaje invertido; un rastro del §2.1', () => {
+    const t1 = `Cada clínica tiene un Coordinador de Calidad, figura que ${ANCLAS.texto1}.`;
+    const frase1 = 'El responsable es el Coordinador de Calidad, no el Director Clínico.', frase2 = `El criterio es ${ANCLA_DEL_3_1} de un proceso crítico.`;
+    expect(textosPrimarios(t1, `${frase1} ${frase2}`)).toMatchObject({ ok: true });
+    expect(textosPrimarios(t1, frase2)).toMatchObject({ ok: false, motivo: expect.stringContaining('no el Director Clínico') });
+    expect(textosPrimarios(t1, `${frase1} Y nada más.`)).toMatchObject({ ok: false, motivo: expect.stringContaining('0 párrafos') });
+    // el montaje invertido: el §3.1 como Texto 1 y el §2.4 como Texto 2
+    expect(textosPrimarios(`${frase1} ${frase2}`, t1)).toMatchObject({ ok: false });
+    expect(textosPrimarios(t1, `${frase1} ${frase2} Esa decisión no es delegable.`)).toMatchObject({ ok: false, motivo: expect.stringContaining('§2.1') });
+    expect(textosPrimarios(`${t1} Véase el apartado 2.1.`, `${frase1} ${frase2}`)).toMatchObject({ ok: false, motivo: expect.stringContaining('§2.1') });
+    expect(RASTROS_DEL_2_1).toContain('apartado 2.1');
+    // las dos negativas que se cumplen por construcción: el Texto 1 sale sin marcas de A aunque el párrafo las traiga, y un Texto 2 sin
+    // el principio ni siquiera se elige
+    const conA = textosPrimarios(`Cada clínica tiene un Coordinador de Calidad, figura que ${ANCLAS.texto1}. Su responsabilidad última no cambia.`, `${frase1} ${frase2}`);
+    if (!conA.ok) throw new Error(conA.motivo);
+    expect(marcasDe(conA.texto1).filter(m => m.startsWith('A:'))).toEqual([]);
+    expect(conA.quitadas).toEqual(['Su responsabilidad última no cambia.']);
+    expect(textosPrimarios(t1, frase1)).toMatchObject({ ok: false, motivo: expect.stringContaining('separar la responsabilidad') });
   });
 
   it('las negativas: el ancla en ningún párrafo o en dos; el ancla dentro de una frase de A; una marca de A que queda', () => {
@@ -92,7 +130,13 @@ describe('la tanda de claridad (paso 1 de Fable, 12/11)', () => {
     const i = (s: string) => { const k = r.indexOf(s); expect(k).toBeGreaterThan(-1); return k; };
     const brazo = i("if (brazo !== 'n' && brazo !== 'r') return NextResponse.json("), trozos = i('if (!leidos.ok) return NextResponse.json('),
       textos = i('if (!textos.ok) return NextResponse.json('), ensayo = i("if (req.nextUrl.searchParams.get('ensayo') === '1')"), modelo = i('await callLLM(prompt, {');
-    expect(brazo).toBeLessThan(trozos); expect(trozos).toBeLessThan(textos); expect(textos).toBeLessThan(ensayo); expect(ensayo).toBeLessThan(modelo);
+    const pareja = i("if (cualPareja !== '31' && cualPareja !== '35') return NextResponse.json(");
+    expect(brazo).toBeLessThan(pareja); expect(pareja).toBeLessThan(trozos);
+    expect(trozos).toBeLessThan(textos); expect(textos).toBeLessThan(ensayo); expect(ensayo).toBeLessThan(modelo);
+    // la primaria lee el trozo del §3.1 y arma con textosPrimarios; la secundaria, el del §3.5 con textosDeClaridad
+    expect(r).toContain("candidato = pareja === 'primaria' ? 'cli12_3' : PAREJA_DE_D.candidato;");
+    expect(r).toContain("const pareja: ParejaDeClaridad = cualPareja === '31' ? 'primaria' : 'secundaria';");
+    expect(r).toContain("const textos = pareja === 'primaria'\n    ? textosPrimarios(");
     expect(r.split('callLLM(').length - 1).toBe(1);
     expect(r).toContain('{ length: sondeo ? 1 : TIRADAS_POR_BRAZO }');
     expect(r).toContain('modeloExacto: delJuez.modelo,');

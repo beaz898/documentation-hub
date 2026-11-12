@@ -64,7 +64,10 @@ export async function medirConElProducto(req: NextRequest, condicion: Brazo, cam
 
   const que = { documentos: 'los dos DOCUMENTOS ENTEROS', competencia: 'el trozo de D y los de A, B y C de cada lado (d4b)', neutros: 'el trozo de D y trozos NEUTROS hasta el tamaño de d4b, de cada lado (d4c)' }[condicion];
   const conQue = cambio === 'm1' ? 'con el CAMBIO CANDIDATO m1 (el prompt del producto con supresiones, en PROSA, y luego la extracción al esquema del producto: dos llamadas)' : 'con el PROMPT DEL PRODUCTO';
-  const medida = `F-130 · el JUEZ DEL PRODUCTO, ${conQue}, sobre la pareja de D de la siembra (§2.4 ↔ §3.5), ${que} (pareja_entera), después de la puerta y antes del verificador, ${VECES_DE_D4} veces por pulsación`;
+  // la etiqueta de D (corregida el 12/11, corrección de ETIQUETA y no de medida): la pareja operativa es §2.4 ↔ §3.1, que es por donde
+  // publica el producto, y el §3.5 la remite. En d4c el §3.1 no se entrega (sus neutros sólo llevan el trozo del §3.5), y lo dice.
+  const etiquetaDeD = condicion === 'neutros' ? '§2.4 ↔ §3.5; el §3.1 no se entrega' : '§2.4 ↔ §3.1, por la vía que publica; §3.5 la remite';
+  const medida = `F-130 · el JUEZ DEL PRODUCTO, ${conQue}, sobre la pareja de D de la siembra (${etiquetaDeD}), ${que} (pareja_entera), después de la puerta y antes del verificador, ${VECES_DE_D4} veces por pulsación`;
   // en el ensayo, cada trozo entregado con su tamaño y sus marcas, para comprobar el brazo sobre lo que de verdad se entrega
   const detalle = (ts: typeof todosX) => condicion === 'documentos' ? undefined : ts.map(c => ({ trozo: c.chunkIndex, caracteres: c.text.length, marcas: marcasDe(c.text) }));
   const documentos = {

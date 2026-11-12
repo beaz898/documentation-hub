@@ -6,13 +6,14 @@ import { conRegistroDeLlamadas } from '@/lib/observability/registro-de-llamadas'
 import { runInBatches } from '@/lib/run-in-batches';
 import { autorizar, leerTrozos } from '../leer-de-la-base';
 import { PAREJA_DE_D } from '../medida-f130';
-import { TIRADAS_POR_BRAZO, contarClaridad, promptDeClaridad, textosDeClaridad, veredicto, type BrazoDeClaridad } from '../tanda-de-claridad';
+import { TIRADAS_POR_BRAZO, contarClaridad, promptDeClaridad, textosDeClaridad, textosPrimarios, veredicto, type BrazoDeClaridad, type ParejaDeClaridad } from '../tanda-de-claridad';
 
 /**
- * POST /api/admin/medida-f130/claridad?brazo=n|r — LA TANDA DE CLARIDAD (paso 1 de Fable), TEMPORAL. Qué mide, cómo y qué es nuestro,
+ * POST /api/admin/medida-f130/claridad?brazo=n|r&pareja=31|35 — LA TANDA DE CLARIDAD (paso 1 de Fable), TEMPORAL. Qué mide, cómo y qué es nuestro,
  * en `../tanda-de-claridad.ts`. Con `?ensayo=1`, los dos prompts enteros (son cortos y no llevan nada más que los dos párrafos) sin modelo;
  * con `?sondeo=1`, una sola tirada; sin nada, las 42. NO COBRA CRÉDITOS. ⚠️ NEGATIVAS DURAS, antes del ensayo y del modelo, con 409:
- * un brazo que no sea n ni r; los dos trozos de la pareja con su frase; y los dos textos con su ancla de D y SIN marcas de A.
+ * un brazo que no sea n ni r; una pareja que no sea 31 ni 35; los dos trozos de la pareja con su frase; y los dos textos con las
+ * negativas de su pareja (`textosPrimarios` o `textosDeClaridad`).
  */
 export const maxDuration = 300;
 
@@ -21,15 +22,24 @@ export async function POST(req: NextRequest) {
   if (!a.ok) return a.respuesta;
   const brazo = req.nextUrl.searchParams.get('brazo');
   if (brazo !== 'n' && brazo !== 'r') return NextResponse.json({ error: 'el brazo tiene que ser «n» o «r»' }, { status: 409 });
+  // la pareja, OBLIGATORIA (12/11): 31 es la primaria (§2.4 ↔ §3.1 entero), 35 la secundaria (§2.4 ↔ §3.5). Sin ella, no se adivina.
+  const cualPareja = req.nextUrl.searchParams.get('pareja');
+  if (cualPareja !== '31' && cualPareja !== '35') return NextResponse.json({ error: 'la pareja tiene que ser «31» (primaria) o «35» (secundaria)' }, { status: 409 });
+  const pareja: ParejaDeClaridad = cualPareja === '31' ? 'primaria' : 'secundaria';
 
-  const { analizado, candidato } = PAREJA_DE_D;
+  const analizado = PAREJA_DE_D.analizado, candidato = pareja === 'primaria' ? 'cli12_3' : PAREJA_DE_D.candidato;
   const leidos = await leerTrozos(a.supabase, a.orgId, [analizado, candidato]);
   if (!leidos.ok) return NextResponse.json({ error: leidos.error }, { status: 409 });
-  const textos = textosDeClaridad(leidos.trozos[analizado].texto, leidos.trozos[candidato].texto);
+  const textos = pareja === 'primaria'
+    ? textosPrimarios(leidos.trozos[analizado].texto, leidos.trozos[candidato].texto)
+    : textosDeClaridad(leidos.trozos[analizado].texto, leidos.trozos[candidato].texto);
   if (!textos.ok) return NextResponse.json({ error: textos.motivo }, { status: 409 });
 
   const prompt = promptDeClaridad(brazo as BrazoDeClaridad, textos.texto1, textos.texto2);
-  const medida = `F-130 · LA TANDA DE CLARIDAD (paso 1 de Fable), brazo ${brazo === 'n' ? 'N, neutro' : 'R, con la regla del producto'}: los dos párrafos (NOR-10 §2.4 y CLI-12 §3.5) sin las frases de A, sin el prompt del juez, con el modelo y el esfuerzo del juez, ${TIRADAS_POR_BRAZO} tiradas`;
+  const queTextos = pareja === 'primaria'
+    ? 'PAREJA PRIMARIA, la que decide: NOR-10 §2.4 sin la frase de A ↔ CLI-12 §3.1 ENTERO'
+    : 'pareja secundaria: NOR-10 §2.4 sin la frase de A ↔ CLI-12 §3.5';
+  const medida = `F-130 · LA TANDA DE CLARIDAD (paso 1 de Fable), brazo ${brazo === 'n' ? 'N, neutro' : 'R, con la regla del producto'}, ${queTextos}; sin el prompt del juez, con el modelo y el esfuerzo del juez, ${TIRADAS_POR_BRAZO} tiradas`;
   const delJuez = modeloDelJuez();
   if (req.nextUrl.searchParams.get('ensayo') === '1') {
     return NextResponse.json({ medida, ensayo: 'sin llamar al modelo', modelo: delJuez.modelo, huellaDelPrompt: huellaDelPrompt(prompt), prompt, frasesDeAQuitadas: textos.quitadas });
