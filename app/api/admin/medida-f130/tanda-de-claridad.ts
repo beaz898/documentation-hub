@@ -1,4 +1,8 @@
 import { marcasDe } from './brazos';
+import { OPCIONES, POSITIVO, opcionLaxa, type BrazoDeClaridad } from './regla-laxa';
+
+// la regla laxa, CONGELADA en su propio fichero (regla-laxa.ts, con su huella fijada por regla-laxa.test.ts)
+export { OPCIONES, POSITIVO, opcionLaxa, primeraLineaSinSignos, positivoLaxo, type BrazoDeClaridad } from './regla-laxa';
 
 /**
  * LA TANDA DE CLARIDAD, EL PASO 1 DEL PLAN DE FABLE (adenda 3, 12/11/2026; `claude/consultas-fable/F-130_2026-11-12_adenda-3-y-respuesta.md`).
@@ -22,8 +26,12 @@ import { marcasDe } from './brazos';
  *   · SECUNDARIA, ESTRICTA (la de Fable): la primera línea, sin formato, comillas ni la puntuación del final, es EXACTAMENTE la palabra.
  * LA DECISIÓN (arquitecto, 12/11, con los umbrales de Fable): los dos brazos se pulsan DOS DÍAS SIEMPRE, 42 cada día, y se decide
  * UNA SOLA VEZ, sobre 84 por brazo, con la cuenta laxa: ≥68 clara (el 81,0 %, el umbral de segunda etapa de Fable), ≤60 no clara (el
- * 71,4 %, su tasa de un día escalada), en medio ZONA GRIS. Un día solo no decide nada. La zona gris NO se repite: va al director como
- * decisión de definición (la recomendación prerregistrada, que él confirma o cambia: por defecto, NO CLARA).
+ * 71,4 %, su tasa de un día escalada), en medio ZONA GRIS. Un día solo no decide nada. La zona gris NO se repite y queda A JUICIO DEL
+ * DIRECTOR (su decisión, 12/11 13:05), con el procedimiento prerregistrado: elige entre CERRAR y SEGUIR AL PASO 2, sin tercera opción,
+ * con los dos brazos sobre 84, las lecturas en papel y la tabla del prerregistro delante (Predicciones_34_Conflicto_Normativo.md).
+ * ⚠️ LA LECTURA EN PAPEL VA ANTES DE LA PRIMERA PULSACIÓN CON MODELO, no sólo antes de ver el resultado: las respuestas en papel se
+ * archivan ANTES de que se pulse Claridad N o R con modelo. Si el juicio del director viene anclado por un número del modelo, ya no es
+ * independiente, y es lo que decide.
  * ⚠️ El 74 que hubo aquí (el 88,1 %) fue un error del arquitecto, corregido por él el 12/11: exigir la misma tasa con el doble de datos
  * es una prueba más dura, no igual; con más datos se puede aceptar una tasa observada menor para la misma confianza.
  */
@@ -31,10 +39,7 @@ import { marcasDe } from './brazos';
 export const PREGUNTA_N = 'Los dos textos son de la misma organización y están vigentes a la vez. ¿Hay un conflicto entre lo que establecen? Responde en la primera línea con una sola palabra: CONFLICTO, COMPATIBLES o DEPENDE. Después explica tu respuesta en tres frases como máximo.';
 export const PREGUNTA_R = 'El Texto 1 permite algo. Si una clínica hace uso de ese permiso, ¿puede cumplir al mismo tiempo lo que establece el Texto 2? No vale responder que basta con no usar el permiso. Responde en la primera línea con una sola de estas opciones: NO PUEDE, SÍ PUEDE o DEPENDE. Después explica tu respuesta en tres frases como máximo.';
 
-export type BrazoDeClaridad = 'n' | 'r';
 export const TIRADAS_POR_BRAZO = 42;
-export const POSITIVO: Record<BrazoDeClaridad, string> = { n: 'CONFLICTO', r: 'NO PUEDE' };
-export const OPCIONES: Record<BrazoDeClaridad, readonly string[]> = { n: ['CONFLICTO', 'COMPATIBLES', 'DEPENDE'], r: ['NO PUEDE', 'SI PUEDE', 'DEPENDE'] };
 
 /** Las anclas de D, una por lado: el párrafo que la contiene es el que entra. */
 export const ANCLAS = { texto1: 'puede recaer en el propio Director Clínico', texto2: 'nunca por el Director Clínico del propio centro' } as const;
@@ -79,21 +84,6 @@ export function primeraLinea(respuesta: string): string {
   const linea = respuesta.split('\n').map(l => l.trim()).find(l => l !== '') ?? '';
   return linea.replace(/[*_#`>«»"'“”]/g, '').trim().replace(/[.:;,!]+$/, '').trim()
     .normalize('NFD').replace(/\p{Diacritic}/gu, '').toUpperCase().replace(/\s+/g, ' ');
-}
-
-/** La primera línea para la cuenta LAXA: en mayúsculas, sin tildes y sin signos (sólo letras, cifras y espacios). */
-export function primeraLineaSinSignos(respuesta: string): string {
-  const linea = respuesta.split('\n').map(l => l.trim()).find(l => l !== '') ?? '';
-  return linea.normalize('NFD').replace(/\p{Diacritic}/gu, '').toUpperCase().replace(/[^A-Z0-9 ]+/g, ' ').replace(/\s+/g, ' ').trim();
-}
-
-/** La opción LAXA: la palabra permitida por la que EMPIEZA la línea, como palabra entera, si no contiene ninguna de las otras dos. */
-export function opcionLaxa(brazo: BrazoDeClaridad, respuesta: string): string {
-  const linea = primeraLineaSinSignos(respuesta);
-  const contiene = (w: string) => new RegExp(`(^| )${w}( |$)`).test(linea);
-  const empieza = OPCIONES[brazo].filter(w => linea === w || linea.startsWith(`${w} `));
-  if (empieza.length !== 1) return 'OTRA';
-  return OPCIONES[brazo].some(w => w !== empieza[0] && contiene(w)) ? 'INDECIDIBLE' : empieza[0];
 }
 
 /** El veredicto de una tirada, con las dos cuentas: la laxa (primaria) y la estricta (la de Fable). */
