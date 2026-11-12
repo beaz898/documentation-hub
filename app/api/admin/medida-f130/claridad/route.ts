@@ -5,6 +5,7 @@ import { huellaDelPrompt } from '@/lib/analysis/judge';
 import { conRegistroDeLlamadas } from '@/lib/observability/registro-de-llamadas';
 import { runInBatches } from '@/lib/run-in-batches';
 import { autorizar, leerTrozos } from '../leer-de-la-base';
+import { claseDelConflicto } from '../regla-de-validez';
 import { PAREJA_DE_D } from '../medida-f130';
 import { TIRADAS_POR_BRAZO, contarClaridad, promptDeClaridad, textosDeClaridad, textosPrimarios, veredicto, type BrazoDeClaridad, type ParejaDeClaridad } from '../tanda-de-claridad';
 
@@ -35,7 +36,7 @@ export async function POST(req: NextRequest) {
     : textosDeClaridad(leidos.trozos[analizado].texto, leidos.trozos[candidato].texto);
   if (!textos.ok) return NextResponse.json({ error: textos.motivo }, { status: 409 });
 
-  const prompt = promptDeClaridad(brazo as BrazoDeClaridad, textos.texto1, textos.texto2);
+  const prompt = promptDeClaridad(brazo as BrazoDeClaridad, textos.texto1, textos.texto2, pareja);
   const queTextos = pareja === 'primaria'
     ? 'PAREJA PRIMARIA, la que decide: NOR-10 §2.4 sin la frase de A ↔ CLI-12 §3.1 ENTERO'
     : 'pareja secundaria: NOR-10 §2.4 sin la frase de A ↔ CLI-12 §3.5';
@@ -57,7 +58,9 @@ export async function POST(req: NextRequest) {
           ...(delJuez.outputConfig ? { outputConfig: delJuez.outputConfig } : {}),
           etiqueta: { etapa: 'juez', pareja: leidos.trozos[candidato].documentId },
         });
-        return { vez, ...veredicto(brazo as BrazoDeClaridad, texto), texto };
+        const v = veredicto(brazo as BrazoDeClaridad, texto);
+        // en el brazo N, cada CONFLICTO con la clase de su explicación (la puerta de validez), para que sea auditable
+        return { vez, ...v, ...(brazo === 'n' && v.positivoLaxo ? { claseDelConflicto: claseDelConflicto(texto) } : {}), texto };
       } catch (err) {
         return { vez, error: err instanceof Error ? err.message : String(err) };
       }

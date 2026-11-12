@@ -5,7 +5,7 @@ import { toStoredChunks } from '@/lib/read-chunks';
 import { marcasDe } from './brazos';
 import {
   ANCLAS, PREGUNTA_N, PREGUNTA_R, TIRADAS_POR_BRAZO, TIRADAS_DE_LA_DECISION, contarClaridad, decisionSobre84, primeraLinea, promptDeClaridad, sinFrasesDeA,
-  textosDeClaridad, veredicto, textosPrimarios, ANCLA_DEL_3_1, RASTROS_DEL_2_1,
+  textosDeClaridad, veredicto, textosPrimarios, ANCLA_DEL_3_1, RASTROS_DEL_2_1, PREGUNTA_R_PRIMARIA,
 } from './tanda-de-claridad';
 import { createHash } from 'node:crypto';
 
@@ -28,7 +28,7 @@ describe('la tanda de claridad (paso 1 de Fable, 12/11)', () => {
     for (const x of [t.texto1, t.texto2]) expect(marcasDe(x).filter(m => m.startsWith('A:'))).toEqual([]);
     // ⚠️ LA PAREJA SECUNDARIA, CONGELADA: los dos prompts son los de la lectura en papel y los ensayos del 12/11 (huellas comprobadas)
     const h = (s: string) => createHash('sha256').update(s).digest('hex').slice(0, 16);
-    expect([h(promptDeClaridad('n', t.texto1, t.texto2)), h(promptDeClaridad('r', t.texto1, t.texto2))]).toEqual(['cef15935b2973843', 'b8c3cca016783273']);
+    expect([h(promptDeClaridad('n', t.texto1, t.texto2, 'secundaria')), h(promptDeClaridad('r', t.texto1, t.texto2, 'secundaria'))]).toEqual(['cef15935b2973843', 'b8c3cca016783273']);
   });
 
   it('LA PAREJA PRIMARIA, SOBRE EL CORPUS: el Texto 1 igual que en la secundaria, y el §3.1 ENTERO, las dos frases, la de A incluida', async () => {
@@ -42,7 +42,7 @@ describe('la tanda de claridad (paso 1 de Fable, 12/11)', () => {
     expect(marcasDe(p.texto2)).toEqual(expect.arrayContaining(['A:responsable ultimo', 'A:no el director clinico', 'D:separar la responsabilidad']));
     // ⚠️ CONGELADA: los dos prompts son los de la lectura en papel de la pareja primaria (claude/F-130_lectura_en_papel_D.md)
     const h = (s: string) => createHash('sha256').update(s).digest('hex').slice(0, 16);
-    expect([h(promptDeClaridad('n', p.texto1, p.texto2)), h(promptDeClaridad('r', p.texto1, p.texto2))]).toEqual(['a053c1bbeb1b0ade', 'addc6853db1d36e6']);
+    expect([h(promptDeClaridad('n', p.texto1, p.texto2, 'primaria')), h(promptDeClaridad('r', p.texto1, p.texto2, 'primaria'))]).toEqual(['a053c1bbeb1b0ade', 'e8add83ec7be14a1']);
   });
 
   it('LAS NEGATIVAS DE LA PRIMARIA (arquitecto): el Texto 2 sin la frase de A o sin el principio; el montaje invertido; un rastro del §2.1', () => {
@@ -76,9 +76,18 @@ describe('la tanda de claridad (paso 1 de Fable, 12/11)', () => {
   });
 
   it('el prompt: Texto 1 (el permiso), Texto 2, y la pregunta del brazo al final', () => {
-    const n = promptDeClaridad('n', 'UNO', 'DOS'), r = promptDeClaridad('r', 'UNO', 'DOS');
+    const n = promptDeClaridad('n', 'UNO', 'DOS', 'secundaria'), r = promptDeClaridad('r', 'UNO', 'DOS', 'secundaria');
     expect(n).toBe(`Texto 1:\n"""\nUNO\n"""\n\nTexto 2:\n"""\nDOS\n"""\n\n${PREGUNTA_N}`);
     expect(r.endsWith(PREGUNTA_R)).toBe(true);
+    // la pareja primaria: la misma N, y la R corregida
+    expect(promptDeClaridad('n', 'UNO', 'DOS', 'primaria')).toBe(n);
+    expect(promptDeClaridad('r', 'UNO', 'DOS', 'primaria').endsWith(PREGUNTA_R_PRIMARIA)).toBe(true);
+    expect(PREGUNTA_R_PRIMARIA).not.toBe(PREGUNTA_R);
+  });
+
+  it('⚠️ LA PREGUNTA R CORREGIDA ES LA DE LA CITA DEL ARQUITECTO, PALABRA POR PALABRA (archivada; PENDIENTE de cotejar con Fable)', () => {
+    const p = leer('claude/Predicciones_34_Conflicto_Normativo.md').replace(/\r\n/g, '\n');
+    expect(p).toContain(`\n«${PREGUNTA_R_PRIMARIA}»\n`);
   });
 
   it('LAS DOS CUENTAS DE LA PRIMERA LÍNEA: la laxa (primaria) y la estricta (la de Fable), caso a caso', () => {
@@ -120,9 +129,14 @@ describe('la tanda de claridad (paso 1 de Fable, 12/11)', () => {
     const c = contarClaridad('n', [...Array(41).fill('CONFLICTO: porque…'), 'DEPENDE']);
     expect(c).toEqual({
       tiradas: 42,
+      // la puerta de validez, sólo en N y sólo sobre los CONFLICTO: «CONFLICTO: porque…» no trae explicación, así que va a otra cosa
+      puertaDeValidez: { conflictos: 41, porD: 0, porOtraCosa: 41, valida: false },
       primaria: { regla: 'laxa', positivos: 41, porOpcion: { CONFLICTO: 41, DEPENDE: 1 } },
       secundaria: { regla: 'estricta (Fable)', positivos: 0, porOpcion: { OTRA: 41, DEPENDE: 1 } },
     });
+    expect(contarClaridad('r', ['NO PUEDE\nLa misma persona.'])).not.toHaveProperty('puertaDeValidez');
+    expect(contarClaridad('n', ['CONFLICTO\nLa misma persona no puede.', 'DEPENDE\nLas funciones difieren.']).puertaDeValidez)
+      .toEqual({ conflictos: 1, porD: 1, porOtraCosa: 0, valida: true });
   });
 
   it('LA RUTA: las negativas antes del ensayo y del modelo, una sola llamada, el sondeo de una, y la cuenta sobre las que trajeron texto', () => {
@@ -135,6 +149,9 @@ describe('la tanda de claridad (paso 1 de Fable, 12/11)', () => {
     expect(trozos).toBeLessThan(textos); expect(textos).toBeLessThan(ensayo); expect(ensayo).toBeLessThan(modelo);
     // la primaria lee el trozo del §3.1 y arma con textosPrimarios; la secundaria, el del §3.5 con textosDeClaridad
     expect(r).toContain("candidato = pareja === 'primaria' ? 'cli12_3' : PAREJA_DE_D.candidato;");
+    // el prompt con su pareja (la R cambia entre las dos), y cada CONFLICTO de N con su clase (la puerta de validez, auditable)
+    expect(r).toContain('const prompt = promptDeClaridad(brazo as BrazoDeClaridad, textos.texto1, textos.texto2, pareja);');
+    expect(r).toContain("...(brazo === 'n' && v.positivoLaxo ? { claseDelConflicto: claseDelConflicto(texto) } : {}),");
     expect(r).toContain("const pareja: ParejaDeClaridad = cualPareja === '31' ? 'primaria' : 'secundaria';");
     expect(r).toContain("const textos = pareja === 'primaria'\n    ? textosPrimarios(");
     expect(r.split('callLLM(').length - 1).toBe(1);

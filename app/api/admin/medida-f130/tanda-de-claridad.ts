@@ -1,5 +1,6 @@
 import { marcasDe } from './brazos';
 import { OPCIONES, POSITIVO, opcionLaxa, type BrazoDeClaridad } from './regla-laxa';
+import { puertaDeValidez } from './regla-de-validez';
 
 // la regla laxa, CONGELADA en su propio fichero (regla-laxa.ts, con su huella fijada por regla-laxa.test.ts)
 export { OPCIONES, POSITIVO, opcionLaxa, primeraLineaSinSignos, positivoLaxo, type BrazoDeClaridad } from './regla-laxa';
@@ -27,7 +28,12 @@ export { OPCIONES, POSITIVO, opcionLaxa, primeraLineaSinSignos, positivoLaxo, ty
  *     (como palabra entera) y NO CONTIENE ninguna de las otras dos. «CONFLICTO: el texto 1 permite…» cuenta como CONFLICTO;
  *     «CONFLICTO o DEPENDE» es indecidible y cuenta en contra.
  *   · SECUNDARIA, ESTRICTA (la de Fable): la primera línea, sin formato, comillas ni la puntuación del final, es EXACTAMENTE la palabra.
- * LA DECISIÓN (arquitecto, 12/11, con los umbrales de Fable), SÓLO CON LOS PRIMARIOS: se pulsan DOS DÍAS SIEMPRE, 42 cada día, y se decide
+ * ⚠️ DECIDE N, R ES CONTROL (arquitecto, 12/11): con la pregunta R corregida, R pregunta si la lógica se sostiene una vez enmarcada, y
+ * queda casi en el techo por construcción; un brazo en el techo no decide. Así que DECIDE el brazo N primario sobre 84, con los umbrales
+ * de abajo y la cuenta laxa, más las lecturas humanas; R es CONTROL: si R no sale alto, algo va mal en la pareja o en el montaje y N no
+ * se lee. R no sube ni baja la decisión. Y EN N, PRIMERO LA PUERTA DE VALIDEZ (`regla-de-validez.ts`): si más de uno de cada cinco
+ * CONFLICTO se explica por otra cosa que D, N no se lee, diga lo que diga; DESPUÉS, la cuenta.
+ * LA DECISIÓN (arquitecto, 12/11, con los umbrales de Fable), SÓLO CON EL N PRIMARIO: se pulsan DOS DÍAS SIEMPRE, 42 cada día, y se decide
  * UNA SOLA VEZ, sobre 84 por brazo, con la cuenta laxa: ≥68 clara (el 81,0 %, el umbral de segunda etapa de Fable), ≤60 no clara (el
  * 71,4 %, su tasa de un día escalada), en medio ZONA GRIS. Un día solo no decide nada. La zona gris NO se repite y queda A JUICIO DEL
  * DIRECTOR (su decisión, 12/11 13:05), con el procedimiento prerregistrado: elige entre CERRAR y SEGUIR AL PASO 2, sin tercera opción,
@@ -111,9 +117,18 @@ export function textosPrimarios(trozoNor: string, trozoCli31: string):
   return { ok: true, texto1: t1.texto, texto2, quitadas: t1.quitadas };
 }
 
-/** El prompt de una tirada: los dos textos y la pregunta del brazo. */
-export function promptDeClaridad(brazo: BrazoDeClaridad, texto1: string, texto2: string): string {
-  return `Texto 1:\n"""\n${texto1}\n"""\n\nTexto 2:\n"""\n${texto2}\n"""\n\n${brazo === 'n' ? PREGUNTA_N : PREGUNTA_R}`;
+/**
+ * LA PREGUNTA R DE LA PAREJA PRIMARIA, CORREGIDA (Fable, 12/11, citada por el arquitecto): la original dice «el Texto 1 permite algo», y
+ * el Texto 1 permite DOS cosas (el propio Director o otro profesional designado), así que «DEPENDE de a quién se designe» sería correcta y
+ * contaría en contra. La secundaria conserva la original (`PREGUNTA_R`): P-A3-4 se escribió sobre ella. ⚠️ PENDIENTE de cotejar con el
+ * texto literal de Fable cuando llegue: hoy la prueba la busca en la cita del arquitecto, archivada.
+ */
+export const PREGUNTA_R_PRIMARIA = 'El Texto 1 permite que el Coordinador de Calidad sea el propio Director Clínico. Si una clínica hace uso de ese permiso, ¿puede cumplir al mismo tiempo lo que establece el Texto 2? No vale responder que basta con no usar el permiso. Responde en la primera línea con una sola de estas opciones: NO PUEDE, SÍ PUEDE o DEPENDE. Después explica tu respuesta en tres frases como máximo.';
+
+/** El prompt de una tirada: los dos textos y la pregunta del brazo; la R depende de la pareja. La N es la misma en las dos. */
+export function promptDeClaridad(brazo: BrazoDeClaridad, texto1: string, texto2: string, pareja: ParejaDeClaridad): string {
+  const pregunta = brazo === 'n' ? PREGUNTA_N : pareja === 'primaria' ? PREGUNTA_R_PRIMARIA : PREGUNTA_R;
+  return `Texto 1:\n"""\n${texto1}\n"""\n\nTexto 2:\n"""\n${texto2}\n"""\n\n${pregunta}`;
 }
 
 /** La primera línea no vacía, limpia como dice la cabecera. */
@@ -143,6 +158,8 @@ export function contarClaridad(brazo: BrazoDeClaridad, respuestas: string[]) {
   const laxos = v.filter(x => x.positivoLaxo).length, estrictos = v.filter(x => x.positivoEstricto).length;
   return {
     tiradas: v.length,
+    // en el brazo N, la PUERTA DE VALIDEZ (regla-de-validez.ts) va primero: se lee antes que la cuenta, y si no es válida, N no se lee
+    ...(brazo === 'n' ? { puertaDeValidez: puertaDeValidez(respuestas.filter((_, i) => v[i].positivoLaxo)) } : {}),
     primaria: { regla: 'laxa', positivos: laxos, porOpcion: porOpcion('laxa') },
     secundaria: { regla: 'estricta (Fable)', positivos: estrictos, porOpcion: porOpcion('estricta') },
   };
