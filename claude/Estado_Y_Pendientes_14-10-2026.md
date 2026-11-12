@@ -879,6 +879,11 @@ a ojo. El procedimiento, el coste y la consulta se plantean ANTES de pedírselo 
 
 ## ⚠️ F-130 (28/10/2026): LA SEGUNDA PASADA POR PAREJAS — EL PLAN
 
+⚠️ **QUÉ SIGNIFICA «CERRADO» PARA UN CASO COMO D (compromiso de producto nuevo, 12/11/2026; respuesta rápida de Fable, punto 2,
+`claude/consultas-fable/F-130_2026-11-12_consulta-rapida-y-respuesta.md`):** «no prometido y guardado como caso de no regresión; se
+puede reabrir si un segundo corpus trae otro miembro de la clase». Cerrar no es borrar ni olvidar: el caso se queda como guarda, y no se
+le promete al cliente. **Si D se cierra tras la tanda de claridad, se cierra con esta definición.**
+
 **Fuente.** El par está archivado en un solo fichero, como la casa: `claude/consultas-fable/F-130_2026-10-28_que-decide-lo-que-un-juez-escribe.md`
 (consulta en (c), dictamen en (d), cotejo en su cabecera; fila en `claude/consultas-fable/INDICE.md`). Las once predicciones, literales, en `claude/Predicciones_34_Conflicto_Normativo.md`.
 Las citas entre comillas de esta sección son del dictamen; lo demás dice de quién es. **Atribución**: las seis preguntas
@@ -2563,7 +2568,7 @@ Del inventario de Code (14/10), sobre las copias locales y el último censo del 
 | deuda | de dónde sale |
 |---|---|
 | ⚠️ **Guardar los bloques de razonamiento del juez en las rutas de medida.** El lector de la respuesta (`lib/llm/texto-de-la-respuesta.ts`) cuenta los bloques `thinking` / `redacted_thinking` y los descarta: no van a la base ni al log. Nos deja ciegos justo donde se vería el «difícil de ver». No se toca hasta que se encargue | F-130, paso 0c de Fable (arquitecto, 12/11/2026) |
-| **El hueco de la regla 3 del tramo literal** (`lib/analysis/tramo-de-cita.ts:164`): una cita con un ancla literal suficiente y un resto corto (la vez 7 de `m1`: ancla de 92 caracteres, resto «en», de 2) sale `resto_insuficiente` y muere, porque la regla está hecha para empalmes de dos tramos. Su propio frente, con la forma de Fable (respuesta 4 a la adenda 3): con el ancla suficiente por sí sola, se acepta, SE PUBLICA EL TRAMO REAL DEL DOCUMENTO y se verifica sobre él. ⚠️ No se toca hasta medirlo contra los controles de citas inventadas: aflojar la puerta es por donde entran los falsos | F-130, la vez 7 de `m1` (arquitecto, 12/11/2026) |
+| **El hueco de la regla 3 del tramo literal, CON SU FICHA** (`lib/analysis/tramo-de-cita.ts:164`): una cita con un ancla literal suficiente y un resto corto (la vez 7 de `m1`: ancla de 92 caracteres, resto «en», de 2) sale `resto_insuficiente` y muere, porque la regla está hecha para empalmes de dos tramos. **La ficha, de Fable** (respuesta rápida del 12/11, punto 4b): **(1) UMBRAL:** el ancla literal mide 40 caracteres normalizados o más Y cubre al menos el 85 % de la cita (la vez 7 cumple: 92 de 94); **(2) QUÉ SE VERIFICA:** SIEMPRE el tramo publicado, la frase real del documento, NUNCA la cita original — un resto de dos caracteres puede ser «en» o puede ser «no», y si la copia cambió el sentido, la frase real no sostiene el hallazgo y el verificador lo tira; **(3)** ⚠️ no se toca hasta medirlo contra los controles de citas inventadas: aflojar la puerta es por donde entran los falsos | F-130, la vez 7 de `m1` (arquitecto y Fable, 12/11/2026) |
 | `pipeline.ts` pasa de 1.515 líneas y hay que partirlo, en su propio commit | fase 3.1, excepción consciente del 13/10 |
 | Un titular de menos de 25 caracteres se pega a la frase que titula, y la «frase real» sale con «## 6. Retirada» delante | fase 3.1, commit 2 |
 | El solape entre trozos: una frase puede estar en dos trozos y el tramo se atribuye a la copia donde cae | fase 3.1 |

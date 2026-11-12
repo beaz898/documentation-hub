@@ -8328,6 +8328,10 @@ Lectura según Fable: 5 de 6 en «ninguno → capacidad (c.3)», 1 en «principi
 dos sin relacionarse (c.1)». **P-A3-2** (el principio en 6 o más de las 10 sin D; el permiso en 3 o menos): con 1 de las 6 vistas, la
 mitad del principio necesitaría que las 4 que faltan lo llevaran todas y aun así se quedaría en 5. **Refutada en esa mitad** si las 10
 sin D son las del arquitecto (D en la prosa 4 de 14, sin verificar); la mitad del permiso se cumple de momento (0 de 6).
+⚠️ **LAS DOS SALVEDADES DE FABLE A ESTA LECTURA, pegadas aquí a propósito** (respuesta rápida del 12/11,
+`consultas-fable/F-130_2026-11-12_consulta-rapida-y-respuesta.md`, punto 3): **(1)** la prosa enseña lo que el juez ESCRIBIÓ, no lo que
+consideró, así que «ninguno de los dos» es compatible con que no lo vea Y con que lo vea y lo descarte en silencio; sin el razonamiento
+no se separan; **(2)** son 6 prosas, y la tanda está sin verificar. **El «apunta a capacidad» del arquitecto queda debilitado por las dos.**
 
 **PASO 0c, los cuatro datos que le faltan a Fable:**
 1. **Los bloques de razonamiento del juez NO se guardan.** El lector de la respuesta (`lib/llm/texto-de-la-respuesta.ts`) se queda sólo
@@ -8387,8 +8391,9 @@ nuestro) no cambia.
   ≤ 60 no clara, en medio ZONA GRIS.** Un día solo decide si es extremo: **≥ 41 de 42 clara, ≤ 25 no clara.** El segundo día sirve
   para quitar el efecto día (τ ≈ 15,4), que la binomial no incluye.
 - ⚠️ **LA ZONA GRIS NO SE REPITE: va al director como decisión de definición.** La recomendación del arquitecto, prerregistrada, que el
-  director tiene que confirmar o cambiar ANTES de pulsar: **por defecto, la zona gris cae en NO CLARA y el frente se cierra**, por su
-  regla del 01/11 («sólo se firma lo que se deduce sin duda»). Si él decide otra cosa, manda él.
+  director tiene que confirmar o cambiar ANTES de pulsar: ~~por defecto, la zona gris cae en NO CLARA y el frente se cierra~~, por su
+  regla del 01/11 («sólo se firma lo que se deduce sin duda»). Si él decide otra cosa, manda él. ⚠️ **RETIRADO el 12/11 a las 13:05: el
+  director la deja A SU JUICIO**, con el procedimiento prerregistrado más abajo («LA RESPUESTA RÁPIDA DE FABLE, Y LA ZONA GRIS»).
 - **Las cifras del arquitecto, verificadas por Code con binomial exacta** (`scratchpad/bandas_claridad_2.mjs`): las bandas de Fable
   están en el 88,1 % y el 71,4 %; con una tasa real del 80 %, la zona gris es del 75,3 % en 42 y del 92,5 % en 84; con una del 70 %,
   «no clara» en un día sale el 63,7 % de las veces; con una del 80 %, ≥ 41 en un día cuesta el 0,10 %; con una del 70 %, ≤ 25 cuesta
@@ -8417,7 +8422,8 @@ al director no cambian.
   al 90 % se cerraba como no claro el 21,6 % de las veces, y uno al 85 %, el 73,2 %.
 - **LA REGLA, UNA SOLA: DOS DÍAS SIEMPRE, 42 por brazo cada día, y se decide sobre 84 con la cuenta laxa:**
   **≥ 68 clara** (el 81,0 %, el umbral de segunda etapa de Fable) · **≤ 60 no clara** (el 71,4 %, su tasa de un día escalada) · **en
-  medio, ZONA GRIS**, que va al director (por defecto «no clara», si él no decide otra cosa). **Se quitan los atajos de un día**: con
+  medio, ZONA GRIS**, que va al director (~~por defecto «no clara», si él no decide otra cosa~~; RETIRADO el 12/11 a las 13:05: queda a
+  su juicio, más abajo). **Se quitan los atajos de un día**: con
   estos umbrales, «41 o más en un día» saltaba el 6,8 % de las veces incluso con una tasa real del 90 %. Son 0,06 $ en total.
 - **La tabla, verificada por Code con binomial exacta** (`scratchpad/bandas_claridad_3.mjs`; coincide cifra a cifra con la del arquitecto):
   ```
@@ -8434,3 +8440,44 @@ al director no cambian.
   verdad claro** (90 %: 0,4 %; 85 %: 11,9 %); en las del 75 % para abajo, cerrar es lo que dice la regla del director.
 - **En el código** (`tanda-de-claridad.ts`): `decisionSobre84`, con 68 y 60; ya no hay decisión de un día. Mueren 25 mutantes, entre ellos
   el 67, el 69, el 59 y el 61, y uno que decide sobre 42.
+
+### LA RESPUESTA RÁPIDA DE FABLE, Y LA ZONA GRIS (12/11/2026, ANTES DE PULSAR)
+**Fuente:** la consulta rápida (12/11, 11:20) y la respuesta de Fable, literales, en
+`consultas-fable/F-130_2026-11-12_consulta-rapida-y-respuesta.md`. Lo que gobiernan, en las palabras del arquitecto:
+- **(a) LA PUNTUACIÓN DE SUS PREDICCIONES, CONGELADA:** P-A3-4 (brazo R, 37 o más) y P-A3-5 (brazo N, entre 26 y 35) se puntúan sobre
+  **EL DÍA 1, SOBRE 42, Y CON LA CUENTA LAXA.** No se reformulan sobre 84.
+- **(b) QUÉ SIGNIFICA «CERRADO»**, compromiso de producto nuevo: «no prometido y guardado como caso de no regresión; se puede reabrir si
+  un segundo corpus trae otro miembro de la clase». También en `Estado_Y_Pendientes_14-10-2026.md`, al principio de la sección de F-130.
+- **(c) PRERREGISTRO DE `d4c`**: la predicción de Fable es 0 a 2 de 14; **SÓLO 8 o más concluye algo** («la presencia de A la estaba
+  tapando»); **cualquier otro resultado NO CONCLUYE NADA y NO SE ANOTA COMO REFUTACIÓN.** Va en el paso 2, sólo si D es clara.
+- **(d) EL ORDEN DEL PASO 2 CAMBIA:** el diagnóstico de modelo va DELANTE del orden de reglas; los dos el mismo día con CONTROL COMPARTIDO
+  si caben, y si hay que elegir, el modelo. Sólo si D sale clara.
+- **(e) LAS DOS SALVEDADES AL PASO 0b**, pegadas a la lectura del paso 0b (más arriba), no aquí.
+- **(f) LA REGLA LAXA, CONGELADA CON HUELLA ANTES DE CONTAR** (la condición de Fable para puntuar contra ella): vive sola en
+  `app/api/admin/medida-f130/regla-laxa.ts`, y su huella (sha256 de 16, sobre el fichero con finales de línea LF) es
+  **`dbd2687e70c2069e`**. `regla-laxa.test.ts` la fija: cambiar una letra de la regla pone la prueba en rojo.
+- **(g) CAPTURA PARA EL PASO 2:** los bloques de pensamiento, EN LA HERRAMIENTA DE MEDIDA y sin tocar el producto, para contar en cuántas
+  aparece el permiso. Con el aviso de Fable: pueden venir resumidos, así que valen como INDICIO Y NO COMO PRUEBA. No está escrito.
+- **(h) LA FICHA DEL HUECO DE LA REGLA 3:** en `Estado_Y_Pendientes_14-10-2026.md` §5, sustituyendo a la entrada genérica (ancla de 40 o
+  más que cubra el 85 % de la cita; se verifica siempre el tramo publicado, nunca la cita; no se toca hasta medirlo con las citas
+  inventadas).
+
+⚠️ **LA ZONA GRIS: EL ORDEN DE LOS HECHOS, CON SUS HORAS.**
+1. **12/11, consulta de las 11:20:** se le propone a Fable la regla del arquitecto, «la zona gris cuenta como no clara y el frente se
+   cierra».
+2. **Su respuesta (punto 2), el mismo día:** «Sí: cuenta como no clara y se cierra. Es la regla del director aplicada al pie de la letra.»
+3. **12/11, 13:05, DESPUÉS:** el director lo cambia. **La zona gris queda A SU JUICIO, declarado antes de medir.** Se retira «por defecto,
+   no clara» de la cabecera de `tanda-de-claridad.ts` y de los dos prerregistros de arriba (tachado, con la hora).
+
+**EL PROCEDIMIENTO, PRERREGISTRADO AUNQUE NO EL RESULTADO** (para que su juicio no sea una decisión a posteriori). Lo que se le pone
+delante, fijado hoy:
+1. Los dos brazos sobre 84, cuenta LAXA (primaria) y ESTRICTA (secundaria), con el reparto por opción de cada brazo: CONFLICTO /
+   COMPATIBLES / DEPENDE en N, NO PUEDE / SÍ PUEDE / DEPENDE en R.
+2. Las respuestas de la lectura en papel, con la del director marcada NO CIEGA.
+3. La tabla del prerregistro: qué tasa real implica cada resultado.
+4. **LAS DOS OPCIONES ENTRE LAS QUE ELIGE, escritas hoy y sin una tercera:** CERRAR, con la definición de (b); o SEGUIR AL PASO 2, con
+   el orden de (d).
+
+⚠️ **REGLA NUEVA: LA LECTURA EN PAPEL VA ANTES DE LA PRIMERA PULSACIÓN CON MODELO**, no sólo antes de ver el resultado. Si el juicio del
+director viene anclado por un número del modelo, ya no es independiente, y es lo que decide. **Las respuestas en papel —la suya y las de
+los otros lectores— se archivan ANTES de que se pulse Claridad N o R con modelo.** También en la cabecera de `tanda-de-claridad.ts`.
