@@ -8629,3 +8629,54 @@ R ≥ 38         →  'previsto'       P-A3-7.
   de esa frase.
 - **En el código:** `controlDeR` devuelve `'alto_no_techo'`, y la cabecera de `tanda-de-claridad.ts` dice «alto, no techo: no requiere
   explicación, sólo se publica». Mueren los 50 mutantes.
+
+### ⚠️ LAS TRES LECTURAS HUMANAS: NO ES CONTRADICCIÓN. EL CASO D SE REENCUADRA (arquitecto, 13/11/2026, ANTES DE PULSAR)
+**Las tres lecturas en papel están hechas y coinciden** (con la hoja `claude/F-130_lectura_en_papel_D.md`: la pareja primaria, §2.4 sin
+la frase de A ↔ §3.1 entero, y las dos preguntas). Según el arquitecto: el **director** (NO CIEGO) dice «interpretable»; las **otras dos
+personas** (ciegas) dicen que no lo verían como contradicción: leen que el Director Clínico, cuando lleva los dos cargos, ejerce la
+esterilización COMO Coordinador de Calidad.
+⚠️ **LAS RESPUESTAS LITERALES DE LOS TRES LECTORES NO LE HAN LLEGADO A CODE.** Lo de arriba es el resumen del arquitecto; se archivan
+literales cuando el director las pegue. Se pulsa después de tenerlas archivadas (la regla del 12/11).
+
+**EL ARGUMENTO DEL DIRECTOR, QUE ES EL HALLAZGO** (literal, del mensaje del arquitecto, por script):
+```
+EL TEXTO 2 NO PROHÍBE: ASIGNA A UN CARGO Y EXPLICA EL MOTIVO. «Esta asignación
+responde a un criterio deliberado…: separar…» es un MOTIVO, no una norma. La
+asignación se cumple si la misma persona lleva los dos cargos, porque la ejerce
+como Coordinador. Para ser contradicción, el §3.1 tendría que prohibir la
+acumulación de cargos, y no lo hace. LA ÚNICA PROHIBICIÓN EXPLÍCITA DEL CORPUS
+(«nunca por el Director Clínico del propio centro») ESTÁ EN EL §3.5, Y ESTÁ
+ACOTADA A LAS SUSTITUCIONES POR AUSENCIA.
+```
+**El reencuadre, con las palabras del arquitecto:** «lo sembramos como "permisión contra principio", y el principio resulta ser un
+motivo, no una norma.»
+
+**LO QUE CAMBIA, PRERREGISTRADO ANTES DE PULSAR** (literal, del mismo mensaje):
+```
+1. LA TANDA YA NO DECIDE LA CLARIDAD: la han decidido los lectores. Pasa a ser
+   una COMPROBACIÓN DE CALIBRACIÓN: ¿marca el modelo lo que tres profesionales
+   dicen que no es un problema? Un modelo que diga CONFLICTO con fuerza aquí
+   es un modelo que generará avisos discutibles en corpus reales, y eso es lo
+   que el director decidió no enviar nunca.
+2. UN SOLO DÍA, no dos. Las bandas de 84 eran para la decisión de claridad, y
+   esa decisión ya está tomada. 42 por brazo basta para calibrar.
+3. ⚠️ TERCER BRAZO PRIMARIO, NUEVO Y BARATO: `pareja=315`, los TRES párrafos
+   —§2.4 (sin A) + §3.1 entero + §3.5 entero—, que es LO QUE VE EL PRODUCTO y
+   lo que los lectores NO vieron. Misma pregunta N. Si con el §3.5 delante el
+   modelo cambia de respuesta, el caso D en producción se apoya en esa
+   prohibición y no en el principio, y entonces HAY QUE VOLVER A PREGUNTAR A
+   LOS TRES LECTORES con los tres párrafos. Si no cambia, el caso se cierra.
+```
+**Lo que se pulsa, UN SOLO DÍA (unos 0,15 $):** Primaria R (control) · Primaria N · Primaria N con los tres párrafos · y las dos
+secundarias, para puntuar P-A3-4 y P-A3-5 de Fable. Siguen en pie el control de R sobre el día 1 (`controlDeR`) y la puerta de validez de
+N. P-A3-6 y P-A3-7 se puntúan sobre la primaria, día 1, sobre 42.
+
+**EN EL CÓDIGO:**
+- **La decisión sobre 84 se retira** (`decisionSobre84` y el doble día): ya no hay decisión de claridad que tomar con la tanda. Queda en
+  el historial de este registro, no en el código.
+- **El tercer brazo, `pareja=315`** (`textosTresParrafos`, `tanda-de-claridad.ts`): Texto 1, el §2.4 sin la frase de A; Texto 2, el §3.1
+  entero y, detrás, el §3.5 entero (los dos son de CLI-12), separados por una línea en blanco. **Sólo con N**: la ruta se niega con R.
+  Negativas: las de la primaria; que el §3.5 entre; y que siga sin entrar nada del §2.1. **Huella congelada: `e934bd98065d9edc`.**
+- **La hoja de papel de los tres párrafos va en un fichero APARTE**, `claude/F-130_lectura_en_papel_D_tres_parrafos.md`, por si hay que
+  volver a preguntar. **La hoja que leyeron los tres lectores no se ha tocado**: es la prueba de qué leyeron.
+- Mueren los 50 mutantes, entre ellos los de los tres párrafos sin el §3.5, con el §3.5 delante y con R.
