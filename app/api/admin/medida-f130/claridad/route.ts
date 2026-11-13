@@ -69,7 +69,7 @@ export async function POST(req: NextRequest) {
   const conTexto = respuestas.filter((r): r is typeof r & { texto: string } => 'texto' in r && typeof r.texto === 'string');
   return NextResponse.json({
     medida: sondeo ? `${medida} · SONDEO DE UNA TIRADA` : medida, cuando: new Date().toISOString(), huellaDelPrompt: huellaDelPrompt(prompt),
-    cuenta: { ...contarClaridad(brazo as BrazoDeClaridad, conTexto.map(r => r.texto)), fallidas: respuestas.length - conTexto.length },
+    cuenta: { ...contarClaridad(brazo as BrazoDeClaridad, conTexto.map(r => r.texto), pareja), fallidas: respuestas.length - conTexto.length },
     respuestas, registro,
   });
 }

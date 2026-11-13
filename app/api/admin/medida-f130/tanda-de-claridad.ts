@@ -30,8 +30,9 @@ export { OPCIONES, POSITIVO, opcionLaxa, primeraLineaSinSignos, positivoLaxo, ty
  *   · SECUNDARIA, ESTRICTA (la de Fable): la primera línea, sin formato, comillas ni la puntuación del final, es EXACTAMENTE la palabra.
  * ⚠️ DECIDE N, R ES CONTROL (arquitecto, 12/11): con la pregunta R corregida, R pregunta si la lógica se sostiene una vez enmarcada, y
  * queda casi en el techo por construcción; un brazo en el techo no decide. Así que DECIDE el brazo N primario sobre 84, con los umbrales
- * de abajo y la cuenta laxa, más las lecturas humanas; R es CONTROL: si R no sale alto, algo va mal en la pareja o en el montaje y N no
- * se lee. R no sube ni baja la decisión. Y EN N, PRIMERO LA PUERTA DE VALIDEZ (`regla-de-validez.ts`): si más de uno de cada cinco
+ * de abajo y la cuenta laxa, más las lecturas humanas; R es CONTROL (`controlDeR`, sobre el día 1 y antes del día 2): menos de 30 de 42
+ * y el control FALLA, N no se lee y no se pulsa el día 2; de 30 a 37 pasa, como anomalía a explicar; 38 o más, lo previsto. R no sube
+ * ni baja la decisión. Y EN N, PRIMERO LA PUERTA DE VALIDEZ (`regla-de-validez.ts`): si más de uno de cada cinco
  * CONFLICTO se explica por otra cosa que D, N no se lee, diga lo que diga; DESPUÉS, la cuenta.
  * LA DECISIÓN (arquitecto, 12/11, con los umbrales de Fable), SÓLO CON EL N PRIMARIO: se pulsan DOS DÍAS SIEMPRE, 42 cada día, y se decide
  * UNA SOLA VEZ, sobre 84 por brazo, con la cuenta laxa: ≥68 clara (el 81,0 %, el umbral de segunda etapa de Fable), ≤60 no clara (el
@@ -118,12 +119,24 @@ export function textosPrimarios(trozoNor: string, trozoCli31: string):
 }
 
 /**
- * LA PREGUNTA R DE LA PAREJA PRIMARIA, CORREGIDA (Fable, 12/11, citada por el arquitecto): la original dice «el Texto 1 permite algo», y
- * el Texto 1 permite DOS cosas (el propio Director o otro profesional designado), así que «DEPENDE de a quién se designe» sería correcta y
- * contaría en contra. La secundaria conserva la original (`PREGUNTA_R`): P-A3-4 se escribió sobre ella. ⚠️ PENDIENTE de cotejar con el
- * texto literal de Fable cuando llegue: hoy la prueba la busca en la cita del arquitecto, archivada.
+ * LA PREGUNTA R DE LA PAREJA PRIMARIA, CORREGIDA. El defecto (Fable, 12/11): la original dice «el Texto 1 permite algo», y el Texto 1
+ * permite DOS cosas (el propio Director o otro profesional designado), así que «DEPENDE de a quién se designe» sería correcta y contaría
+ * en contra. LA PROCEDENCIA (arquitecto, 13/11): Fable escribió SÓLO la primera frase («El Texto 1 permite que el Coordinador de Calidad
+ * sea el propio Director Clínico. Si una clínica hace uso de ese permiso, ¿puede cumplir…?», con puntos suspensivos, en su respuesta
+ * rápida del 12/11). Así que la pregunta es SU PRIMERA FRASE, literal, más EL RESTO DE `PREGUNTA_R` SIN TOCAR UNA LETRA; la unión es
+ * nuestra, y es la única parte nuestra. Se construye sustituyendo la primera frase, para que el resto no pueda separarse, y una prueba
+ * lo fija. La secundaria conserva la original (`PREGUNTA_R`): P-A3-4 se escribió sobre ella.
  */
-export const PREGUNTA_R_PRIMARIA = 'El Texto 1 permite que el Coordinador de Calidad sea el propio Director Clínico. Si una clínica hace uso de ese permiso, ¿puede cumplir al mismo tiempo lo que establece el Texto 2? No vale responder que basta con no usar el permiso. Responde en la primera línea con una sola de estas opciones: NO PUEDE, SÍ PUEDE o DEPENDE. Después explica tu respuesta en tres frases como máximo.';
+export const FRASE_1_DE_FABLE_PARA_R = 'El Texto 1 permite que el Coordinador de Calidad sea el propio Director Clínico.';
+export const FRASE_1_DE_PREGUNTA_R = 'El Texto 1 permite algo.';
+export const PREGUNTA_R_PRIMARIA = PREGUNTA_R.replace(FRASE_1_DE_PREGUNTA_R, FRASE_1_DE_FABLE_PARA_R);
+
+/** EL CONTROL DEL BRAZO R PRIMARIO (arquitecto, 13/11), sobre EL DÍA 1, sobre 42, con la cuenta laxa, antes de gastar el día 2. No es
+ *  la predicción de Fable: salta sólo si el montaje está roto. < 30 FALLA (N no se lee y no se pulsa el día 2); 30 a 37, PASA pero va
+ *  al informe como ANOMALÍA A EXPLICAR (R tenía que estar casi en el techo); ≥ 38, lo previsto (P-A3-7). Al final, también sobre 84. */
+export function controlDeR(positivosDelDia1: number): 'falla' | 'anomalia' | 'previsto' {
+  return positivosDelDia1 < 30 ? 'falla' : positivosDelDia1 < 38 ? 'anomalia' : 'previsto';
+}
 
 /** El prompt de una tirada: los dos textos y la pregunta del brazo; la R depende de la pareja. La N es la misma en las dos. */
 export function promptDeClaridad(brazo: BrazoDeClaridad, texto1: string, texto2: string, pareja: ParejaDeClaridad): string {
@@ -152,7 +165,7 @@ export function decisionSobre84(positivos: number): 'clara' | 'no_clara' | 'zona
 }
 
 /** La cuenta de una tanda (un día): las dos cuentas y por opción. Un día no decide: la decisión es sobre los dos (`decisionSobre84`). */
-export function contarClaridad(brazo: BrazoDeClaridad, respuestas: string[]) {
+export function contarClaridad(brazo: BrazoDeClaridad, respuestas: string[], pareja?: ParejaDeClaridad) {
   const v = respuestas.map(r => veredicto(brazo, r));
   const porOpcion = (k: 'laxa' | 'estricta') => { const o: Record<string, number> = {}; for (const x of v) o[x[k]] = (o[x[k]] ?? 0) + 1; return o; };
   const laxos = v.filter(x => x.positivoLaxo).length, estrictos = v.filter(x => x.positivoEstricto).length;
@@ -160,6 +173,8 @@ export function contarClaridad(brazo: BrazoDeClaridad, respuestas: string[]) {
     tiradas: v.length,
     // en el brazo N, la PUERTA DE VALIDEZ (regla-de-validez.ts) va primero: se lee antes que la cuenta, y si no es válida, N no se lee
     ...(brazo === 'n' ? { puertaDeValidez: puertaDeValidez(respuestas.filter((_, i) => v[i].positivoLaxo)) } : {}),
+    // en el brazo R PRIMARIO, el control del día (`controlDeR`): si falla, N no se lee y no se pulsa el día 2
+    ...(brazo === 'r' && pareja === 'primaria' ? { controlDeR: v.length === TIRADAS_POR_BRAZO ? controlDeR(laxos) : 'tanda_incompleta' as const } : {}),
     primaria: { regla: 'laxa', positivos: laxos, porOpcion: porOpcion('laxa') },
     secundaria: { regla: 'estricta (Fable)', positivos: estrictos, porOpcion: porOpcion('estricta') },
   };

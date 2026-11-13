@@ -5,7 +5,7 @@ import { toStoredChunks } from '@/lib/read-chunks';
 import { marcasDe } from './brazos';
 import {
   ANCLAS, PREGUNTA_N, PREGUNTA_R, TIRADAS_POR_BRAZO, TIRADAS_DE_LA_DECISION, contarClaridad, decisionSobre84, primeraLinea, promptDeClaridad, sinFrasesDeA,
-  textosDeClaridad, veredicto, textosPrimarios, ANCLA_DEL_3_1, RASTROS_DEL_2_1, PREGUNTA_R_PRIMARIA,
+  textosDeClaridad, veredicto, textosPrimarios, ANCLA_DEL_3_1, RASTROS_DEL_2_1, PREGUNTA_R_PRIMARIA, FRASE_1_DE_FABLE_PARA_R, FRASE_1_DE_PREGUNTA_R, controlDeR,
 } from './tanda-de-claridad';
 import { createHash } from 'node:crypto';
 
@@ -85,9 +85,27 @@ describe('la tanda de claridad (paso 1 de Fable, 12/11)', () => {
     expect(PREGUNTA_R_PRIMARIA).not.toBe(PREGUNTA_R);
   });
 
-  it('⚠️ LA PREGUNTA R CORREGIDA ES LA DE LA CITA DEL ARQUITECTO, PALABRA POR PALABRA (archivada; PENDIENTE de cotejar con Fable)', () => {
+  it('⚠️ LA PROCEDENCIA DE LA R CORREGIDA: la primera frase de Fable, y el RESTO, idéntico carácter a carácter al de la original', () => {
+    expect(PREGUNTA_R_PRIMARIA.startsWith(`${FRASE_1_DE_FABLE_PARA_R} `)).toBe(true);
+    expect(PREGUNTA_R.startsWith(`${FRASE_1_DE_PREGUNTA_R} `)).toBe(true);
+    expect(PREGUNTA_R_PRIMARIA.slice(FRASE_1_DE_FABLE_PARA_R.length)).toBe(PREGUNTA_R.slice(FRASE_1_DE_PREGUNTA_R.length));
+    // la primera frase de Fable, y el arranque de la segunda que también escribió («Si una clínica hace uso de ese permiso, ¿puede cumplir»)
+    expect(PREGUNTA_R_PRIMARIA).toContain(`${FRASE_1_DE_FABLE_PARA_R} Si una clínica hace uso de ese permiso, ¿puede cumplir`);
+    // y es la de la cita del arquitecto del 12/11, archivada
     const p = leer('claude/Predicciones_34_Conflicto_Normativo.md').replace(/\r\n/g, '\n');
     expect(p).toContain(`\n«${PREGUNTA_R_PRIMARIA}»\n`);
+  });
+
+  it('EL CONTROL DE R (arquitecto, 13/11), en sus bordes: < 30 falla, 30 a 37 anomalía, ≥ 38 lo previsto; sólo en el R primario', () => {
+    expect([0, 29, 30, 37, 38, 42].map(controlDeR)).toEqual(['falla', 'falla', 'anomalia', 'anomalia', 'previsto', 'previsto']);
+    const r29 = [...Array(29).fill('NO PUEDE\nporque…'), ...Array(13).fill('DEPENDE')];
+    expect(contarClaridad('r', r29, 'primaria').controlDeR).toBe('falla');
+    expect(contarClaridad('r', r29, 'secundaria')).not.toHaveProperty('controlDeR');
+    expect(contarClaridad('n', r29, 'primaria')).not.toHaveProperty('controlDeR');
+    expect(contarClaridad('r', ['NO PUEDE'], 'primaria').controlDeR).toBe('tanda_incompleta');
+    // el control va con la cuenta LAXA: «NO PUEDE: porque…» es positivo laxo y no estricto; con la estricta saldría «falla»
+    const laxos30 = [...Array(30).fill('NO PUEDE: porque…'), ...Array(12).fill('DEPENDE')];
+    expect(contarClaridad('r', laxos30, 'primaria').controlDeR).toBe('anomalia');
   });
 
   it('LAS DOS CUENTAS DE LA PRIMERA LÍNEA: la laxa (primaria) y la estricta (la de Fable), caso a caso', () => {
@@ -157,6 +175,6 @@ describe('la tanda de claridad (paso 1 de Fable, 12/11)', () => {
     expect(r.split('callLLM(').length - 1).toBe(1);
     expect(r).toContain('{ length: sondeo ? 1 : TIRADAS_POR_BRAZO }');
     expect(r).toContain('modeloExacto: delJuez.modelo,');
-    expect(r).toContain('cuenta: { ...contarClaridad(brazo as BrazoDeClaridad, conTexto.map(r => r.texto)), fallidas: respuestas.length - conTexto.length },');
+    expect(r).toContain('cuenta: { ...contarClaridad(brazo as BrazoDeClaridad, conTexto.map(r => r.texto), pareja), fallidas: respuestas.length - conTexto.length },');
   });
 });
