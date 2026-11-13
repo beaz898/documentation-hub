@@ -8637,6 +8637,8 @@ personas** (ciegas) dicen que no lo verían como contradicción: leen que el Dir
 esterilización COMO Coordinador de Calidad.
 ⚠️ **LAS RESPUESTAS LITERALES DE LOS TRES LECTORES NO LE HAN LLEGADO A CODE.** Lo de arriba es el resumen del arquitecto; se archivan
 literales cuando el director las pegue. Se pulsa después de tenerlas archivadas (la regla del 12/11).
+⚠️ **CORREGIDO EL 13/11 (arquitecto): NO FUERON «TRES LECTURAS EN PAPEL», NI LAS OTRAS DOS CONSTAN COMO CIEGAS.** Lo que fueron, con
+sus etiquetas, en el bloque «LAS LECTURAS, COMO LO QUE SON», más abajo.
 
 **EL ARGUMENTO DEL DIRECTOR, QUE ES EL HALLAZGO** (literal, del mensaje del arquitecto, por script):
 ```
@@ -8680,3 +8682,35 @@ N. P-A3-6 y P-A3-7 se puntúan sobre la primaria, día 1, sobre 42.
 - **La hoja de papel de los tres párrafos va en un fichero APARTE**, `claude/F-130_lectura_en_papel_D_tres_parrafos.md`, por si hay que
   volver a preguntar. **La hoja que leyeron los tres lectores no se ha tocado**: es la prueba de qué leyeron.
 - Mueren los 50 mutantes, entre ellos los de los tres párrafos sin el §3.5, con el §3.5 delante y con R.
+
+### LAS LECTURAS, COMO LO QUE SON (arquitecto, 13/11/2026, ANTES DE PULSAR)
+**Sustituye a «las tres lecturas en papel» del bloque anterior.** Las etiquetas, literales del mensaje del arquitecto (por script):
+```
+· DIRECTOR · NO CIEGA (conoce el caso). Dictada al arquitecto el 13/11 a las
+  12:04, ANTES de cualquier pulsación con modelo. Veredicto: interpretable,
+  «no lo veo una contradicción como tal ahora mismo». Su argumento, literal,
+  ya lo tienes.
+· DOS LECTORES MÁS · VERBALES Y RELATADAS POR EL DIRECTOR. No escritas por
+  ellos, sin registro propio ni hora. Veredicto relatado: no lo verían como
+  contradicción; leen que el Director Clínico, cuando lleva los dos cargos,
+  ejerce la esterilización COMO Coordinador de Calidad.
+  ⚠️ PENDIENTE DE CONFIRMAR si fueron ciegas: el director está comprobando si
+  les dio sólo los dos párrafos y la pregunta o si les puso en situación.
+  Hasta que lo confirme, se archivan como NO CIEGAS.
+```
+- ⚠️ **EL PROTOCOLO NO SE CUMPLIÓ.** Pedía, para cada lector, una respuesta ESCRITA por él, en papel, sin contexto y archivada antes de la
+  primera pulsación con modelo (`claude/F-130_lectura_en_papel_D.md` y el bloque del 12/11). Lo que hay es una lectura dictada (la del
+  director, no ciega, con hora) y dos relatadas por el director, verbales, sin registro propio ni hora. **Si llegan por escrito, se añaden.**
+- ⚠️ **POR QUÉ SE SIGUE ADELANTE IGUALMENTE** (arquitecto): la decisión que soportan es la CONSERVADORA —no prometer, no marcar—, y una
+  base de evidencia más floja pesa mucho menos cuando empuja hacia no marcar que cuando empuja hacia marcar. **Si las lecturas hubieran
+  dicho «sí es contradicción», con esta calidad de registro NO bastarían.**
+
+**LA LUZ VERDE, CONDICIONADA A DOS COSAS:** (a) estas lecturas archivadas con estas etiquetas, y (b) el ensayo de «Tres párrafos N» con la
+huella `e934bd98065d9edc`. Cumplidas las dos, se pulsa en este orden y en una sola sentada (unos 0,15 $):
+```
+1. Primaria R (el control) · las 42 tiradas
+2. Primaria N · las 42 tiradas
+3. Tres párrafos N · las 42 tiradas
+4. Secundaria R y Secundaria N · las 42 tiradas (para puntuar P-A3-4 y P-A3-5)
+```
+Nada en medio: ni subidas, ni reanálisis, ni tocar aceptar o descartar.
