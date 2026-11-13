@@ -31,7 +31,7 @@ export { OPCIONES, POSITIVO, opcionLaxa, primeraLineaSinSignos, positivoLaxo, ty
  * ⚠️ DECIDE N, R ES CONTROL (arquitecto, 12/11): con la pregunta R corregida, R pregunta si la lógica se sostiene una vez enmarcada, y
  * queda casi en el techo por construcción; un brazo en el techo no decide. Así que DECIDE el brazo N primario sobre 84, con los umbrales
  * de abajo y la cuenta laxa, más las lecturas humanas; R es CONTROL (`controlDeR`, sobre el día 1 y antes del día 2): menos de 30 de 42
- * y el control FALLA, N no se lee y no se pulsa el día 2; de 30 a 37 pasa, como anomalía a explicar; 38 o más, lo previsto. R no sube
+ * y el control FALLA, N no se lee y no se pulsa el día 2; de 30 a 37, ALTO, NO TECHO: no requiere explicación, sólo se publica; 38 o más, lo previsto. R no sube
  * ni baja la decisión. Y EN N, PRIMERO LA PUERTA DE VALIDEZ (`regla-de-validez.ts`): si más de uno de cada cinco
  * CONFLICTO se explica por otra cosa que D, N no se lee, diga lo que diga; DESPUÉS, la cuenta.
  * LA DECISIÓN (arquitecto, 12/11, con los umbrales de Fable), SÓLO CON EL N PRIMARIO: se pulsan DOS DÍAS SIEMPRE, 42 cada día, y se decide
@@ -132,10 +132,11 @@ export const FRASE_1_DE_PREGUNTA_R = 'El Texto 1 permite algo.';
 export const PREGUNTA_R_PRIMARIA = PREGUNTA_R.replace(FRASE_1_DE_PREGUNTA_R, FRASE_1_DE_FABLE_PARA_R);
 
 /** EL CONTROL DEL BRAZO R PRIMARIO (arquitecto, 13/11), sobre EL DÍA 1, sobre 42, con la cuenta laxa, antes de gastar el día 2. No es
- *  la predicción de Fable: salta sólo si el montaje está roto. < 30 FALLA (N no se lee y no se pulsa el día 2); 30 a 37, PASA pero va
- *  al informe como ANOMALÍA A EXPLICAR (R tenía que estar casi en el techo); ≥ 38, lo previsto (P-A3-7). Al final, también sobre 84. */
-export function controlDeR(positivosDelDia1: number): 'falla' | 'anomalia' | 'previsto' {
-  return positivosDelDia1 < 30 ? 'falla' : positivosDelDia1 < 38 ? 'anomalia' : 'previsto';
+ *  la predicción de Fable: salta sólo si el montaje está roto. < 30 FALLA (N no se lee y no se pulsa el día 2); 30 a 37, ALTO, NO
+ *  TECHO: no requiere explicación, sólo se publica (13/11: un montaje perfecto cae ahí el 41 % de las veces con una tasa real del 90 %
+ *  y el 88 % con una del 80 %; no es una anomalía, es variación normal); ≥ 38, lo previsto (P-A3-7). Al final, también sobre 84. */
+export function controlDeR(positivosDelDia1: number): 'falla' | 'alto_no_techo' | 'previsto' {
+  return positivosDelDia1 < 30 ? 'falla' : positivosDelDia1 < 38 ? 'alto_no_techo' : 'previsto';
 }
 
 /** El prompt de una tirada: los dos textos y la pregunta del brazo; la R depende de la pareja. La N es la misma en las dos. */

@@ -96,8 +96,8 @@ describe('la tanda de claridad (paso 1 de Fable, 12/11)', () => {
     expect(p).toContain(`\n«${PREGUNTA_R_PRIMARIA}»\n`);
   });
 
-  it('EL CONTROL DE R (arquitecto, 13/11), en sus bordes: < 30 falla, 30 a 37 anomalía, ≥ 38 lo previsto; sólo en el R primario', () => {
-    expect([0, 29, 30, 37, 38, 42].map(controlDeR)).toEqual(['falla', 'falla', 'anomalia', 'anomalia', 'previsto', 'previsto']);
+  it('EL CONTROL DE R (arquitecto, 13/11), en sus bordes: < 30 falla, 30 a 37 alto no techo, ≥ 38 lo previsto; sólo en el R primario', () => {
+    expect([0, 29, 30, 37, 38, 42].map(controlDeR)).toEqual(['falla', 'falla', 'alto_no_techo', 'alto_no_techo', 'previsto', 'previsto']);
     const r29 = [...Array(29).fill('NO PUEDE\nporque…'), ...Array(13).fill('DEPENDE')];
     expect(contarClaridad('r', r29, 'primaria').controlDeR).toBe('falla');
     expect(contarClaridad('r', r29, 'secundaria')).not.toHaveProperty('controlDeR');
@@ -105,7 +105,7 @@ describe('la tanda de claridad (paso 1 de Fable, 12/11)', () => {
     expect(contarClaridad('r', ['NO PUEDE'], 'primaria').controlDeR).toBe('tanda_incompleta');
     // el control va con la cuenta LAXA: «NO PUEDE: porque…» es positivo laxo y no estricto; con la estricta saldría «falla»
     const laxos30 = [...Array(30).fill('NO PUEDE: porque…'), ...Array(12).fill('DEPENDE')];
-    expect(contarClaridad('r', laxos30, 'primaria').controlDeR).toBe('anomalia');
+    expect(contarClaridad('r', laxos30, 'primaria').controlDeR).toBe('alto_no_techo');
   });
 
   it('LAS DOS CUENTAS DE LA PRIMERA LÍNEA: la laxa (primaria) y la estricta (la de Fable), caso a caso', () => {
