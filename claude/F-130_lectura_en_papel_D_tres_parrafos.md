@@ -1,3 +1,5 @@
+**⚠️ NO ENVIAR ESTE FICHERO A UN LECTOR. Copiar sólo lo que va debajo de la línea de corte.**
+
 # F-130 · La lectura en papel del caso D CON LOS TRES PÁRRAFOS (13/11/2026) — SE REPARTE
 
 **Se reparte desde el 13/11, por orden del arquitecto**: el «no es contradicción» de los lectores salió de dos párrafos, y el producto
@@ -9,8 +11,9 @@ ve tres. La hoja que ya leyeron, con dos párrafos, es `F-130_lectura_en_papel_D
 - Ni números, ni lo que respondieron otros, ni lo que respondió el modelo.
 - **Que la respuesta la ESCRIBA el propio lector, con su nombre y la hora**, y que llegue a Code tal cual (foto o texto copiado), antes de
   hablarla con nadie. Es lo que pedía el protocolo y ayer no se cumplió.
-- La pregunta es la del instrumento, con las tres opciones, no la binaria de ayer: así su respuesta sí se puede poner al lado de la cuenta
-  del brazo N.
+- **Dos preguntas, en este orden** (arquitecto, 13/11). La 1.ª es la del instrumento, con las tres opciones, y ES LA QUE CUENTA: se pone
+  al lado de la cuenta del brazo N. La 2.ª, debajo, es la binaria de ayer, para compararla con aquellas lecturas; la 1.ª ya no se cambia.
+  Así, si algo cambia respecto a ayer, se sabe si lo cambió el texto o la pregunta.
 - **Quién la lee y en qué estado** (arquitecto, 13/11): los dos lectores de ayer siguen CIEGOS, no han visto ningún número, y su lectura
   es la que vale. El director ya ha visto los resultados (34/42 y 41/42), y su segunda lectura se archiva marcada ANCLADA.
 
@@ -44,5 +47,14 @@ Los dos textos son de la misma organización y están vigentes a la vez. ¿Hay u
 **Tu respuesta (una palabra):**
 
 **Por qué (tres frases como máximo):**
+
+---
+
+**Y además, en binario, como se preguntó antes: ¿te parece una contradicción? SÍ o NO.**
+(Contesta a esto sólo después de haber escrito la respuesta de arriba. La respuesta de arriba ya no se cambia.)
+
+**SÍ / NO:**
+
+---
 
 **Nombre:**                **Fecha y hora:**

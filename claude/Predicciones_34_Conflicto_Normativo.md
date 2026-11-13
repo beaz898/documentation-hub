@@ -8772,3 +8772,20 @@ decisión: el arquitecto las deja abiertas hasta la lectura de los tres párrafo
   sin ninguna de las frases que busca. La cuenta se queda como sale (32 por D, 2 por otra cosa; la puerta, válida).
 - **La hoja que se reparte:** `claude/F-130_lectura_en_papel_D_tres_parrafos.md`, sólo lo que va debajo de su línea de corte. Quién la lee
   y en qué estado, tal como lo fija el arquitecto arriba: los dos lectores de ayer, CIEGOS (su lectura es la que vale); el director, ANCLADO.
+
+**LA HOJA DE LOS TRES PÁRRAFOS: LAS DOS PREGUNTAS Y EL AVISO** (arquitecto, 13/11, literal por script). Hecho en
+`claude/F-130_lectura_en_papel_D_tres_parrafos.md`: el aviso en la primera línea, y la binaria debajo de la del instrumento.
+````
+**LAS TRES OPCIONES, SÍ — y además el binario detrás.** Tu razón es buena: con CONFLICTO / COMPATIBLES / DEPENDE la respuesta se puede poner al lado de la cuenta del brazo N, que es para lo que sirve. **Pero si cambiamos el texto Y la pregunta a la vez, no sabremos a cuál de las dos atribuir cualquier cambio respecto a ayer.** Así que las dos, en este orden:
+```
+1.º  La del instrumento, con las tres opciones. ES LA QUE CUENTA.
+2.º  Debajo, una línea más: «Y además, en binario, como se preguntó antes:
+     ¿te parece una contradicción? SÍ o NO.»
+     Con el aviso de que la primera respuesta YA NO SE CAMBIA.
+```
+Así la primera se compara con el modelo y la segunda con las lecturas de ayer, y al lector le cuesta cinco segundos más.
+
+**Lo demás, aprobado tal cual, y dos cosas que has hecho bien y que no te pedí:** la línea de corte para que el lector sólo vea lo de abajo, y el nombre y la hora en la hoja — eso arregla justo lo que ayer no se cumplió. **Y comprobar por script que debajo de la línea no aparece «modelo», «caso D» ni «huella» es exactamente el control que hacía falta.**
+
+⚠️ **Un riesgo que queda abierto: la hoja es un fichero del repositorio.** Si el director se la manda entera a un lector, el lector puede subir y leer las instrucciones. **Pon arriba del todo, en la primera línea del fichero, un aviso: «NO ENVIAR ESTE FICHERO A UN LECTOR. Copiar sólo lo que va debajo de la línea de corte.»**
+````
