@@ -8734,3 +8734,41 @@ huella `e934bd98065d9edc`. Cumplidas las dos, se pulsa en este orden y en una so
 4. Secundaria R y Secundaria N · las 42 tiradas (para puntuar P-A3-4 y P-A3-5)
 ```
 Nada en medio: ni subidas, ni reanálisis, ni tocar aceptar o descartar.
+
+### LAS CINCO TANDAS DEL 13/11 Y EL ENSAYO, ARCHIVADOS TAL CUAL; LA DECISIÓN, ABIERTA (13/11/2026)
+Copiados byte a byte de lo que pegó el director (sacados del registro de la conversación por script). Las cuentas, rehechas por Code
+con un script propio (primera palabra de cada respuesta), coinciden con las de la página en las cinco. **Aquí no va la puntuación ni la
+decisión: el arquitecto las deja abiertas hasta la lectura de los tres párrafos.**
+
+| Fichero | Hora | Huella del prompt | Respuestas |
+|---|---|---|---|
+| `claude/Medida_F130_Claridad_13-11-2026_0_ensayo_tres_parrafos_N.json` | ensayo, sin hora | `e934bd98065d9edc` | 0 |
+| `claude/Medida_F130_Claridad_13-11-2026_1_primaria_R.json` | 13:22:15 UTC | `e8add83ec7be14a1` | 42 |
+| `claude/Medida_F130_Claridad_13-11-2026_2_primaria_N.json` | 13:50:49 UTC | `a053c1bbeb1b0ade` | 42 |
+| `claude/Medida_F130_Claridad_13-11-2026_3_tres_parrafos_N.json` | 13:25:16 UTC | `e934bd98065d9edc` | 42 |
+| `claude/Medida_F130_Claridad_13-11-2026_4_secundaria_R.json` | 13:26:58 UTC | `b8c3cca016783273` | 42 |
+| `claude/Medida_F130_Claridad_13-11-2026_5_secundaria_N.json` | 13:29:39 UTC | `cef15935b2973843` | 42 |
+
+**El mensaje del arquitecto, literal (por script):**
+````
+**LA TANDA DE PRIMARIA N QUE VALE ES LA DE LAS 13:50, Y ES LA ÚNICA QUE HUBO.** A las 13:22–13:29 el director no llegó a pulsar «las 42 tiradas» de Primaria N: pulsó el ENSAYO, y lo pulsó tres veces —me las pegó las tres, y las tres dicen «sin llamar al modelo» y no llevan hora—. **No vio ningún número de ninguna primera vez, porque no hubo primera vez.** Lo de «la he vuelto a ejecutar» se refiere a haber vuelto a pulsar el botón, no a repetir una tanda.
+**Anótalo así: tanda única, a las 13:50 UTC, pulsada ~20 minutos después de las otras cuatro y fuera del orden aprobado. Mismo día, mismas condiciones; el efecto día es entre días.**
+
+**Y tu manejo de los dos «otra» es el correcto:** la cuenta se queda como sale, el clasificador está congelado y el defecto se anota. **Un instrumento que se corrige después de ver el resultado deja de ser un instrumento.** Al registro como defecto conocido: dos respuestas que hablan de D sin usar ninguna de las frases que busca el clasificador.
+
+⚠️ **NO ARCHIVES TODAVÍA LA DECISIÓN NI LA PUNTUACIÓN FINAL.** El director ha pedido algo que puede darle la vuelta: **leer el caso con los TRES párrafos**, porque su «no es contradicción» salió de dos. Archiva las cinco tandas y el ensayo tal cual, con sus horas y sus huellas, y deja la decisión abierta.
+
+**Prepárale la hoja de los tres párrafos para repartir**, y que el registro diga quién la lee y en qué estado:
+```
+· los DOS lectores de ayer: siguen CIEGOS, no han visto ningún número.
+  Su lectura de los tres párrafos es la que vale.
+· el DIRECTOR: ya ha visto los resultados (34/42 y 41/42). Su segunda lectura
+  se archiva marcada ANCLADA.
+```
+````
+- **Primaria N: tanda ÚNICA**, a las 13:50:49 UTC, pulsada unos 20 minutos después de las otras cuatro y fuera del orden aprobado. A las
+  13:22–13:29 sólo se pulsó su ensayo. Mismo día y mismas condiciones.
+- **Defecto conocido del clasificador de la puerta (congelado, no se toca):** en Primaria N, las veces 12 y 30 salen «otra» y hablan de D
+  sin ninguna de las frases que busca. La cuenta se queda como sale (32 por D, 2 por otra cosa; la puerta, válida).
+- **La hoja que se reparte:** `claude/F-130_lectura_en_papel_D_tres_parrafos.md`, sólo lo que va debajo de su línea de corte. Quién la lee
+  y en qué estado, tal como lo fija el arquitecto arriba: los dos lectores de ayer, CIEGOS (su lectura es la que vale); el director, ANCLADO.

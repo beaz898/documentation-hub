@@ -1,13 +1,27 @@
-# F-130 · La lectura en papel del caso D CON LOS TRES PÁRRAFOS (13/11/2026) — SÓLO SI HAY QUE VOLVER A PREGUNTAR
+# F-130 · La lectura en papel del caso D CON LOS TRES PÁRRAFOS (13/11/2026) — SE REPARTE
 
-**No se reparte salvo que el arquitecto lo diga.** Se usa si, con el §3.5 delante, el modelo cambia de respuesta: entonces el caso D
-en producción se apoya en esa prohibición y no en el principio, y hay que volver a preguntar a los lectores con los tres párrafos. La
-hoja que ya leyeron los tres lectores, con dos párrafos, es `F-130_lectura_en_papel_D.md`, y no se ha tocado.
+**Se reparte desde el 13/11, por orden del arquitecto**: el «no es contradicción» de los lectores salió de dos párrafos, y el producto
+ve tres. La hoja que ya leyeron, con dos párrafos, es `F-130_lectura_en_papel_D.md`, y no se ha tocado.
+
+**Cómo se reparte, para que la lectura valga:**
+- **Al lector sólo se le da lo que va DEBAJO de la línea «✂ — HOJA PARA EL LECTOR».** Lo de encima no lo ve: nombra el modelo, el caso y
+  lo que se busca, y eso rompería que sea ciega en cuanto al propósito.
+- Ni números, ni lo que respondieron otros, ni lo que respondió el modelo.
+- **Que la respuesta la ESCRIBA el propio lector, con su nombre y la hora**, y que llegue a Code tal cual (foto o texto copiado), antes de
+  hablarla con nadie. Es lo que pedía el protocolo y ayer no se cumplió.
+- La pregunta es la del instrumento, con las tres opciones, no la binaria de ayer: así su respuesta sí se puede poner al lado de la cuenta
+  del brazo N.
+- **Quién la lee y en qué estado** (arquitecto, 13/11): los dos lectores de ayer siguen CIEGOS, no han visto ningún número, y su lectura
+  es la que vale. El director ya ha visto los resultados (34/42 y 41/42), y su segunda lectura se archiva marcada ANCLADA.
 
 Los dos textos son EXACTAMENTE los que recibe el modelo en el brazo de los tres párrafos, sacados por script con la misma función que
 usa la ruta (`textosTresParrafos`). Texto 1: el §2.4 de NOR-10 sin la frase que remite al §2.1. Texto 2: el §3.1 de CLI-12 entero y,
 detrás, el §3.5 entero (los dos son del mismo documento).
 Huella del prompt del modelo (sólo brazo N): `e934bd98065d9edc` (tiene que coincidir con la del ensayo).
+
+---
+
+✂ — HOJA PARA EL LECTOR (sólo desde aquí hacia abajo)
 
 ---
 
@@ -26,3 +40,9 @@ En ausencia programada o imprevista del Coordinador de Calidad (vacaciones, baja
 ## Pregunta
 
 Los dos textos son de la misma organización y están vigentes a la vez. ¿Hay un conflicto entre lo que establecen? Responde en la primera línea con una sola palabra: CONFLICTO, COMPATIBLES o DEPENDE. Después explica tu respuesta en tres frases como máximo.
+
+**Tu respuesta (una palabra):**
+
+**Por qué (tres frases como máximo):**
+
+**Nombre:**                **Fecha y hora:**

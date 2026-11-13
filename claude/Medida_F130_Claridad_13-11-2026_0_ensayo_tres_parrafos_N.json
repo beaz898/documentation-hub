@@ -1,0 +1,11 @@
+{
+  "estadoHttp": 200,
+  "medida": "F-130 · LA TANDA DE CLARIDAD (paso 1 de Fable), brazo N, neutro, LOS TRES PÁRRAFOS, lo que ve el producto: NOR-10 §2.4 sin la frase de A ↔ CLI-12 §3.1 ENTERO y §3.5 ENTERO; sin el prompt del juez, con el modelo y el esfuerzo del juez, 42 tiradas",
+  "ensayo": "sin llamar al modelo",
+  "modelo": "claude-haiku-5-5",
+  "huellaDelPrompt": "e934bd98065d9edc",
+  "prompt": "Texto 1:\n\"\"\"\nCada clínica cuenta con un Coordinador de Calidad, figura que puede recaer en el propio Director Clínico o en otro profesional designado por él, encargado de supervisar el cumplimiento documental del protocolo: mantener actualizados los registros, preparar la documentación para auditorías internas y externas, y proponer mejoras al protocolo basadas en la experiencia diaria del centro.\n\"\"\"\n\nTexto 2:\n\"\"\"\nEl responsable último de la esterilización del instrumental en cada clínica es el Coordinador de Calidad del centro, no el Director Clínico. Esta asignación responde a un criterio deliberado del sistema de gestión de calidad: separar la responsabilidad de un proceso crítico de seguridad del paciente de la persona que, en su rol de Director Clínico, gestiona simultáneamente la agenda asistencial y puede verse sometida a presión de tiempo que entre en conflicto con el rigor exigido en esterilización.\n\nEn ausencia programada o imprevista del Coordinador de Calidad (vacaciones, baja), sus funciones son asumidas temporalmente por el Coordinador de Calidad de otra clínica de la red, nunca por el Director Clínico del propio centro, precisamente para mantener la separación de funciones descrita en el apartado 3.1. Esta sustitución se comunica formalmente a todo el personal del centro afectado.\n\"\"\"\n\nLos dos textos son de la misma organización y están vigentes a la vez. ¿Hay un conflicto entre lo que establecen? Responde en la primera línea con una sola palabra: CONFLICTO, COMPATIBLES o DEPENDE. Después explica tu respuesta en tres frases como máximo.",
+  "frasesDeAQuitadas": [
+    "El Coordinador de Calidad no sustituye al Director Clínico en la responsabilidad última descrita en el apartado 2.1, sino que actúa como apoyo operativo directo."
+  ]
+}

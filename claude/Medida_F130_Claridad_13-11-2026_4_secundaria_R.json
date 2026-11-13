@@ -1,0 +1,1661 @@
+{
+  "estadoHttp": 200,
+  "medida": "F-130 · LA TANDA DE CLARIDAD (paso 1 de Fable), brazo R, con la regla del producto, pareja secundaria: NOR-10 §2.4 sin la frase de A ↔ CLI-12 §3.5; sin el prompt del juez, con el modelo y el esfuerzo del juez, 42 tiradas",
+  "cuando": "2026-11-13T13:26:58.192Z",
+  "huellaDelPrompt": "b8c3cca016783273",
+  "cuenta": {
+    "tiradas": 42,
+    "primaria": {
+      "regla": "laxa",
+      "positivos": 3,
+      "porOpcion": {
+        "SI PUEDE": 39,
+        "NO PUEDE": 3
+      }
+    },
+    "secundaria": {
+      "regla": "estricta (Fable)",
+      "positivos": 2,
+      "porOpcion": {
+        "OTRA": 30,
+        "SI PUEDE": 10,
+        "NO PUEDE": 2
+      }
+    },
+    "fallidas": 0
+  },
+  "respuestas": [
+    {
+      "vez": 1,
+      "linea": "SI PUEDE. EL TEXTO 1 PERMITE QUE EL DIRECTOR CLINICO EJERZA TAMBIEN COMO COORDINADOR DE CALIDAD, Y EL TEXTO 2 SOLO REGULA QUIEN SUSTITUYE AL COORDINADOR CUANDO ESTE ESTA AUSENTE, EXIGIENDO QUE SEA OTRO COORDINADOR DE LA RED Y NUNCA EL DIRECTOR DEL PROPIO CENTRO. SI EL DIRECTOR ES EL COORDINADOR Y SE AUSENTA, LA SUSTITUCION POR EL COORDINADOR DE OTRA CLINICA CUMPLE EL TEXTO 2 SIN CONTRADICCION CON EL TEXTO 1",
+      "laxa": "SI PUEDE",
+      "positivoLaxo": false,
+      "estricta": "OTRA",
+      "positivoEstricto": false,
+      "texto": "SÍ PUEDE. El Texto 1 permite que el Director Clínico ejerza también como Coordinador de Calidad, y el Texto 2 solo regula quién sustituye al Coordinador cuando este está ausente, exigiendo que sea otro Coordinador de la red y nunca el Director del propio centro. Si el Director es el Coordinador y se ausenta, la sustitución por el Coordinador de otra clínica cumple el Texto 2 sin contradicción con el Texto 1."
+    },
+    {
+      "vez": 2,
+      "linea": "SI PUEDE",
+      "laxa": "SI PUEDE",
+      "positivoLaxo": false,
+      "estricta": "SI PUEDE",
+      "positivoEstricto": false,
+      "texto": "**SÍ PUEDE**\n\nSi el Director Clínico asume también la función de Coordinador de Calidad, la regla de sustitución del Texto 2 se sigue cumpliendo: en su ausencia, otro Coordinador de Calidad de la red lo reemplaza, nunca el propio Director. Sin embargo, el permiso del Texto 1 ya introduce una concentración de funciones que el Texto 2 pretende evitar con la separación descrita en el apartado 3.1, aunque no la contradice de forma literal."
+    },
+    {
+      "vez": 3,
+      "linea": "SI PUEDE. SI EL DIRECTOR CLINICO ASUME EL CARGO DE COORDINADOR DE CALIDAD, SU AUSENCIA SE CUBRE CON EL COORDINADOR DE OTRA CLINICA DE LA RED, COMO EXIGE EL TEXTO 2, Y NUNCA CON OTRO MIEMBRO DE LA CLINICA QUE EJERZA COMO DIRECTOR. SIN EMBARGO, ESTO CUMPLE LA LETRA DEL TEXTO 2 PERO NO SU PROPOSITO, PORQUE ESE TEXTO BUSCA MANTENER LA SEPARACION DE FUNCIONES QUE EL USO DEL PERMISO ELIMINA",
+      "laxa": "SI PUEDE",
+      "positivoLaxo": false,
+      "estricta": "OTRA",
+      "positivoEstricto": false,
+      "texto": "**SÍ PUEDE.** Si el Director Clínico asume el cargo de Coordinador de Calidad, su ausencia se cubre con el Coordinador de otra clínica de la red, como exige el Texto 2, y nunca con otro miembro de la clínica que ejerza como Director. Sin embargo, esto cumple la letra del Texto 2 pero no su propósito, porque ese texto busca mantener la separación de funciones que el uso del permiso elimina."
+    },
+    {
+      "vez": 4,
+      "linea": "SI PUEDE",
+      "laxa": "SI PUEDE",
+      "positivoLaxo": false,
+      "estricta": "SI PUEDE",
+      "positivoEstricto": false,
+      "texto": "**SÍ PUEDE**\n\nSi el Director Clínico asume el cargo de Coordinador de Calidad, la sustitución en sus ausencias sigue pudiendo hacerse por el Coordinador de otra clínica de la red, como exige el Texto 2. El Texto 2 regula quién puede sustituir al coordinador, no quién puede ocupar el cargo, así que ambas reglas se cumplen literalmente. Sin embargo, el Texto 2 justifica su norma en la separación de funciones del apartado 3.1, y esa separación queda debilitada cuando el propio Director supervisa la calidad de su centro."
+    },
+    {
+      "vez": 5,
+      "linea": "SI PUEDE",
+      "laxa": "SI PUEDE",
+      "positivoLaxo": false,
+      "estricta": "SI PUEDE",
+      "positivoEstricto": false,
+      "texto": "**SÍ PUEDE**\n\nCuando el Director Clínico es también Coordinador de Calidad y se ausenta, el Texto 2 se cumple formalmente si lo sustituye el Coordinador de otra clínica de la red, porque ese es el único sustituto que exige. Sin embargo, el Texto 2 presupone la separación de funciones del apartado 3.1, que el permiso del Texto 1 ya debilita al permitir que ambos cargos recaigan en la misma persona. Por tanto, la cumplimentación es literal, pero no alcanza la finalidad que el Texto 2 persigue."
+    },
+    {
+      "vez": 6,
+      "linea": "SI PUEDE. EL TEXTO 2 SOLO REGULA QUIEN SUSTITUYE AL COORDINADOR DE CALIDAD EN SU AUSENCIA: OTRO COORDINADOR DE CALIDAD DE LA RED, NUNCA EL DIRECTOR CLINICO DEL PROPIO CENTRO. SI EL DIRECTOR CLINICO EJERCE TAMBIEN COMO COORDINADOR, ESA REGLA SE CUMPLE IGUALMENTE, PORQUE SU SUSTITUTO SERIA OTRO COORDINADOR DE LA RED. LO QUE SE PIERDE ES LA SEPARACION DE FUNCIONES QUE EL TEXTO 2 PRETENDE PROTEGER, PERO ESO NO IMPIDE CUMPLIR SU LITERALIDAD",
+      "laxa": "SI PUEDE",
+      "positivoLaxo": false,
+      "estricta": "OTRA",
+      "positivoEstricto": false,
+      "texto": "**SÍ PUEDE.** El Texto 2 solo regula quién sustituye al Coordinador de Calidad en su ausencia: otro Coordinador de Calidad de la red, nunca el Director Clínico del propio centro. Si el Director Clínico ejerce también como Coordinador, esa regla se cumple igualmente, porque su sustituto sería otro coordinador de la red. Lo que se pierde es la separación de funciones que el Texto 2 pretende proteger, pero eso no impide cumplir su literalidad."
+    },
+    {
+      "vez": 7,
+      "linea": "SI PUEDE",
+      "laxa": "SI PUEDE",
+      "positivoLaxo": false,
+      "estricta": "SI PUEDE",
+      "positivoEstricto": false,
+      "texto": "**SÍ PUEDE.**\nSi el Director Clínico asume el cargo de Coordinador de Calidad, la sustitución en su ausencia la asume el Coordinador de otra clínica de la red, así que el Director nunca sustituye a nadie en ese rol. Ambos textos se cumplen a la vez en lo literal, aunque el permiso del Texto 1 debilita la separación de funciones que el Texto 2 pretende proteger."
+    },
+    {
+      "vez": 8,
+      "linea": "SI PUEDE. SI EL DIRECTOR CLINICO EJERCE TAMBIEN COMO COORDINADOR DE CALIDAD, SU AUSENCIA SE CUBRE CON EL COORDINADOR DE OTRA CLINICA DE LA RED, COMO EXIGE EL TEXTO 2, Y EL DIRECTOR NO SUSTITUYE A NADIE. EL TEXTO 2 REGULA QUIEN SUSTITUYE AL COORDINADOR, NO QUIEN PUEDE OCUPAR EL CARGO, ASI QUE AMBAS NORMAS SE CUMPLEN A LA VEZ. LO QUE SI QUEDA EN TENSION ES EL ESPIRITU DE LA SEPARACION DE FUNCIONES DEL APARTADO 3.1, AUNQUE LOS TEXTOS NO LO PROHIBEN EXPRESAMENTE",
+      "laxa": "SI PUEDE",
+      "positivoLaxo": false,
+      "estricta": "OTRA",
+      "positivoEstricto": false,
+      "texto": "**SÍ PUEDE.** Si el Director Clínico ejerce también como Coordinador de Calidad, su ausencia se cubre con el Coordinador de otra clínica de la red, como exige el Texto 2, y el Director no sustituye a nadie. El Texto 2 regula quién sustituye al Coordinador, no quién puede ocupar el cargo, así que ambas normas se cumplen a la vez. Lo que sí queda en tensión es el espíritu de la separación de funciones del apartado 3.1, aunque los textos no lo prohíben expresamente."
+    },
+    {
+      "vez": 9,
+      "linea": "SI PUEDE",
+      "laxa": "SI PUEDE",
+      "positivoLaxo": false,
+      "estricta": "SI PUEDE",
+      "positivoEstricto": false,
+      "texto": "**SÍ PUEDE.**\nEl Texto 1 permite que el Director Clínico sea también Coordinador de Calidad, y el Texto 2 regula solo quién sustituye al coordinador en su ausencia, sin prohibir que ese coordinador sea el director. Si el director ocupa ambos cargos y se ausenta, la sustitución debe hacerla el coordinador de otra clínica de la red, lo que cumple la prohibición de que sea el Director Clínico del propio centro. Aun así, la separación de funciones del apartado 3.1 queda debilitada por el propio permiso del Texto 1, aunque el texto de la norma no lo declare incompatible."
+    },
+    {
+      "vez": 10,
+      "linea": "SI PUEDE. EL TEXTO 1 PERMITE QUE EL COORDINADOR DE CALIDAD SEA EL PROPIO DIRECTOR CLINICO, Y EL TEXTO 2 SOLO REGULA QUIEN SUSTITUYE AL COORDINADOR EN SU AUSENCIA: UN COORDINADOR DE OTRA CLINICA DE LA RED, NUNCA EL DIRECTOR DEL CENTRO. AMBAS NORMAS SE CUMPLEN A LA VEZ PORQUE LA SUSTITUCION SE HARIA CON OTRA PERSONA DISTINTA DEL DIRECTOR. AUN ASI, EL TEXTO 2 JUSTIFICA SU REGLA EN UNA SEPARACION DE FUNCIONES QUE LA DESIGNACION DEL DIRECTOR COMO COORDINADOR DEBILITA",
+      "laxa": "SI PUEDE",
+      "positivoLaxo": false,
+      "estricta": "OTRA",
+      "positivoEstricto": false,
+      "texto": "**SÍ PUEDE.** El Texto 1 permite que el Coordinador de Calidad sea el propio Director Clínico, y el Texto 2 solo regula quién sustituye al Coordinador en su ausencia: un coordinador de otra clínica de la red, nunca el Director del centro. Ambas normas se cumplen a la vez porque la sustitución se haría con otra persona distinta del Director. Aun así, el Texto 2 justifica su regla en una \"separación de funciones\" que la designación del Director como coordinador debilita."
+    },
+    {
+      "vez": 11,
+      "linea": "SI PUEDE. EL TEXTO 1 PERMITE QUE EL DIRECTOR CLINICO EJERZA TAMBIEN DE COORDINADOR DE CALIDAD, Y EL TEXTO 2 SOLO EXIGE QUE, DURANTE SU AUSENCIA, LO SUSTITUYA EL COORDINADOR DE OTRA CLINICA DE LA RED, NUNCA EL DIRECTOR DEL PROPIO CENTRO. AMBAS EXIGENCIAS SE CUMPLEN A LA VEZ, PORQUE LA SUSTITUCION EXTERNA ES COMPATIBLE CON QUE EL CARGO RECAIGA EN EL DIRECTOR. AUN ASI, ESA COMBINACION DEBILITA EL ESPIRITU DE SEPARACION DE FUNCIONES QUE EL TEXTO 2 PRETENDE PROTEGER",
+      "laxa": "SI PUEDE",
+      "positivoLaxo": false,
+      "estricta": "OTRA",
+      "positivoEstricto": false,
+      "texto": "**SÍ PUEDE.** El Texto 1 permite que el Director Clínico ejerza también de Coordinador de Calidad, y el Texto 2 solo exige que, durante su ausencia, lo sustituya el Coordinador de otra clínica de la red, nunca el Director del propio centro. Ambas exigencias se cumplen a la vez, porque la sustitución externa es compatible con que el cargo recaiga en el Director. Aun así, esa combinación debilita el espíritu de separación de funciones que el Texto 2 pretende proteger."
+    },
+    {
+      "vez": 12,
+      "linea": "SI PUEDE. EL TEXTO 2 SOLO REGULA QUIEN SUSTITUYE AL COORDINADOR DE CALIDAD EN SU AUSENCIA, Y EXIGE QUE SEA EL DE OTRA CLINICA, NUNCA EL DIRECTOR CLINICO DEL CENTRO. SI EL DIRECTOR CLINICO EJERCE TAMBIEN COMO COORDINADOR Y SE AUSENTA, LA SUSTITUCION CORRESPONDE IGUALMENTE AL COORDINADOR DE OTRA CLINICA, ASI QUE AMBAS REGLAS SE CUMPLEN. SIN EMBARGO, LA CLINICA SI PIERDE LA SEPARACION DE FUNCIONES DEL APARTADO 3.1 QUE EL TEXTO 2 PRETENDE PROTEGER, AUNQUE LA LETRA DE AMBOS TEXTOS SEA COMPATIBLE",
+      "laxa": "SI PUEDE",
+      "positivoLaxo": false,
+      "estricta": "OTRA",
+      "positivoEstricto": false,
+      "texto": "**SÍ PUEDE.** El Texto 2 solo regula quién sustituye al Coordinador de Calidad en su ausencia, y exige que sea el de otra clínica, nunca el Director Clínico del centro. Si el Director Clínico ejerce también como Coordinador y se ausenta, la sustitución corresponde igualmente al Coordinador de otra clínica, así que ambas reglas se cumplen. Sin embargo, la clínica sí pierde la separación de funciones del apartado 3.1 que el Texto 2 pretende proteger, aunque la letra de ambos textos sea compatible."
+    },
+    {
+      "vez": 13,
+      "linea": "SI PUEDE. EL TEXTO 1 REGULA QUIEN PUEDE OSTENTAR EL CARGO DE COORDINADOR DE CALIDAD, MIENTRAS QUE EL TEXTO 2 REGULA SOLO QUIEN LO SUSTITUYE EN CASO DE AUSENCIA. SI EL DIRECTOR CLINICO EJERCE COMO COORDINADOR Y SE AUSENTA, LA SUSTITUCION DEBE RECAER EN EL COORDINADOR DE CALIDAD DE OTRA CLINICA DE LA RED, LO QUE CUMPLE LA REGLA DEL TEXTO 2. NO HAY UNA CONTRADICCION DIRECTA, AUNQUE LA ACUMULACION DE CARGOS DEBILITA LA SEPARACION DE FUNCIONES QUE EL TEXTO 2 PRETENDE PROTEGER",
+      "laxa": "SI PUEDE",
+      "positivoLaxo": false,
+      "estricta": "OTRA",
+      "positivoEstricto": false,
+      "texto": "**SÍ PUEDE.** El Texto 1 regula quién puede ostentar el cargo de Coordinador de Calidad, mientras que el Texto 2 regula solo quién lo sustituye en caso de ausencia. Si el Director Clínico ejerce como coordinador y se ausenta, la sustitución debe recaer en el Coordinador de Calidad de otra clínica de la red, lo que cumple la regla del Texto 2. No hay una contradicción directa, aunque la acumulación de cargos debilita la separación de funciones que el Texto 2 pretende proteger."
+    },
+    {
+      "vez": 14,
+      "linea": "SI PUEDE. EL TEXTO 2 SOLO EXIGE QUE, DURANTE LA AUSENCIA DEL COORDINADOR, LA SUSTITUCION LA ASUMA EL COORDINADOR DE OTRA CLINICA DE LA RED Y NO EL DIRECTOR CLINICO DEL PROPIO CENTRO. SI EL DIRECTOR CLINICO EJERCE TAMBIEN COMO COORDINADOR, ESA REGLA SIGUE CUMPLIENDOSE CUANDO SE AUSENTA, PORQUE BASTA CON DESIGNAR AL COORDINADOR DE OTRA CLINICA. AMBOS TEXTOS SON COMPATIBLES, AUNQUE EL TEXTO 2 NO DICE NADA SOBRE SI LA ACUMULACION DE CARGOS RESPETA LA SEPARACION DE FUNCIONES DEL APARTADO 3.1, QUE NO SE INCLUYE AQUI",
+      "laxa": "SI PUEDE",
+      "positivoLaxo": false,
+      "estricta": "OTRA",
+      "positivoEstricto": false,
+      "texto": "**SÍ PUEDE.** El Texto 2 solo exige que, durante la ausencia del Coordinador, la sustitución la asuma el Coordinador de otra clínica de la red y no el Director Clínico del propio centro. Si el Director Clínico ejerce también como Coordinador, esa regla sigue cumpliéndose cuando se ausenta, porque basta con designar al Coordinador de otra clínica. Ambos textos son compatibles, aunque el Texto 2 no dice nada sobre si la acumulación de cargos respeta la separación de funciones del apartado 3.1, que no se incluye aquí."
+    },
+    {
+      "vez": 15,
+      "linea": "SI PUEDE",
+      "laxa": "SI PUEDE",
+      "positivoLaxo": false,
+      "estricta": "SI PUEDE",
+      "positivoEstricto": false,
+      "texto": "**SÍ PUEDE**\n\nTexto 2 solo restringe quién sustituye al Coordinador de Calidad: nunca el Director Clínico del propio centro, sino el Coordinador de otra clínica de la red. Si el Director ejerce como Coordinador, al ausentarse se aplica esa sustitución y se cumple literalmente el Texto 2. Aun así, la razón que da el Texto 2, mantener la separación de funciones, queda debilitada, porque el Texto 1 ya permite que una misma persona concentre ambos roles."
+    },
+    {
+      "vez": 16,
+      "linea": "SI PUEDE. EL TEXTO 1 PERMITE QUE EL DIRECTOR CLINICO EJERZA COMO COORDINADOR DE CALIDAD, Y EL TEXTO 2 SOLO REGULA QUIEN SUSTITUYE AL COORDINADOR EN SU AUSENCIA, NO QUIEN PUEDE OCUPAR EL CARGO. SI EL DIRECTOR ES EL COORDINADOR Y SE AUSENTA, SU SUSTITUTO DEBE SER EL COORDINADOR DE OTRA CLINICA DE LA RED, Y ESO ES PERFECTAMENTE COMPATIBLE CON EL PERMISO. AUN ASI, HAY UNA TENSION DE FONDO: EL TEXTO 2 INVOCA UNA SEPARACION DE FUNCIONES DEL APARTADO 3.1 QUE EL PERMISO DEL TEXTO 1 PODRIA DEBILITAR, CUESTION QUE CONVIENE REVISAR APARTE",
+      "laxa": "SI PUEDE",
+      "positivoLaxo": false,
+      "estricta": "OTRA",
+      "positivoEstricto": false,
+      "texto": "**SÍ PUEDE.** El Texto 1 permite que el Director Clínico ejerza como Coordinador de Calidad, y el Texto 2 solo regula quién sustituye al Coordinador en su ausencia, no quién puede ocupar el cargo. Si el Director es el Coordinador y se ausenta, su sustituto debe ser el Coordinador de otra clínica de la red, y eso es perfectamente compatible con el permiso. Aun así, hay una tensión de fondo: el Texto 2 invoca una \"separación de funciones\" del apartado 3.1 que el permiso del Texto 1 podría debilitar, cuestión que conviene revisar aparte."
+    },
+    {
+      "vez": 17,
+      "linea": "SI PUEDE. SI EL DIRECTOR CLINICO ASUME LA FUNCION DE COORDINADOR DE CALIDAD, EN CASO DE AUSENCIA EL TEXTO 2 EXIGE QUE LO SUSTITUYA EL COORDINADOR DE OTRA CLINICA DE LA RED, LO QUE ES POSIBLE SIN CONTRADICCION. SIN EMBARGO, EL TEXTO 2 PRESUPONE LA SEPARACION DE FUNCIONES DEL APARTADO 3.1, QUE ESE USO DEL PERMISO ELIMINA, ASI QUE CUMPLE LA LETRA PERO NO EL ESPIRITU DE LA NORMA",
+      "laxa": "SI PUEDE",
+      "positivoLaxo": false,
+      "estricta": "OTRA",
+      "positivoEstricto": false,
+      "texto": "**SÍ PUEDE.** Si el Director Clínico asume la función de Coordinador de Calidad, en caso de ausencia el Texto 2 exige que lo sustituya el Coordinador de otra clínica de la red, lo que es posible sin contradicción. Sin embargo, el Texto 2 presupone la separación de funciones del apartado 3.1, que ese uso del permiso elimina, así que cumple la letra pero no el espíritu de la norma."
+    },
+    {
+      "vez": 18,
+      "linea": "SI PUEDE. SI EL DIRECTOR CLINICO ASUME TAMBIEN EL CARGO DE COORDINADOR DE CALIDAD, LA AUSENCIA DE ESE CARGO SE CUBRE CON EL COORDINADOR DE OTRA CLINICA DE LA RED, QUE ES LO QUE EXIGE EL TEXTO 2, Y NADA EN EL TEXTO 2 IMPIDE QUE EL SUSTITUTO SEA EXTERNO. SIN EMBARGO, EL TEXTO 2 PRESUPONE QUE AMBAS FUNCIONES ESTAN SEPARADAS, ASI QUE LA COMBINACION CUMPLE LA LETRA DE LA NORMA PERO DEBILITA SU FINALIDAD",
+      "laxa": "SI PUEDE",
+      "positivoLaxo": false,
+      "estricta": "OTRA",
+      "positivoEstricto": false,
+      "texto": "**SÍ PUEDE.** Si el Director Clínico asume también el cargo de Coordinador de Calidad, la ausencia de ese cargo se cubre con el Coordinador de otra clínica de la red, que es lo que exige el Texto 2, y nada en el Texto 2 impide que el sustituto sea externo. Sin embargo, el Texto 2 presupone que ambas funciones están separadas, así que la combinación cumple la letra de la norma pero debilita su finalidad."
+    },
+    {
+      "vez": 19,
+      "linea": "SI PUEDE. EL TEXTO 1 PERMITE QUE EL DIRECTOR CLINICO SEA TAMBIEN COORDINADOR DE CALIDAD, Y EL TEXTO 2 SOLO IMPIDE QUE EL DIRECTOR DEL CENTRO SUSTITUYA AL COORDINADOR EN SUS AUSENCIAS, ASI QUE AMBAS REGLAS SE CUMPLEN SI LA SUSTITUCION LA ASUME EL COORDINADOR DE OTRA CLINICA. AUN ASI, ESA SITUACION CONTRADICE LA FINALIDAD QUE EL TEXTO 2 ATRIBUYE A SUS REGLAS, PORQUE LA SEPARACION DE FUNCIONES DEL APARTADO 3.1 YA NO EXISTE CUANDO EL DIRECTOR ASUME LA FUNCION DE CALIDAD",
+      "laxa": "SI PUEDE",
+      "positivoLaxo": false,
+      "estricta": "OTRA",
+      "positivoEstricto": false,
+      "texto": "**SÍ PUEDE.** El Texto 1 permite que el Director Clínico sea también Coordinador de Calidad, y el Texto 2 solo impide que el Director del centro sustituya al Coordinador en sus ausencias, así que ambas reglas se cumplen si la sustitución la asume el Coordinador de otra clínica. Aun así, esa situación contradice la finalidad que el Texto 2 atribuye a sus reglas, porque la separación de funciones del apartado 3.1 ya no existe cuando el Director asume la función de calidad."
+    },
+    {
+      "vez": 20,
+      "linea": "SI PUEDE. LA REGLA DEL TEXTO 2 SE REFIERE SOLO A QUIEN SUSTITUYE AL COORDINADOR AUSENTE: DEBE SER EL COORDINADOR DE OTRA CLINICA DE LA RED, NUNCA EL DIRECTOR CLINICO DEL CENTRO. SI EL DIRECTOR CLINICO EJERCE TAMBIEN COMO COORDINADOR, SU PROPIA AUSENCIA SE CUBRE IGUALMENTE CON UN COORDINADOR EXTERNO, LO QUE CUMPLE EL TEXTO 2. LO UNICO QUE EL TEXTO 2 PRESUPONE, LA SEPARACION DE FUNCIONES DEL APARTADO 3.1, QUEDA RELATIVIZADO POR EL PERMISO DEL TEXTO 1, PERO ESO NO IMPIDE CUMPLIR LA REGLA DE SUSTITUCION",
+      "laxa": "SI PUEDE",
+      "positivoLaxo": false,
+      "estricta": "OTRA",
+      "positivoEstricto": false,
+      "texto": "**SÍ PUEDE.** La regla del Texto 2 se refiere solo a quién sustituye al Coordinador ausente: debe ser el Coordinador de otra clínica de la red, nunca el Director Clínico del centro. Si el Director Clínico ejerce también como Coordinador, su propia ausencia se cubre igualmente con un coordinador externo, lo que cumple el Texto 2. Lo único que el Texto 2 presupone, la separación de funciones del apartado 3.1, queda relativizado por el permiso del Texto 1, pero eso no impide cumplir la regla de sustitución."
+    },
+    {
+      "vez": 21,
+      "linea": "NO PUEDE",
+      "laxa": "NO PUEDE",
+      "positivoLaxo": true,
+      "estricta": "NO PUEDE",
+      "positivoEstricto": true,
+      "texto": "**NO PUEDE**\n\nSi el Director Clínico asume el cargo de Coordinador de Calidad, el Texto 2 deja de cumplirse en su finalidad, porque ese texto exige mantener la separación de funciones del apartado 3.1 entre ambos cargos. Aunque la regla de sustitución podría aplicarse literalmente (el sustituto sería el coordinador de otra clínica), durante la operación normal el Director ya ejerce funciones de calidad sin esa separación. Por tanto, la clínica no puede cumplir a la vez el permiso del Texto 1 y el principio de separación que el Texto 2 presupone."
+    },
+    {
+      "vez": 22,
+      "linea": "SI PUEDE. SI EL DIRECTOR CLINICO EJERCE TAMBIEN COMO COORDINADOR DE CALIDAD Y SE AUSENTA, LA SUSTITUCION DEBE HACERSE POR EL COORDINADOR DE OTRA CLINICA DE LA RED, LO QUE CUMPLE LA NORMA DEL TEXTO 2 DE QUE NUNCA LO ASUMA EL DIRECTOR DEL PROPIO CENTRO. SIN EMBARGO, EL TEXTO 2 JUSTIFICA ESA REGLA POR UNA SEPARACION DE FUNCIONES QUE EL PERMISO DEL TEXTO 1 ELIMINA, ASI QUE EL CUMPLIMIENTO ES FORMAL Y NO DE FONDO",
+      "laxa": "SI PUEDE",
+      "positivoLaxo": false,
+      "estricta": "OTRA",
+      "positivoEstricto": false,
+      "texto": "**SÍ PUEDE.** Si el Director Clínico ejerce también como Coordinador de Calidad y se ausenta, la sustitución debe hacerse por el Coordinador de otra clínica de la red, lo que cumple la norma del Texto 2 de que nunca lo asuma el Director del propio centro. Sin embargo, el Texto 2 justifica esa regla por una separación de funciones que el permiso del Texto 1 elimina, así que el cumplimiento es formal y no de fondo."
+    },
+    {
+      "vez": 23,
+      "linea": "SI PUEDE",
+      "laxa": "SI PUEDE",
+      "positivoLaxo": false,
+      "estricta": "SI PUEDE",
+      "positivoEstricto": false,
+      "texto": "**SÍ PUEDE.**\nTexto 2 solo regula quién sustituye al Coordinador de Calidad en su ausencia, y exige que la sustitución la haga el Coordinador de otra clínica, nunca el Director Clínico del centro. Si el Director Clínico ejerce también como Coordinador, basta con que, al ausentarse, lo sustituya el Coordinador de otra clínica, y eso no contradice nada. Aun así, el propio Texto 2 invoca la separación de funciones del apartado 3.1, que el permiso del Texto 1 ya debilita en la práctica."
+    },
+    {
+      "vez": 24,
+      "linea": "SI PUEDE. SI EL DIRECTOR CLINICO EJERCE TAMBIEN COMO COORDINADOR DE CALIDAD, LA SUSTITUCION POR EL COORDINADOR DE OTRA CLINICA DE LA RED CUMPLE LITERALMENTE EL TEXTO 2, PORQUE ESE TEXTO SOLO PROHIBE QUE EL SUSTITUTO SEA EL DIRECTOR CLINICO DEL PROPIO CENTRO. SIN EMBARGO, EL TEXTO 2 JUSTIFICA ESA REGLA POR LA SEPARACION DE FUNCIONES DEL APARTADO 3.1, Y EL PERMISO DEL TEXTO 1 YA LA ELIMINA, ASI QUE LA FINALIDAD DE LA NORMA QUEDA SIN EFECTO",
+      "laxa": "SI PUEDE",
+      "positivoLaxo": false,
+      "estricta": "OTRA",
+      "positivoEstricto": false,
+      "texto": "**SÍ PUEDE.** Si el Director Clínico ejerce también como Coordinador de Calidad, la sustitución por el Coordinador de otra clínica de la red cumple literalmente el Texto 2, porque ese texto solo prohíbe que el sustituto sea el Director Clínico del propio centro. Sin embargo, el Texto 2 justifica esa regla por la separación de funciones del apartado 3.1, y el permiso del Texto 1 ya la elimina, así que la finalidad de la norma queda sin efecto."
+    },
+    {
+      "vez": 25,
+      "linea": "SI PUEDE. EL TEXTO 2 REGULA QUIEN SUSTITUYE AL COORDINADOR DE CALIDAD EN SU AUSENCIA, NO QUIEN PUEDE OCUPAR EL CARGO, ASI QUE AMBAS REGLAS SE PUEDEN CUMPLIR A LA VEZ. SI EL DIRECTOR CLINICO EJERCE COMO COORDINADOR Y SE AUSENTA, LA SUSTITUCION CORRESPONDE AL COORDINADOR DE OTRA CLINICA DE LA RED, Y EL PROPIO DIRECTOR NO INTERVIENE COMO SUSTITUTO. LO QUE SI QUEDA DEBILITADO ES LA SEPARACION DE FUNCIONES DEL APARTADO 3.1 QUE EL TEXTO 2 INVOCA COMO JUSTIFICACION, PERO ESO ES UN PROBLEMA DE ESPIRITU NORMATIVO, NO UNA INCOMPATIBILIDAD LOGICA ENTRE AMBOS TEXTOS",
+      "laxa": "SI PUEDE",
+      "positivoLaxo": false,
+      "estricta": "OTRA",
+      "positivoEstricto": false,
+      "texto": "**SÍ PUEDE.** El Texto 2 regula quién sustituye al Coordinador de Calidad en su ausencia, no quién puede ocupar el cargo, así que ambas reglas se pueden cumplir a la vez. Si el Director Clínico ejerce como Coordinador y se ausenta, la sustitución corresponde al Coordinador de otra clínica de la red, y el propio Director no interviene como sustituto. Lo que sí queda debilitado es la separación de funciones del apartado 3.1 que el Texto 2 invoca como justificación, pero eso es un problema de espíritu normativo, no una incompatibilidad lógica entre ambos textos."
+    },
+    {
+      "vez": 26,
+      "linea": "SI PUEDE. EL TEXTO 2 SOLO FIJA QUIEN SUSTITUYE AL COORDINADOR DE CALIDAD EN SU AUSENCIA (UN COORDINADOR DE OTRA CLINICA DE LA RED, NUNCA EL DIRECTOR CLINICO DEL CENTRO), Y NO PROHIBE QUE EL DIRECTOR EJERZA COMO COORDINADOR. SI EL DIRECTOR OCUPA ESE PUESTO Y SE AUSENTA, LA SUSTITUCION LA ASUME UN COORDINADOR DE OTRA CLINICA, LO QUE CUMPLE AMBOS TEXTOS. LO QUE QUEDA EN TENSION ES EL ESPIRITU DE LA SEPARACION DE FUNCIONES QUE EL TEXTO 2 INVOCA, AUNQUE LA REGLA LITERAL NO SE INCUMPLE",
+      "laxa": "SI PUEDE",
+      "positivoLaxo": false,
+      "estricta": "OTRA",
+      "positivoEstricto": false,
+      "texto": "**SÍ PUEDE.** El Texto 2 solo fija quién sustituye al Coordinador de Calidad en su ausencia (un coordinador de otra clínica de la red, nunca el Director Clínico del centro), y no prohíbe que el Director ejerza como coordinador. Si el Director ocupa ese puesto y se ausenta, la sustitución la asume un coordinador de otra clínica, lo que cumple ambos textos. Lo que queda en tensión es el espíritu de la separación de funciones que el Texto 2 invoca, aunque la regla literal no se incumple."
+    },
+    {
+      "vez": 27,
+      "linea": "SI PUEDE. SI EL DIRECTOR CLINICO ASUME EL CARGO DE COORDINADOR DE CALIDAD, LA SUSTITUCION EN SU AUSENCIA SIGUE SIENDO ASUMIDA POR EL COORDINADOR DE OTRA CLINICA DE LA RED, QUE ES LO QUE EXIGE EL TEXTO 2. LO QUE EL TEXTO 2 PROHIBE ES QUE EL SUSTITUTO SEA EL DIRECTOR CLINICO DEL PROPIO CENTRO, Y ESA PROHIBICION SE CUMPLE IGUALMENTE. AUN ASI, USAR EL PERMISO DEBILITA LA SEPARACION DE FUNCIONES QUE EL TEXTO 2 PRETENDE PROTEGER",
+      "laxa": "SI PUEDE",
+      "positivoLaxo": false,
+      "estricta": "OTRA",
+      "positivoEstricto": false,
+      "texto": "**SÍ PUEDE.** Si el Director Clínico asume el cargo de Coordinador de Calidad, la sustitución en su ausencia sigue siendo asumida por el Coordinador de otra clínica de la red, que es lo que exige el Texto 2. Lo que el Texto 2 prohíbe es que el sustituto sea el Director Clínico del propio centro, y esa prohibición se cumple igualmente. Aun así, usar el permiso debilita la separación de funciones que el Texto 2 pretende proteger."
+    },
+    {
+      "vez": 28,
+      "linea": "SI PUEDE. SI EL DIRECTOR CLINICO ASUME EL CARGO DE COORDINADOR DE CALIDAD, EN SU AUSENCIA LA SUSTITUCION DEBE HACERLA EL COORDINADOR DE OTRA CLINICA DE LA RED, QUE ES LO QUE EXIGE EL TEXTO 2, PORQUE EL DIRECTOR NO SUSTITUYE A NADIE EN ESE CASO. SIN EMBARGO, EL TEXTO 1 YA PERMITE QUE EL DIRECTOR OCUPE LA COORDINACION, LO QUE DEBILITA LA SEPARACION DE FUNCIONES QUE EL TEXTO 2 PRETENDE PROTEGER",
+      "laxa": "SI PUEDE",
+      "positivoLaxo": false,
+      "estricta": "OTRA",
+      "positivoEstricto": false,
+      "texto": "**SÍ PUEDE.** Si el Director Clínico asume el cargo de Coordinador de Calidad, en su ausencia la sustitución debe hacerla el Coordinador de otra clínica de la red, que es lo que exige el Texto 2, porque el Director no sustituye a nadie en ese caso. Sin embargo, el Texto 1 ya permite que el Director ocupe la coordinación, lo que debilita la separación de funciones que el Texto 2 pretende proteger."
+    },
+    {
+      "vez": 29,
+      "linea": "SI PUEDE. SI EL DIRECTOR CLINICO EJERCE COMO COORDINADOR DE CALIDAD Y SE AUSENTA, EL TEXTO 2 EXIGE QUE LO SUSTITUYA EL COORDINADOR DE CALIDAD DE OTRA CLINICA, Y ESO CUMPLE LA NORMA LITERALMENTE. SIN EMBARGO, LA REGLA DEL TEXTO 2 SE BASA EN UNA SEPARACION DE FUNCIONES QUE EL PERMISO DEL TEXTO 1 DEBILITA, ASI QUE EL CUMPLIMIENTO FORMAL NO GARANTIZA QUE SE RESPETE EL ESPIRITU DE LA NORMA",
+      "laxa": "SI PUEDE",
+      "positivoLaxo": false,
+      "estricta": "OTRA",
+      "positivoEstricto": false,
+      "texto": "**SÍ PUEDE.** Si el Director Clínico ejerce como Coordinador de Calidad y se ausenta, el Texto 2 exige que lo sustituya el Coordinador de Calidad de otra clínica, y eso cumple la norma literalmente. Sin embargo, la regla del Texto 2 se basa en una separación de funciones que el permiso del Texto 1 debilita, así que el cumplimiento formal no garantiza que se respete el espíritu de la norma."
+    },
+    {
+      "vez": 30,
+      "linea": "SI PUEDE. EL TEXTO 2 SOLO REGULA QUIEN SUSTITUYE AL COORDINADOR EN SU AUSENCIA, Y ESA REGLA SE CUMPLE AUNQUE EL DIRECTOR CLINICO EJERZA TAMBIEN COMO COORDINADOR: AL AUSENTARSE, LO SUSTITUYE EL COORDINADOR DE OTRA CLINICA DE LA RED, NUNCA EL DIRECTOR DEL PROPIO CENTRO. SIN EMBARGO, EL TEXTO 2 JUSTIFICA ESA REGLA POR LA SEPARACION DE FUNCIONES DEL APARTADO 3.1, QUE EL PERMISO DEL TEXTO 1 PRECISAMENTE FLEXIBILIZA, ASI QUE CUMPLIR LA LETRA NO GARANTIZA PRESERVAR EL ESPIRITU",
+      "laxa": "SI PUEDE",
+      "positivoLaxo": false,
+      "estricta": "OTRA",
+      "positivoEstricto": false,
+      "texto": "**SÍ PUEDE.** El Texto 2 solo regula quién sustituye al Coordinador en su ausencia, y esa regla se cumple aunque el Director Clínico ejerza también como Coordinador: al ausentarse, lo sustituye el Coordinador de otra clínica de la red, nunca el Director del propio centro. Sin embargo, el Texto 2 justifica esa regla por la separación de funciones del apartado 3.1, que el permiso del Texto 1 precisamente flexibiliza, así que cumplir la letra no garantiza preservar el espíritu."
+    },
+    {
+      "vez": 31,
+      "linea": "SI PUEDE. EL TEXTO 2 SOLO REGULA QUIEN SUSTITUYE AL COORDINADOR DE CALIDAD DURANTE UNA AUSENCIA, Y ESTABLECE QUE NUNCA LO HARA EL DIRECTOR CLINICO DEL CENTRO. SI EL DIRECTOR EJERCE TAMBIEN COMO COORDINADOR Y SE AUSENTA, LA SUSTITUCION DEBE HACERLA EL COORDINADOR DE OTRA CLINICA DE LA RED, LO QUE CUMPLE ESA NORMA. DICHO ESTO, EL TEXTO 2 NO RESUELVE SI LA SEPARACION DE FUNCIONES DEL APARTADO 3.1 SE MANTIENE MIENTRAS EL DIRECTOR OCUPA AMBOS CARGOS A LA VEZ",
+      "laxa": "SI PUEDE",
+      "positivoLaxo": false,
+      "estricta": "OTRA",
+      "positivoEstricto": false,
+      "texto": "**SÍ PUEDE.** El Texto 2 solo regula quién sustituye al Coordinador de Calidad durante una ausencia, y establece que nunca lo hará el Director Clínico del centro. Si el Director ejerce también como Coordinador y se ausenta, la sustitución debe hacerla el Coordinador de otra clínica de la red, lo que cumple esa norma. Dicho esto, el Texto 2 no resuelve si la separación de funciones del apartado 3.1 se mantiene mientras el Director ocupa ambos cargos a la vez."
+    },
+    {
+      "vez": 32,
+      "linea": "SI PUEDE",
+      "laxa": "SI PUEDE",
+      "positivoLaxo": false,
+      "estricta": "SI PUEDE",
+      "positivoEstricto": false,
+      "texto": "**SÍ PUEDE**\n\nSi el Director Clínico asume el cargo de Coordinador de Calidad, su ausencia se cubre con el Coordinador de otra clínica de la red, como exige el Texto 2, y el Director del centro no la sustituye. Sin embargo, la separación de funciones que el Texto 2 quiere proteger ya no existe en ese centro, porque el propio Texto 1 permite que el Director ejerza ambas funciones. Por tanto, la norma se cumple en la letra, pero no en su finalidad."
+    },
+    {
+      "vez": 33,
+      "linea": "SI PUEDE. EL TEXTO 1 PERMITE QUE EL DIRECTOR CLINICO SEA TAMBIEN COORDINADOR DE CALIDAD, Y EL TEXTO 2 SOLO EXIGE QUE, EN LA AUSENCIA DE ESE COORDINADOR, LO SUSTITUYA EL COORDINADOR DE OTRA CLINICA DE LA RED. SI EL DIRECTOR CLINICO EJERCE AMBAS FUNCIONES Y SE AUSENTA, LA SUSTITUCION SE HACE CON OTRO COORDINADOR DE LA RED, LO QUE CUMPLE LA REGLA. LA PROHIBICION DEL TEXTO 2 SE REFIERE A QUE EL PROPIO DIRECTOR CLINICO NO ASUMA LA FUNCION DE CALIDAD EN ESA SITUACION, Y NO IMPIDE QUE EL SEA EL COORDINADOR HABITUAL",
+      "laxa": "SI PUEDE",
+      "positivoLaxo": false,
+      "estricta": "OTRA",
+      "positivoEstricto": false,
+      "texto": "**SÍ PUEDE.** El Texto 1 permite que el Director Clínico sea también Coordinador de Calidad, y el Texto 2 solo exige que, en la ausencia de ese coordinador, lo sustituya el coordinador de otra clínica de la red. Si el Director Clínico ejerce ambas funciones y se ausenta, la sustitución se hace con otro coordinador de la red, lo que cumple la regla. La prohibición del Texto 2 se refiere a que el propio Director Clínico no asuma la función de calidad en esa situación, y no impide que él sea el coordinador habitual."
+    },
+    {
+      "vez": 34,
+      "linea": "SI PUEDE",
+      "laxa": "SI PUEDE",
+      "positivoLaxo": false,
+      "estricta": "SI PUEDE",
+      "positivoEstricto": false,
+      "texto": "**SÍ PUEDE**\n\nEl Texto 1 permite que el Director Clínico sea también Coordinador de Calidad, y el Texto 2 solo exige que, en ausencia del Coordinador, lo sustituya el de otra clínica y nunca el Director del centro. Si el Director ocupa ambos cargos, su ausencia activa esa sustitución externa, así que no hay contradicción literal. Aun así, la clínica debería revisar si esa acumulación de funciones afecta a la separación que pretende mantener el apartado 3.1, porque el Texto 2 menciona ese principio."
+    },
+    {
+      "vez": 35,
+      "linea": "SI PUEDE. SI EL DIRECTOR CLINICO ACTUA COMO COORDINADOR DE CALIDAD, SU AUSENCIA PUEDE CUBRIRSE CON EL COORDINADOR DE OTRA CLINICA DE LA RED, COMO EXIGE EL TEXTO 2. PERO EL TEXTO 2 JUSTIFICA ESA REGLA POR LA SEPARACION DE FUNCIONES DEL APARTADO 3.1, QUE EL TEXTO 1 PERMITE ROMPER, ASI QUE LA CLINICA CUMPLE LA LETRA DE LA NORMA SIN PRESERVAR SU FINALIDAD",
+      "laxa": "SI PUEDE",
+      "positivoLaxo": false,
+      "estricta": "OTRA",
+      "positivoEstricto": false,
+      "texto": "**SÍ PUEDE.** Si el Director Clínico actúa como Coordinador de Calidad, su ausencia puede cubrirse con el Coordinador de otra clínica de la red, como exige el Texto 2. Pero el Texto 2 justifica esa regla por la separación de funciones del apartado 3.1, que el Texto 1 permite romper, así que la clínica cumple la letra de la norma sin preservar su finalidad."
+    },
+    {
+      "vez": 36,
+      "linea": "SI PUEDE. EL TEXTO 2 SOLO REGULA QUIEN SUSTITUYE AL COORDINADOR DE CALIDAD EN SU AUSENCIA, Y EXIGE QUE NUNCA SEA EL DIRECTOR CLINICO DEL CENTRO, ASI QUE UNA CLINICA EN LA QUE EL DIRECTOR EJERCE TAMBIEN DE COORDINADOR CUMPLE ESA REGLA SI LA SUSTITUCION LA ASUME EL COORDINADOR DE OTRA CLINICA DE LA RED. SIN EMBARGO, EL TEXTO 2 INVOCA LA SEPARACION DE FUNCIONES DEL APARTADO 3.1 COMO JUSTIFICACION, LO QUE SUGIERE QUE EL ESPIRITU DEL PROTOCOLO ES MANTENERLAS SEPARADAS, AUNQUE EL TEXTO 1 LO PERMITA",
+      "laxa": "SI PUEDE",
+      "positivoLaxo": false,
+      "estricta": "OTRA",
+      "positivoEstricto": false,
+      "texto": "**SÍ PUEDE.** El Texto 2 solo regula quién sustituye al Coordinador de Calidad en su ausencia, y exige que nunca sea el Director Clínico del centro, así que una clínica en la que el Director ejerce también de Coordinador cumple esa regla si la sustitución la asume el coordinador de otra clínica de la red. Sin embargo, el Texto 2 invoca la \"separación de funciones\" del apartado 3.1 como justificación, lo que sugiere que el espíritu del protocolo es mantenerlas separadas, aunque el Texto 1 lo permita."
+    },
+    {
+      "vez": 37,
+      "linea": "SI PUEDE. EL TEXTO 1 PERMITE QUE EL DIRECTOR CLINICO SEA TAMBIEN COORDINADOR DE CALIDAD, Y EL TEXTO 2 SOLO REGULA QUIEN SUSTITUYE AL COORDINADOR CUANDO ESTE ESTA AUSENTE, ASI QUE AMBAS NORMAS PUEDEN CUMPLIRSE A LA VEZ. SI EL DIRECTOR EJERCE COMO COORDINADOR Y SE AUSENTA, SUS FUNCIONES DE CALIDAD LAS ASUME EL COORDINADOR DE OTRA CLINICA DE LA RED, COMO EXIGE EL TEXTO 2. AUN ASI, LA SEPARACION DE FUNCIONES QUE PRETENDE EL TEXTO 2 QUEDA DEBILITADA EN EL PROPIO CENTRO",
+      "laxa": "SI PUEDE",
+      "positivoLaxo": false,
+      "estricta": "OTRA",
+      "positivoEstricto": false,
+      "texto": "**SÍ PUEDE.** El Texto 1 permite que el Director Clínico sea también Coordinador de Calidad, y el Texto 2 solo regula quién sustituye al Coordinador cuando este está ausente, así que ambas normas pueden cumplirse a la vez. Si el Director ejerce como Coordinador y se ausenta, sus funciones de calidad las asume el Coordinador de otra clínica de la red, como exige el Texto 2. Aun así, la separación de funciones que pretende el Texto 2 queda debilitada en el propio centro."
+    },
+    {
+      "vez": 38,
+      "linea": "NO PUEDE. SI EL DIRECTOR CLINICO EJERCE COMO COORDINADOR DE CALIDAD, LA CLINICA INCUMPLE EL OBJETIVO QUE EL TEXTO 2 DECLARA, QUE ES MANTENER LA SEPARACION DE FUNCIONES DEL APARTADO 3.1, PORQUE ESA SEPARACION QUEDA ANULADA DESDE EL MOMENTO DE LA DESIGNACION. EL TEXTO 2 SOLO PUEDE CUMPLIRSE SI AMBAS FIGURAS SON DISTINTAS, DE MODO QUE EL PERMISO DEL TEXTO 1 Y LA REGLA DEL TEXTO 2 SON INCOMPATIBLES",
+      "laxa": "NO PUEDE",
+      "positivoLaxo": true,
+      "estricta": "OTRA",
+      "positivoEstricto": false,
+      "texto": "**NO PUEDE.** Si el Director Clínico ejerce como Coordinador de Calidad, la clínica incumple el objetivo que el Texto 2 declara, que es mantener la separación de funciones del apartado 3.1, porque esa separación queda anulada desde el momento de la designación. El Texto 2 solo puede cumplirse si ambas figuras son distintas, de modo que el permiso del Texto 1 y la regla del Texto 2 son incompatibles."
+    },
+    {
+      "vez": 39,
+      "linea": "NO PUEDE",
+      "laxa": "NO PUEDE",
+      "positivoLaxo": true,
+      "estricta": "NO PUEDE",
+      "positivoEstricto": true,
+      "texto": "**NO PUEDE**\n\nSi el Director Clínico asume el cargo de Coordinador de Calidad, la misma persona ejerce ambos roles y supervisa su propio cumplimiento documental, lo que anula la separación de funciones que Texto 2 invoca como fundamento. Texto 2 da por supuesto que ambas figuras son distintas, de modo que la prohibición de que el Director sustituya al Coordinador pierde sentido cuando el Director es el Coordinador. Aunque la sustitución por otra clínica sea formalmente posible, el centro no puede cumplir a la vez el permiso del Texto 1 y el principio de separación del apartado 3.1."
+    },
+    {
+      "vez": 40,
+      "linea": "SI PUEDE",
+      "laxa": "SI PUEDE",
+      "positivoLaxo": false,
+      "estricta": "SI PUEDE",
+      "positivoEstricto": false,
+      "texto": "**SÍ PUEDE.**\nSi el Director Clínico asume el cargo de Coordinador de Calidad, la sustitución en su ausencia debe hacerla el Coordinador de otra clínica de la red, que no es el Director de su propio centro, así que no hay contradicción literal. Sin embargo, el Texto 2 presupone la separación de funciones del apartado 3.1, y esa separación ya queda comprometida cuando el Director ejerce de Coordinador."
+    },
+    {
+      "vez": 41,
+      "linea": "SI PUEDE. SI EL DIRECTOR CLINICO ASUME EL CARGO DE COORDINADOR DE CALIDAD, LA SUSTITUCION EN SUS AUSENCIAS SIGUE PUDIENDO HACERSE POR EL COORDINADOR DE OTRA CLINICA DE LA RED, COMO EXIGE EL TEXTO 2. SIN EMBARGO, EL TEXTO 2 JUSTIFICA ESA NORMA POR LA SEPARACION DE FUNCIONES DEL APARTADO 3.1, QUE EL PERMISO DEL TEXTO 1 YA DEJA SIN EFECTO CUANDO AMBOS CARGOS RECAEN EN LA MISMA PERSONA",
+      "laxa": "SI PUEDE",
+      "positivoLaxo": false,
+      "estricta": "OTRA",
+      "positivoEstricto": false,
+      "texto": "**SÍ PUEDE.** Si el Director Clínico asume el cargo de Coordinador de Calidad, la sustitución en sus ausencias sigue pudiendo hacerse por el Coordinador de otra clínica de la red, como exige el Texto 2. Sin embargo, el Texto 2 justifica esa norma por la separación de funciones del apartado 3.1, que el permiso del Texto 1 ya deja sin efecto cuando ambos cargos recaen en la misma persona."
+    },
+    {
+      "vez": 42,
+      "linea": "SI PUEDE. SI EL DIRECTOR CLINICO ASUME EL CARGO DE COORDINADOR DE CALIDAD, LA REGLA DEL TEXTO 2 SIGUE SIENDO CUMPLIBLE: EN UNA AUSENCIA, EL SUSTITUTO DEBE SER EL COORDINADOR DE OTRA CLINICA DE LA RED, NUNCA EL DIRECTOR DEL PROPIO CENTRO. SIN EMBARGO, ESA COMPATIBILIDAD ES SOLO FORMAL, PORQUE EL TEXTO 2 PRESUPONE LA SEPARACION DE FUNCIONES DEL APARTADO 3.1, Y CON EL DIRECTOR COMO COORDINADOR ESA SEPARACION YA NO EXISTE EN EL FUNCIONAMIENTO ORDINARIO",
+      "laxa": "SI PUEDE",
+      "positivoLaxo": false,
+      "estricta": "OTRA",
+      "positivoEstricto": false,
+      "texto": "**SÍ PUEDE.** Si el Director Clínico asume el cargo de Coordinador de Calidad, la regla del Texto 2 sigue siendo cumplible: en una ausencia, el sustituto debe ser el Coordinador de otra clínica de la red, nunca el Director del propio centro. Sin embargo, esa compatibilidad es solo formal, porque el Texto 2 presupone la separación de funciones del apartado 3.1, y con el Director como Coordinador esa separación ya no existe en el funcionamiento ordinario."
+    }
+  ],
+  "registro": {
+    "peticiones": [
+      {
+        "n": 1,
+        "etapa": "juez",
+        "pareja": "facac5fd-ca7a-4f04-abf9-4926bb955e0a",
+        "modelo": "claude-haiku-5-5",
+        "vuelta": 1,
+        "intento": 1,
+        "resultado": "ok",
+        "estadoHttp": 200,
+        "latenciaMs": 4744,
+        "esperaMs": 0,
+        "comienzoMs": 0,
+        "tokens": {
+          "entrada": 453,
+          "salida": 939,
+          "escrituraCache": 0,
+          "lecturaCache": 0
+        },
+        "parametros": {
+          "maxTokens": 16000,
+          "temperatura": "sin_enviar",
+          "esfuerzo": "medium"
+        }
+      },
+      {
+        "n": 2,
+        "etapa": "juez",
+        "pareja": "facac5fd-ca7a-4f04-abf9-4926bb955e0a",
+        "modelo": "claude-haiku-5-5",
+        "vuelta": 1,
+        "intento": 1,
+        "resultado": "ok",
+        "estadoHttp": 200,
+        "latenciaMs": 5876,
+        "esperaMs": 0,
+        "comienzoMs": 1,
+        "tokens": {
+          "entrada": 453,
+          "salida": 1187,
+          "escrituraCache": 0,
+          "lecturaCache": 0
+        },
+        "parametros": {
+          "maxTokens": 16000,
+          "temperatura": "sin_enviar",
+          "esfuerzo": "medium"
+        }
+      },
+      {
+        "n": 3,
+        "etapa": "juez",
+        "pareja": "facac5fd-ca7a-4f04-abf9-4926bb955e0a",
+        "modelo": "claude-haiku-5-5",
+        "vuelta": 1,
+        "intento": 1,
+        "resultado": "ok",
+        "estadoHttp": 200,
+        "latenciaMs": 6165,
+        "esperaMs": 0,
+        "comienzoMs": 2,
+        "tokens": {
+          "entrada": 453,
+          "salida": 1257,
+          "escrituraCache": 0,
+          "lecturaCache": 0
+        },
+        "parametros": {
+          "maxTokens": 16000,
+          "temperatura": "sin_enviar",
+          "esfuerzo": "medium"
+        }
+      },
+      {
+        "n": 4,
+        "etapa": "juez",
+        "pareja": "facac5fd-ca7a-4f04-abf9-4926bb955e0a",
+        "modelo": "claude-haiku-5-5",
+        "vuelta": 1,
+        "intento": 1,
+        "resultado": "ok",
+        "estadoHttp": 200,
+        "latenciaMs": 7788,
+        "esperaMs": 0,
+        "comienzoMs": 2,
+        "tokens": {
+          "entrada": 453,
+          "salida": 1563,
+          "escrituraCache": 0,
+          "lecturaCache": 0
+        },
+        "parametros": {
+          "maxTokens": 16000,
+          "temperatura": "sin_enviar",
+          "esfuerzo": "medium"
+        }
+      },
+      {
+        "n": 5,
+        "etapa": "juez",
+        "pareja": "facac5fd-ca7a-4f04-abf9-4926bb955e0a",
+        "modelo": "claude-haiku-5-5",
+        "vuelta": 1,
+        "intento": 1,
+        "resultado": "ok",
+        "estadoHttp": 200,
+        "latenciaMs": 8241,
+        "esperaMs": 0,
+        "comienzoMs": 2,
+        "tokens": {
+          "entrada": 453,
+          "salida": 1662,
+          "escrituraCache": 0,
+          "lecturaCache": 0
+        },
+        "parametros": {
+          "maxTokens": 16000,
+          "temperatura": "sin_enviar",
+          "esfuerzo": "medium"
+        }
+      },
+      {
+        "n": 6,
+        "etapa": "juez",
+        "pareja": "facac5fd-ca7a-4f04-abf9-4926bb955e0a",
+        "modelo": "claude-haiku-5-5",
+        "vuelta": 1,
+        "intento": 1,
+        "resultado": "ok",
+        "estadoHttp": 200,
+        "latenciaMs": 8888,
+        "esperaMs": 0,
+        "comienzoMs": 1,
+        "tokens": {
+          "entrada": 453,
+          "salida": 1802,
+          "escrituraCache": 0,
+          "lecturaCache": 0
+        },
+        "parametros": {
+          "maxTokens": 16000,
+          "temperatura": "sin_enviar",
+          "esfuerzo": "medium"
+        }
+      },
+      {
+        "n": 7,
+        "etapa": "juez",
+        "pareja": "facac5fd-ca7a-4f04-abf9-4926bb955e0a",
+        "modelo": "claude-haiku-5-5",
+        "vuelta": 1,
+        "intento": 1,
+        "resultado": "ok",
+        "estadoHttp": 200,
+        "latenciaMs": 4137,
+        "esperaMs": 0,
+        "comienzoMs": 8890,
+        "tokens": {
+          "entrada": 453,
+          "salida": 836,
+          "escrituraCache": 0,
+          "lecturaCache": 0
+        },
+        "parametros": {
+          "maxTokens": 16000,
+          "temperatura": "sin_enviar",
+          "esfuerzo": "medium"
+        }
+      },
+      {
+        "n": 8,
+        "etapa": "juez",
+        "pareja": "facac5fd-ca7a-4f04-abf9-4926bb955e0a",
+        "modelo": "claude-haiku-5-5",
+        "vuelta": 1,
+        "intento": 1,
+        "resultado": "ok",
+        "estadoHttp": 200,
+        "latenciaMs": 4611,
+        "esperaMs": 0,
+        "comienzoMs": 8889,
+        "tokens": {
+          "entrada": 453,
+          "salida": 951,
+          "escrituraCache": 0,
+          "lecturaCache": 0
+        },
+        "parametros": {
+          "maxTokens": 16000,
+          "temperatura": "sin_enviar",
+          "esfuerzo": "medium"
+        }
+      },
+      {
+        "n": 9,
+        "etapa": "juez",
+        "pareja": "facac5fd-ca7a-4f04-abf9-4926bb955e0a",
+        "modelo": "claude-haiku-5-5",
+        "vuelta": 1,
+        "intento": 1,
+        "resultado": "ok",
+        "estadoHttp": 200,
+        "latenciaMs": 5650,
+        "esperaMs": 0,
+        "comienzoMs": 8891,
+        "tokens": {
+          "entrada": 453,
+          "salida": 1142,
+          "escrituraCache": 0,
+          "lecturaCache": 0
+        },
+        "parametros": {
+          "maxTokens": 16000,
+          "temperatura": "sin_enviar",
+          "esfuerzo": "medium"
+        }
+      },
+      {
+        "n": 10,
+        "etapa": "juez",
+        "pareja": "facac5fd-ca7a-4f04-abf9-4926bb955e0a",
+        "modelo": "claude-haiku-5-5",
+        "vuelta": 1,
+        "intento": 1,
+        "resultado": "ok",
+        "estadoHttp": 200,
+        "latenciaMs": 6109,
+        "esperaMs": 0,
+        "comienzoMs": 8890,
+        "tokens": {
+          "entrada": 453,
+          "salida": 1171,
+          "escrituraCache": 0,
+          "lecturaCache": 0
+        },
+        "parametros": {
+          "maxTokens": 16000,
+          "temperatura": "sin_enviar",
+          "esfuerzo": "medium"
+        }
+      },
+      {
+        "n": 11,
+        "etapa": "juez",
+        "pareja": "facac5fd-ca7a-4f04-abf9-4926bb955e0a",
+        "modelo": "claude-haiku-5-5",
+        "vuelta": 1,
+        "intento": 1,
+        "resultado": "ok",
+        "estadoHttp": 200,
+        "latenciaMs": 6742,
+        "esperaMs": 0,
+        "comienzoMs": 8890,
+        "tokens": {
+          "entrada": 453,
+          "salida": 1287,
+          "escrituraCache": 0,
+          "lecturaCache": 0
+        },
+        "parametros": {
+          "maxTokens": 16000,
+          "temperatura": "sin_enviar",
+          "esfuerzo": "medium"
+        }
+      },
+      {
+        "n": 12,
+        "etapa": "juez",
+        "pareja": "facac5fd-ca7a-4f04-abf9-4926bb955e0a",
+        "modelo": "claude-haiku-5-5",
+        "vuelta": 1,
+        "intento": 1,
+        "resultado": "ok",
+        "estadoHttp": 200,
+        "latenciaMs": 7311,
+        "esperaMs": 0,
+        "comienzoMs": 8891,
+        "tokens": {
+          "entrada": 453,
+          "salida": 1480,
+          "escrituraCache": 0,
+          "lecturaCache": 0
+        },
+        "parametros": {
+          "maxTokens": 16000,
+          "temperatura": "sin_enviar",
+          "esfuerzo": "medium"
+        }
+      },
+      {
+        "n": 13,
+        "etapa": "juez",
+        "pareja": "facac5fd-ca7a-4f04-abf9-4926bb955e0a",
+        "modelo": "claude-haiku-5-5",
+        "vuelta": 1,
+        "intento": 1,
+        "resultado": "ok",
+        "estadoHttp": 200,
+        "latenciaMs": 4015,
+        "esperaMs": 0,
+        "comienzoMs": 16203,
+        "tokens": {
+          "entrada": 453,
+          "salida": 837,
+          "escrituraCache": 0,
+          "lecturaCache": 0
+        },
+        "parametros": {
+          "maxTokens": 16000,
+          "temperatura": "sin_enviar",
+          "esfuerzo": "medium"
+        }
+      },
+      {
+        "n": 14,
+        "etapa": "juez",
+        "pareja": "facac5fd-ca7a-4f04-abf9-4926bb955e0a",
+        "modelo": "claude-haiku-5-5",
+        "vuelta": 1,
+        "intento": 1,
+        "resultado": "ok",
+        "estadoHttp": 200,
+        "latenciaMs": 5355,
+        "esperaMs": 0,
+        "comienzoMs": 16203,
+        "tokens": {
+          "entrada": 453,
+          "salida": 1052,
+          "escrituraCache": 0,
+          "lecturaCache": 0
+        },
+        "parametros": {
+          "maxTokens": 16000,
+          "temperatura": "sin_enviar",
+          "esfuerzo": "medium"
+        }
+      },
+      {
+        "n": 15,
+        "etapa": "juez",
+        "pareja": "facac5fd-ca7a-4f04-abf9-4926bb955e0a",
+        "modelo": "claude-haiku-5-5",
+        "vuelta": 1,
+        "intento": 1,
+        "resultado": "ok",
+        "estadoHttp": 200,
+        "latenciaMs": 5436,
+        "esperaMs": 0,
+        "comienzoMs": 16203,
+        "tokens": {
+          "entrada": 453,
+          "salida": 1092,
+          "escrituraCache": 0,
+          "lecturaCache": 0
+        },
+        "parametros": {
+          "maxTokens": 16000,
+          "temperatura": "sin_enviar",
+          "esfuerzo": "medium"
+        }
+      },
+      {
+        "n": 16,
+        "etapa": "juez",
+        "pareja": "facac5fd-ca7a-4f04-abf9-4926bb955e0a",
+        "modelo": "claude-haiku-5-5",
+        "vuelta": 1,
+        "intento": 1,
+        "resultado": "ok",
+        "estadoHttp": 200,
+        "latenciaMs": 5680,
+        "esperaMs": 0,
+        "comienzoMs": 16204,
+        "tokens": {
+          "entrada": 453,
+          "salida": 1032,
+          "escrituraCache": 0,
+          "lecturaCache": 0
+        },
+        "parametros": {
+          "maxTokens": 16000,
+          "temperatura": "sin_enviar",
+          "esfuerzo": "medium"
+        }
+      },
+      {
+        "n": 17,
+        "etapa": "juez",
+        "pareja": "facac5fd-ca7a-4f04-abf9-4926bb955e0a",
+        "modelo": "claude-haiku-5-5",
+        "vuelta": 1,
+        "intento": 1,
+        "resultado": "ok",
+        "estadoHttp": 200,
+        "latenciaMs": 6190,
+        "esperaMs": 0,
+        "comienzoMs": 16202,
+        "tokens": {
+          "entrada": 453,
+          "salida": 1327,
+          "escrituraCache": 0,
+          "lecturaCache": 0
+        },
+        "parametros": {
+          "maxTokens": 16000,
+          "temperatura": "sin_enviar",
+          "esfuerzo": "medium"
+        }
+      },
+      {
+        "n": 18,
+        "etapa": "juez",
+        "pareja": "facac5fd-ca7a-4f04-abf9-4926bb955e0a",
+        "modelo": "claude-haiku-5-5",
+        "vuelta": 1,
+        "intento": 1,
+        "resultado": "ok",
+        "estadoHttp": 200,
+        "latenciaMs": 7560,
+        "esperaMs": 0,
+        "comienzoMs": 16205,
+        "tokens": {
+          "entrada": 453,
+          "salida": 1564,
+          "escrituraCache": 0,
+          "lecturaCache": 0
+        },
+        "parametros": {
+          "maxTokens": 16000,
+          "temperatura": "sin_enviar",
+          "esfuerzo": "medium"
+        }
+      },
+      {
+        "n": 19,
+        "etapa": "juez",
+        "pareja": "facac5fd-ca7a-4f04-abf9-4926bb955e0a",
+        "modelo": "claude-haiku-5-5",
+        "vuelta": 1,
+        "intento": 1,
+        "resultado": "ok",
+        "estadoHttp": 200,
+        "latenciaMs": 5454,
+        "esperaMs": 0,
+        "comienzoMs": 23766,
+        "tokens": {
+          "entrada": 453,
+          "salida": 1143,
+          "escrituraCache": 0,
+          "lecturaCache": 0
+        },
+        "parametros": {
+          "maxTokens": 16000,
+          "temperatura": "sin_enviar",
+          "esfuerzo": "medium"
+        }
+      },
+      {
+        "n": 20,
+        "etapa": "juez",
+        "pareja": "facac5fd-ca7a-4f04-abf9-4926bb955e0a",
+        "modelo": "claude-haiku-5-5",
+        "vuelta": 1,
+        "intento": 1,
+        "resultado": "ok",
+        "estadoHttp": 200,
+        "latenciaMs": 5572,
+        "esperaMs": 0,
+        "comienzoMs": 23768,
+        "tokens": {
+          "entrada": 453,
+          "salida": 1141,
+          "escrituraCache": 0,
+          "lecturaCache": 0
+        },
+        "parametros": {
+          "maxTokens": 16000,
+          "temperatura": "sin_enviar",
+          "esfuerzo": "medium"
+        }
+      },
+      {
+        "n": 21,
+        "etapa": "juez",
+        "pareja": "facac5fd-ca7a-4f04-abf9-4926bb955e0a",
+        "modelo": "claude-haiku-5-5",
+        "vuelta": 1,
+        "intento": 1,
+        "resultado": "ok",
+        "estadoHttp": 200,
+        "latenciaMs": 6084,
+        "esperaMs": 0,
+        "comienzoMs": 23768,
+        "tokens": {
+          "entrada": 453,
+          "salida": 1168,
+          "escrituraCache": 0,
+          "lecturaCache": 0
+        },
+        "parametros": {
+          "maxTokens": 16000,
+          "temperatura": "sin_enviar",
+          "esfuerzo": "medium"
+        }
+      },
+      {
+        "n": 22,
+        "etapa": "juez",
+        "pareja": "facac5fd-ca7a-4f04-abf9-4926bb955e0a",
+        "modelo": "claude-haiku-5-5",
+        "vuelta": 1,
+        "intento": 1,
+        "resultado": "ok",
+        "estadoHttp": 200,
+        "latenciaMs": 6937,
+        "esperaMs": 0,
+        "comienzoMs": 23765,
+        "tokens": {
+          "entrada": 453,
+          "salida": 1439,
+          "escrituraCache": 0,
+          "lecturaCache": 0
+        },
+        "parametros": {
+          "maxTokens": 16000,
+          "temperatura": "sin_enviar",
+          "esfuerzo": "medium"
+        }
+      },
+      {
+        "n": 23,
+        "etapa": "juez",
+        "pareja": "facac5fd-ca7a-4f04-abf9-4926bb955e0a",
+        "modelo": "claude-haiku-5-5",
+        "vuelta": 1,
+        "intento": 1,
+        "resultado": "ok",
+        "estadoHttp": 200,
+        "latenciaMs": 7061,
+        "esperaMs": 0,
+        "comienzoMs": 23766,
+        "tokens": {
+          "entrada": 453,
+          "salida": 1461,
+          "escrituraCache": 0,
+          "lecturaCache": 0
+        },
+        "parametros": {
+          "maxTokens": 16000,
+          "temperatura": "sin_enviar",
+          "esfuerzo": "medium"
+        }
+      },
+      {
+        "n": 24,
+        "etapa": "juez",
+        "pareja": "facac5fd-ca7a-4f04-abf9-4926bb955e0a",
+        "modelo": "claude-haiku-5-5",
+        "vuelta": 1,
+        "intento": 1,
+        "resultado": "ok",
+        "estadoHttp": 200,
+        "latenciaMs": 8312,
+        "esperaMs": 0,
+        "comienzoMs": 23767,
+        "tokens": {
+          "entrada": 453,
+          "salida": 1585,
+          "escrituraCache": 0,
+          "lecturaCache": 0
+        },
+        "parametros": {
+          "maxTokens": 16000,
+          "temperatura": "sin_enviar",
+          "esfuerzo": "medium"
+        }
+      },
+      {
+        "n": 25,
+        "etapa": "juez",
+        "pareja": "facac5fd-ca7a-4f04-abf9-4926bb955e0a",
+        "modelo": "claude-haiku-5-5",
+        "vuelta": 1,
+        "intento": 1,
+        "resultado": "http",
+        "estadoHttp": 503,
+        "latenciaMs": 292,
+        "esperaMs": 0,
+        "comienzoMs": 32079,
+        "tokens": {
+          "entrada": 0,
+          "salida": 0,
+          "escrituraCache": 0,
+          "lecturaCache": 0
+        },
+        "parametros": {
+          "maxTokens": 16000,
+          "temperatura": "sin_enviar",
+          "esfuerzo": "medium"
+        }
+      },
+      {
+        "n": 26,
+        "etapa": "juez",
+        "pareja": "facac5fd-ca7a-4f04-abf9-4926bb955e0a",
+        "modelo": "claude-haiku-5-5",
+        "vuelta": 1,
+        "intento": 1,
+        "resultado": "ok",
+        "estadoHttp": 200,
+        "latenciaMs": 5902,
+        "esperaMs": 0,
+        "comienzoMs": 32080,
+        "tokens": {
+          "entrada": 453,
+          "salida": 1092,
+          "escrituraCache": 0,
+          "lecturaCache": 0
+        },
+        "parametros": {
+          "maxTokens": 16000,
+          "temperatura": "sin_enviar",
+          "esfuerzo": "medium"
+        }
+      },
+      {
+        "n": 27,
+        "etapa": "juez",
+        "pareja": "facac5fd-ca7a-4f04-abf9-4926bb955e0a",
+        "modelo": "claude-haiku-5-5",
+        "vuelta": 1,
+        "intento": 1,
+        "resultado": "ok",
+        "estadoHttp": 200,
+        "latenciaMs": 6775,
+        "esperaMs": 0,
+        "comienzoMs": 32080,
+        "tokens": {
+          "entrada": 453,
+          "salida": 1179,
+          "escrituraCache": 0,
+          "lecturaCache": 0
+        },
+        "parametros": {
+          "maxTokens": 16000,
+          "temperatura": "sin_enviar",
+          "esfuerzo": "medium"
+        }
+      },
+      {
+        "n": 28,
+        "etapa": "juez",
+        "pareja": "facac5fd-ca7a-4f04-abf9-4926bb955e0a",
+        "modelo": "claude-haiku-5-5",
+        "vuelta": 1,
+        "intento": 1,
+        "resultado": "ok",
+        "estadoHttp": 200,
+        "latenciaMs": 7167,
+        "esperaMs": 0,
+        "comienzoMs": 32079,
+        "tokens": {
+          "entrada": 453,
+          "salida": 1175,
+          "escrituraCache": 0,
+          "lecturaCache": 0
+        },
+        "parametros": {
+          "maxTokens": 16000,
+          "temperatura": "sin_enviar",
+          "esfuerzo": "medium"
+        }
+      },
+      {
+        "n": 29,
+        "etapa": "juez",
+        "pareja": "facac5fd-ca7a-4f04-abf9-4926bb955e0a",
+        "modelo": "claude-haiku-5-5",
+        "vuelta": 1,
+        "intento": 2,
+        "resultado": "ok",
+        "estadoHttp": 200,
+        "latenciaMs": 5833,
+        "esperaMs": 2001,
+        "comienzoMs": 32371,
+        "tokens": {
+          "entrada": 453,
+          "salida": 947,
+          "escrituraCache": 0,
+          "lecturaCache": 0
+        },
+        "parametros": {
+          "maxTokens": 16000,
+          "temperatura": "sin_enviar",
+          "esfuerzo": "medium"
+        }
+      },
+      {
+        "n": 30,
+        "etapa": "juez",
+        "pareja": "facac5fd-ca7a-4f04-abf9-4926bb955e0a",
+        "modelo": "claude-haiku-5-5",
+        "vuelta": 1,
+        "intento": 1,
+        "resultado": "ok",
+        "estadoHttp": 200,
+        "latenciaMs": 8482,
+        "esperaMs": 0,
+        "comienzoMs": 32080,
+        "tokens": {
+          "entrada": 453,
+          "salida": 1715,
+          "escrituraCache": 0,
+          "lecturaCache": 0
+        },
+        "parametros": {
+          "maxTokens": 16000,
+          "temperatura": "sin_enviar",
+          "esfuerzo": "medium"
+        }
+      },
+      {
+        "n": 31,
+        "etapa": "juez",
+        "pareja": "facac5fd-ca7a-4f04-abf9-4926bb955e0a",
+        "modelo": "claude-haiku-5-5",
+        "vuelta": 1,
+        "intento": 1,
+        "resultado": "ok",
+        "estadoHttp": 200,
+        "latenciaMs": 8799,
+        "esperaMs": 0,
+        "comienzoMs": 32080,
+        "tokens": {
+          "entrada": 453,
+          "salida": 1527,
+          "escrituraCache": 0,
+          "lecturaCache": 0
+        },
+        "parametros": {
+          "maxTokens": 16000,
+          "temperatura": "sin_enviar",
+          "esfuerzo": "medium"
+        }
+      },
+      {
+        "n": 32,
+        "etapa": "juez",
+        "pareja": "facac5fd-ca7a-4f04-abf9-4926bb955e0a",
+        "modelo": "claude-haiku-5-5",
+        "vuelta": 1,
+        "intento": 1,
+        "resultado": "http",
+        "estadoHttp": 503,
+        "latenciaMs": 257,
+        "esperaMs": 0,
+        "comienzoMs": 40881,
+        "tokens": {
+          "entrada": 0,
+          "salida": 0,
+          "escrituraCache": 0,
+          "lecturaCache": 0
+        },
+        "parametros": {
+          "maxTokens": 16000,
+          "temperatura": "sin_enviar",
+          "esfuerzo": "medium"
+        }
+      },
+      {
+        "n": 33,
+        "etapa": "juez",
+        "pareja": "facac5fd-ca7a-4f04-abf9-4926bb955e0a",
+        "modelo": "claude-haiku-5-5",
+        "vuelta": 1,
+        "intento": 1,
+        "resultado": "http",
+        "estadoHttp": 503,
+        "latenciaMs": 274,
+        "esperaMs": 0,
+        "comienzoMs": 40880,
+        "tokens": {
+          "entrada": 0,
+          "salida": 0,
+          "escrituraCache": 0,
+          "lecturaCache": 0
+        },
+        "parametros": {
+          "maxTokens": 16000,
+          "temperatura": "sin_enviar",
+          "esfuerzo": "medium"
+        }
+      },
+      {
+        "n": 34,
+        "etapa": "juez",
+        "pareja": "facac5fd-ca7a-4f04-abf9-4926bb955e0a",
+        "modelo": "claude-haiku-5-5",
+        "vuelta": 1,
+        "intento": 1,
+        "resultado": "http",
+        "estadoHttp": 503,
+        "latenciaMs": 1044,
+        "esperaMs": 0,
+        "comienzoMs": 40880,
+        "tokens": {
+          "entrada": 0,
+          "salida": 0,
+          "escrituraCache": 0,
+          "lecturaCache": 0
+        },
+        "parametros": {
+          "maxTokens": 16000,
+          "temperatura": "sin_enviar",
+          "esfuerzo": "medium"
+        }
+      },
+      {
+        "n": 35,
+        "etapa": "juez",
+        "pareja": "facac5fd-ca7a-4f04-abf9-4926bb955e0a",
+        "modelo": "claude-haiku-5-5",
+        "vuelta": 1,
+        "intento": 1,
+        "resultado": "http",
+        "estadoHttp": 503,
+        "latenciaMs": 1100,
+        "esperaMs": 0,
+        "comienzoMs": 40879,
+        "tokens": {
+          "entrada": 0,
+          "salida": 0,
+          "escrituraCache": 0,
+          "lecturaCache": 0
+        },
+        "parametros": {
+          "maxTokens": 16000,
+          "temperatura": "sin_enviar",
+          "esfuerzo": "medium"
+        }
+      },
+      {
+        "n": 36,
+        "etapa": "juez",
+        "pareja": "facac5fd-ca7a-4f04-abf9-4926bb955e0a",
+        "modelo": "claude-haiku-5-5",
+        "vuelta": 1,
+        "intento": 1,
+        "resultado": "http",
+        "estadoHttp": 503,
+        "latenciaMs": 1825,
+        "esperaMs": 0,
+        "comienzoMs": 40879,
+        "tokens": {
+          "entrada": 0,
+          "salida": 0,
+          "escrituraCache": 0,
+          "lecturaCache": 0
+        },
+        "parametros": {
+          "maxTokens": 16000,
+          "temperatura": "sin_enviar",
+          "esfuerzo": "medium"
+        }
+      },
+      {
+        "n": 37,
+        "etapa": "juez",
+        "pareja": "facac5fd-ca7a-4f04-abf9-4926bb955e0a",
+        "modelo": "claude-haiku-5-5",
+        "vuelta": 1,
+        "intento": 2,
+        "resultado": "http",
+        "estadoHttp": 503,
+        "latenciaMs": 258,
+        "esperaMs": 2000,
+        "comienzoMs": 41138,
+        "tokens": {
+          "entrada": 0,
+          "salida": 0,
+          "escrituraCache": 0,
+          "lecturaCache": 0
+        },
+        "parametros": {
+          "maxTokens": 16000,
+          "temperatura": "sin_enviar",
+          "esfuerzo": "medium"
+        }
+      },
+      {
+        "n": 38,
+        "etapa": "juez",
+        "pareja": "facac5fd-ca7a-4f04-abf9-4926bb955e0a",
+        "modelo": "claude-haiku-5-5",
+        "vuelta": 1,
+        "intento": 2,
+        "resultado": "http",
+        "estadoHttp": 503,
+        "latenciaMs": 444,
+        "esperaMs": 2000,
+        "comienzoMs": 41154,
+        "tokens": {
+          "entrada": 0,
+          "salida": 0,
+          "escrituraCache": 0,
+          "lecturaCache": 0
+        },
+        "parametros": {
+          "maxTokens": 16000,
+          "temperatura": "sin_enviar",
+          "esfuerzo": "medium"
+        }
+      },
+      {
+        "n": 39,
+        "etapa": "juez",
+        "pareja": "facac5fd-ca7a-4f04-abf9-4926bb955e0a",
+        "modelo": "claude-haiku-5-5",
+        "vuelta": 1,
+        "intento": 2,
+        "resultado": "http",
+        "estadoHttp": 503,
+        "latenciaMs": 298,
+        "esperaMs": 2000,
+        "comienzoMs": 41924,
+        "tokens": {
+          "entrada": 0,
+          "salida": 0,
+          "escrituraCache": 0,
+          "lecturaCache": 0
+        },
+        "parametros": {
+          "maxTokens": 16000,
+          "temperatura": "sin_enviar",
+          "esfuerzo": "medium"
+        }
+      },
+      {
+        "n": 40,
+        "etapa": "juez",
+        "pareja": "facac5fd-ca7a-4f04-abf9-4926bb955e0a",
+        "modelo": "claude-haiku-5-5",
+        "vuelta": 1,
+        "intento": 2,
+        "resultado": "http",
+        "estadoHttp": 503,
+        "latenciaMs": 258,
+        "esperaMs": 2000,
+        "comienzoMs": 41979,
+        "tokens": {
+          "entrada": 0,
+          "salida": 0,
+          "escrituraCache": 0,
+          "lecturaCache": 0
+        },
+        "parametros": {
+          "maxTokens": 16000,
+          "temperatura": "sin_enviar",
+          "esfuerzo": "medium"
+        }
+      },
+      {
+        "n": 41,
+        "etapa": "juez",
+        "pareja": "facac5fd-ca7a-4f04-abf9-4926bb955e0a",
+        "modelo": "claude-haiku-5-5",
+        "vuelta": 1,
+        "intento": 1,
+        "resultado": "ok",
+        "estadoHttp": 200,
+        "latenciaMs": 7822,
+        "esperaMs": 0,
+        "comienzoMs": 40880,
+        "tokens": {
+          "entrada": 453,
+          "salida": 1361,
+          "escrituraCache": 0,
+          "lecturaCache": 0
+        },
+        "parametros": {
+          "maxTokens": 16000,
+          "temperatura": "sin_enviar",
+          "esfuerzo": "medium"
+        }
+      },
+      {
+        "n": 42,
+        "etapa": "juez",
+        "pareja": "facac5fd-ca7a-4f04-abf9-4926bb955e0a",
+        "modelo": "claude-haiku-5-5",
+        "vuelta": 1,
+        "intento": 2,
+        "resultado": "ok",
+        "estadoHttp": 200,
+        "latenciaMs": 5677,
+        "esperaMs": 2000,
+        "comienzoMs": 42704,
+        "tokens": {
+          "entrada": 453,
+          "salida": 785,
+          "escrituraCache": 0,
+          "lecturaCache": 0
+        },
+        "parametros": {
+          "maxTokens": 16000,
+          "temperatura": "sin_enviar",
+          "esfuerzo": "medium"
+        }
+      },
+      {
+        "n": 43,
+        "etapa": "juez",
+        "pareja": "facac5fd-ca7a-4f04-abf9-4926bb955e0a",
+        "modelo": "claude-haiku-5-5",
+        "vuelta": 1,
+        "intento": 3,
+        "resultado": "ok",
+        "estadoHttp": 200,
+        "latenciaMs": 4781,
+        "esperaMs": 5001,
+        "comienzoMs": 44222,
+        "tokens": {
+          "entrada": 453,
+          "salida": 932,
+          "escrituraCache": 0,
+          "lecturaCache": 0
+        },
+        "parametros": {
+          "maxTokens": 16000,
+          "temperatura": "sin_enviar",
+          "esfuerzo": "medium"
+        }
+      },
+      {
+        "n": 44,
+        "etapa": "juez",
+        "pareja": "facac5fd-ca7a-4f04-abf9-4926bb955e0a",
+        "modelo": "claude-haiku-5-5",
+        "vuelta": 1,
+        "intento": 3,
+        "resultado": "ok",
+        "estadoHttp": 200,
+        "latenciaMs": 5716,
+        "esperaMs": 4999,
+        "comienzoMs": 43396,
+        "tokens": {
+          "entrada": 453,
+          "salida": 1054,
+          "escrituraCache": 0,
+          "lecturaCache": 0
+        },
+        "parametros": {
+          "maxTokens": 16000,
+          "temperatura": "sin_enviar",
+          "esfuerzo": "medium"
+        }
+      },
+      {
+        "n": 45,
+        "etapa": "juez",
+        "pareja": "facac5fd-ca7a-4f04-abf9-4926bb955e0a",
+        "modelo": "claude-haiku-5-5",
+        "vuelta": 1,
+        "intento": 3,
+        "resultado": "ok",
+        "estadoHttp": 200,
+        "latenciaMs": 7485,
+        "esperaMs": 5001,
+        "comienzoMs": 43598,
+        "tokens": {
+          "entrada": 453,
+          "salida": 1454,
+          "escrituraCache": 0,
+          "lecturaCache": 0
+        },
+        "parametros": {
+          "maxTokens": 16000,
+          "temperatura": "sin_enviar",
+          "esfuerzo": "medium"
+        }
+      },
+      {
+        "n": 46,
+        "etapa": "juez",
+        "pareja": "facac5fd-ca7a-4f04-abf9-4926bb955e0a",
+        "modelo": "claude-haiku-5-5",
+        "vuelta": 1,
+        "intento": 3,
+        "resultado": "ok",
+        "estadoHttp": 200,
+        "latenciaMs": 7371,
+        "esperaMs": 5000,
+        "comienzoMs": 44237,
+        "tokens": {
+          "entrada": 453,
+          "salida": 1498,
+          "escrituraCache": 0,
+          "lecturaCache": 0
+        },
+        "parametros": {
+          "maxTokens": 16000,
+          "temperatura": "sin_enviar",
+          "esfuerzo": "medium"
+        }
+      },
+      {
+        "n": 47,
+        "etapa": "juez",
+        "pareja": "facac5fd-ca7a-4f04-abf9-4926bb955e0a",
+        "modelo": "claude-haiku-5-5",
+        "vuelta": 1,
+        "intento": 1,
+        "resultado": "ok",
+        "estadoHttp": 200,
+        "latenciaMs": 5323,
+        "esperaMs": 0,
+        "comienzoMs": 56609,
+        "tokens": {
+          "entrada": 453,
+          "salida": 1045,
+          "escrituraCache": 0,
+          "lecturaCache": 0
+        },
+        "parametros": {
+          "maxTokens": 16000,
+          "temperatura": "sin_enviar",
+          "esfuerzo": "medium"
+        }
+      },
+      {
+        "n": 48,
+        "etapa": "juez",
+        "pareja": "facac5fd-ca7a-4f04-abf9-4926bb955e0a",
+        "modelo": "claude-haiku-5-5",
+        "vuelta": 1,
+        "intento": 1,
+        "resultado": "ok",
+        "estadoHttp": 200,
+        "latenciaMs": 5622,
+        "esperaMs": 0,
+        "comienzoMs": 56608,
+        "tokens": {
+          "entrada": 453,
+          "salida": 1107,
+          "escrituraCache": 0,
+          "lecturaCache": 0
+        },
+        "parametros": {
+          "maxTokens": 16000,
+          "temperatura": "sin_enviar",
+          "esfuerzo": "medium"
+        }
+      },
+      {
+        "n": 49,
+        "etapa": "juez",
+        "pareja": "facac5fd-ca7a-4f04-abf9-4926bb955e0a",
+        "modelo": "claude-haiku-5-5",
+        "vuelta": 1,
+        "intento": 1,
+        "resultado": "ok",
+        "estadoHttp": 200,
+        "latenciaMs": 6325,
+        "esperaMs": 0,
+        "comienzoMs": 56610,
+        "tokens": {
+          "entrada": 453,
+          "salida": 1379,
+          "escrituraCache": 0,
+          "lecturaCache": 0
+        },
+        "parametros": {
+          "maxTokens": 16000,
+          "temperatura": "sin_enviar",
+          "esfuerzo": "medium"
+        }
+      },
+      {
+        "n": 50,
+        "etapa": "juez",
+        "pareja": "facac5fd-ca7a-4f04-abf9-4926bb955e0a",
+        "modelo": "claude-haiku-5-5",
+        "vuelta": 1,
+        "intento": 1,
+        "resultado": "ok",
+        "estadoHttp": 200,
+        "latenciaMs": 7820,
+        "esperaMs": 0,
+        "comienzoMs": 56609,
+        "tokens": {
+          "entrada": 453,
+          "salida": 1641,
+          "escrituraCache": 0,
+          "lecturaCache": 0
+        },
+        "parametros": {
+          "maxTokens": 16000,
+          "temperatura": "sin_enviar",
+          "esfuerzo": "medium"
+        }
+      },
+      {
+        "n": 51,
+        "etapa": "juez",
+        "pareja": "facac5fd-ca7a-4f04-abf9-4926bb955e0a",
+        "modelo": "claude-haiku-5-5",
+        "vuelta": 1,
+        "intento": 1,
+        "resultado": "ok",
+        "estadoHttp": 200,
+        "latenciaMs": 8809,
+        "esperaMs": 0,
+        "comienzoMs": 56609,
+        "tokens": {
+          "entrada": 453,
+          "salida": 1778,
+          "escrituraCache": 0,
+          "lecturaCache": 0
+        },
+        "parametros": {
+          "maxTokens": 16000,
+          "temperatura": "sin_enviar",
+          "esfuerzo": "medium"
+        }
+      },
+      {
+        "n": 52,
+        "etapa": "juez",
+        "pareja": "facac5fd-ca7a-4f04-abf9-4926bb955e0a",
+        "modelo": "claude-haiku-5-5",
+        "vuelta": 1,
+        "intento": 1,
+        "resultado": "ok",
+        "estadoHttp": 200,
+        "latenciaMs": 9433,
+        "esperaMs": 0,
+        "comienzoMs": 56609,
+        "tokens": {
+          "entrada": 453,
+          "salida": 1872,
+          "escrituraCache": 0,
+          "lecturaCache": 0
+        },
+        "parametros": {
+          "maxTokens": 16000,
+          "temperatura": "sin_enviar",
+          "esfuerzo": "medium"
+        }
+      }
+    ],
+    "sinEtapa": 0,
+    "fueraDelDetalle": null
+  }
+}

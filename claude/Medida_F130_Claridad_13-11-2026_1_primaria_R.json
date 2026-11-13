@@ -1,0 +1,1875 @@
+{
+  "estadoHttp": 200,
+  "medida": "F-130 · LA TANDA DE CLARIDAD (paso 1 de Fable), brazo R, con la regla del producto, PAREJA PRIMARIA: NOR-10 §2.4 sin la frase de A ↔ CLI-12 §3.1 ENTERO; sin el prompt del juez, con el modelo y el esfuerzo del juez, 42 tiradas",
+  "cuando": "2026-11-13T13:22:15.631Z",
+  "huellaDelPrompt": "e8add83ec7be14a1",
+  "cuenta": {
+    "tiradas": 42,
+    "controlDeR": "previsto",
+    "primaria": {
+      "regla": "laxa",
+      "positivos": 42,
+      "porOpcion": {
+        "NO PUEDE": 42
+      }
+    },
+    "secundaria": {
+      "regla": "estricta (Fable)",
+      "positivos": 42,
+      "porOpcion": {
+        "NO PUEDE": 42
+      }
+    },
+    "fallidas": 0
+  },
+  "respuestas": [
+    {
+      "vez": 1,
+      "linea": "NO PUEDE",
+      "laxa": "NO PUEDE",
+      "positivoLaxo": true,
+      "estricta": "NO PUEDE",
+      "positivoEstricto": true,
+      "texto": "**NO PUEDE**\n\nSi el Director Clínico ejerce también como Coordinador de Calidad, es a la vez el responsable último de la esterilización, lo que contradice el Texto 2, que afirma que ese responsable es el Coordinador de Calidad y no el Director Clínico. El Texto 2 además busca separar esa responsabilidad de quien gestiona la agenda asistencial, y la combinación de ambos roles en una sola persona anula esa separación."
+    },
+    {
+      "vez": 2,
+      "linea": "NO PUEDE",
+      "laxa": "NO PUEDE",
+      "positivoLaxo": true,
+      "estricta": "NO PUEDE",
+      "positivoEstricto": true,
+      "texto": "**NO PUEDE**\n\nSi el Director Clínico ocupa también el cargo de Coordinador de Calidad, el responsable último de la esterilización sería esa misma persona, lo que contradice el Texto 2, que establece que no debe ser el Director Clínico. El Texto 2 exige separar ambas responsabilidades para evitar conflictos de tiempo y presión asistencial, y esa separación desaparece cuando una sola persona ocupa los dos roles. Por tanto, el permiso del Texto 1 no puede ejercerse sin incumplir el Texto 2."
+    },
+    {
+      "vez": 3,
+      "linea": "NO PUEDE",
+      "laxa": "NO PUEDE",
+      "positivoLaxo": true,
+      "estricta": "NO PUEDE",
+      "positivoEstricto": true,
+      "texto": "**NO PUEDE**\n\nSi el Coordinador de Calidad es también el Director Clínico, esa persona es el responsable último de la esterilización, lo que contradice el Texto 2, que establece que ese responsable es el Coordinador de Calidad y no el Director Clínico. El Texto 2 exige precisamente separar ambas figuras, y la coincidencia en una misma persona anula esa separación. Por tanto, ninguna clínica que use ese permiso puede cumplir ambos textos a la vez."
+    },
+    {
+      "vez": 4,
+      "linea": "NO PUEDE",
+      "laxa": "NO PUEDE",
+      "positivoLaxo": true,
+      "estricta": "NO PUEDE",
+      "positivoEstricto": true,
+      "texto": "**NO PUEDE**\n\nSi el Director Clínico es también el Coordinador de Calidad, la figura que el Texto 2 señala como responsable último de la esterilización coincide con el Director Clínico, lo que el Texto 2 excluye expresamente. El Texto 2 exige que esa responsabilidad recaiga en el Coordinador de Calidad y no en el Director Clínico, y en este caso ambos cargos son la misma persona. Por tanto, la clínica no puede cumplir ambos textos a la vez."
+    },
+    {
+      "vez": 5,
+      "linea": "NO PUEDE",
+      "laxa": "NO PUEDE",
+      "positivoLaxo": true,
+      "estricta": "NO PUEDE",
+      "positivoEstricto": true,
+      "texto": "**NO PUEDE**\n\nSi el Director Clínico es también el Coordinador de Calidad, el responsable último de la esterilización sería el Director Clínico, lo que contradice directamente el Texto 2. El Texto 2 establece que esa responsabilidad recae en el Coordinador de Calidad \"no el Director Clínico\", y una misma persona no puede ocupar ambos roles a la vez sin anular esa separación. Además, la separación busca evitar que quien gestiona la agenda asistencial controle también el proceso crítico de esterilización, y eso tampoco se cumple."
+    },
+    {
+      "vez": 6,
+      "linea": "NO PUEDE",
+      "laxa": "NO PUEDE",
+      "positivoLaxo": true,
+      "estricta": "NO PUEDE",
+      "positivoEstricto": true,
+      "texto": "**NO PUEDE**\n\nSi el Coordinador de Calidad es también el Director Clínico, la persona que ocupa el cargo de coordinador es, a la vez, el Director Clínico, y el Texto 2 establece que el responsable de la esterilización es el Coordinador \"no el Director Clínico\". Esa separación de roles no puede darse en una sola persona, así que ambas condiciones se contradicen. Por tanto, la clínica no puede cumplir ambos textos a la vez mientras use ese permiso."
+    },
+    {
+      "vez": 7,
+      "linea": "NO PUEDE",
+      "laxa": "NO PUEDE",
+      "positivoLaxo": true,
+      "estricta": "NO PUEDE",
+      "positivoEstricto": true,
+      "texto": "**NO PUEDE.**\n\nSi el Director Clínico es también el Coordinador de Calidad, el responsable de la esterilización sería el Director Clínico, algo que el Texto 2 excluye expresamente. Además, el Texto 2 busca separar esa responsabilidad de quien gestiona la agenda asistencial, y en ese caso la separación no existiría. Por tanto, ambas exigencias son incompatibles en esa clínica."
+    },
+    {
+      "vez": 8,
+      "linea": "NO PUEDE",
+      "laxa": "NO PUEDE",
+      "positivoLaxo": true,
+      "estricta": "NO PUEDE",
+      "positivoEstricto": true,
+      "texto": "**NO PUEDE**\n\nSi el Coordinador de Calidad es el propio Director Clínico, la responsabilidad última de la esterilización recae en la misma persona que el Texto 2 quiere excluir de ella. El Texto 2 exige separar esa responsabilidad de quien gestiona la agenda asistencial, y esa separación no existe en este caso. Por tanto, esa configuración incumple el criterio del Texto 2 aunque el Texto 1 la permita."
+    },
+    {
+      "vez": 9,
+      "linea": "NO PUEDE",
+      "laxa": "NO PUEDE",
+      "positivoLaxo": true,
+      "estricta": "NO PUEDE",
+      "positivoEstricto": true,
+      "texto": "**NO PUEDE.**\nSi el Director Clínico es también el Coordinador de Calidad, la persona que ocupa ese cargo sigue siendo el Director Clínico, y el Texto 2 establece que la responsabilidad de la esterilización no recae en él. Además, el Texto 2 busca separar esa responsabilidad de quien gestiona la agenda asistencial, y esa separación desaparece cuando ambas funciones coinciden en una misma persona."
+    },
+    {
+      "vez": 10,
+      "linea": "NO PUEDE",
+      "laxa": "NO PUEDE",
+      "positivoLaxo": true,
+      "estricta": "NO PUEDE",
+      "positivoEstricto": true,
+      "texto": "**NO PUEDE**\n\nSi el Director Clínico es también el Coordinador de Calidad, la persona responsable última de la esterilización sería el Director Clínico, que el Texto 2 excluye expresamente. El Texto 2 busca separar esa responsabilidad de quien gestiona la agenda asistencial, y esa separación desaparece cuando ambos cargos recaen en la misma persona. Por tanto, aplicar el permiso del Texto 1 impide cumplir el Texto 2."
+    },
+    {
+      "vez": 11,
+      "linea": "NO PUEDE",
+      "laxa": "NO PUEDE",
+      "positivoLaxo": true,
+      "estricta": "NO PUEDE",
+      "positivoEstricto": true,
+      "texto": "**NO PUEDE**\n\nSi el Director Clínico es también el Coordinador de Calidad, sería automáticamente el responsable último de la esterilización, lo que contradice el Texto 2, que establece que esa responsabilidad no recae en el Director Clínico. El Texto 2 no admite excepciones, así que la combinación de ambas figuras en una misma persona es incompatible con él. La incompatibilidad surge del propio diseño del permiso, no de un uso concreto."
+    },
+    {
+      "vez": 12,
+      "linea": "NO PUEDE",
+      "laxa": "NO PUEDE",
+      "positivoLaxo": true,
+      "estricta": "NO PUEDE",
+      "positivoEstricto": true,
+      "texto": "**NO PUEDE**\n\nSi el Director Clínico ocupa también el cargo de Coordinador de Calidad, esa persona sería a la vez la responsable última de la esterilización, lo que el Texto 2 excluye expresamente al afirmar que no debe ser el Director Clínico. El Texto 2 justifica esa separación para evitar que la presión de la agenda asistencial afecte a un proceso crítico, y esa razón se pierde cuando ambos cargos recaen en la misma persona. Por tanto, el permiso del Texto 1 no puede ejercerse sin incumplir el Texto 2."
+    },
+    {
+      "vez": 13,
+      "linea": "NO PUEDE",
+      "laxa": "NO PUEDE",
+      "positivoLaxo": true,
+      "estricta": "NO PUEDE",
+      "positivoEstricto": true,
+      "texto": "**NO PUEDE.**\nSi el Director Clínico ocupa también el cargo de Coordinador de Calidad, es él quien resulta ser el responsable último de la esterilización, lo que el Texto 2 prohíbe expresamente. Además, se pierde la separación de funciones que el Texto 2 busca, porque la misma persona gestionaría la agenda asistencial y supervisaría el proceso crítico de esterilización. Por tanto, no existe forma de cumplir ambos textos a la vez mientras la figura del Coordinador de Calidad recaiga en el Director Clínico."
+    },
+    {
+      "vez": 14,
+      "linea": "NO PUEDE",
+      "laxa": "NO PUEDE",
+      "positivoLaxo": true,
+      "estricta": "NO PUEDE",
+      "positivoEstricto": true,
+      "texto": "**NO PUEDE**\n\nSi el Director Clínico ejerce también como Coordinador de Calidad, el Texto 2 queda incumplido, porque la responsabilidad última de la esterilización recaería en la misma persona que el texto excluye expresamente. Las dos normas no pueden cumplirse a la vez en ese caso: al ser el Coordinador de Calidad, el Director sería el responsable último de la esterilización."
+    },
+    {
+      "vez": 15,
+      "linea": "NO PUEDE",
+      "laxa": "NO PUEDE",
+      "positivoLaxo": true,
+      "estricta": "NO PUEDE",
+      "positivoEstricto": true,
+      "texto": "**NO PUEDE**\n\nSi el Coordinador de Calidad es el Director Clínico, la misma persona ocupa ambos roles, lo que contradice el Texto 2, que establece que el responsable de la esterilización es el Coordinador \"no el Director Clínico\". Además, el Texto 2 busca separar esa responsabilidad del Director precisamente para evitar conflictos con la presión de su agenda asistencial, y esa separación no existe si la persona es la misma. Por tanto, ambos textos son incompatibles en ese caso."
+    },
+    {
+      "vez": 16,
+      "linea": "NO PUEDE",
+      "laxa": "NO PUEDE",
+      "positivoLaxo": true,
+      "estricta": "NO PUEDE",
+      "positivoEstricto": true,
+      "texto": "**NO PUEDE.**\nSi el Director Clínico es también el Coordinador de Calidad, la misma persona encarnaría la figura que el Texto 2 declara responsable de la esterilización y la que queda excluida de esa responsabilidad por ser Director Clínico. El Texto 2 busca separar esos dos roles, y esa separación desaparece en ese caso. Por tanto, el permiso del Texto 1 y la exigencia del Texto 2 son incompatibles cuando se aplica el permiso."
+    },
+    {
+      "vez": 17,
+      "linea": "NO PUEDE",
+      "laxa": "NO PUEDE",
+      "positivoLaxo": true,
+      "estricta": "NO PUEDE",
+      "positivoEstricto": true,
+      "texto": "**NO PUEDE**\n\nSi el Director Clínico es también el Coordinador de Calidad, la persona responsable de la esterilización sería el propio Director Clínico, lo que contradice el Texto 2. El Texto 2 exige separar esa responsabilidad de quien gestiona la agenda asistencial, y en este caso no hay separación posible. Por tanto, el permiso del Texto 1 y la exigencia del Texto 2 son incompatibles cuando se aplica el primero."
+    },
+    {
+      "vez": 18,
+      "linea": "NO PUEDE",
+      "laxa": "NO PUEDE",
+      "positivoLaxo": true,
+      "estricta": "NO PUEDE",
+      "positivoEstricto": true,
+      "texto": "**NO PUEDE**\n\nSi el Director Clínico es también el Coordinador de Calidad, el responsable último de la esterilización sería el Director Clínico, lo que contradice el Texto 2. El Texto 2 exige que esa responsabilidad recaiga en el Coordinador de Calidad y no en el Director Clínico, y en este caso ambas figuras coinciden en la misma persona. Por tanto, ambos textos no pueden cumplirse a la vez en esa clínica."
+    },
+    {
+      "vez": 19,
+      "linea": "NO PUEDE",
+      "laxa": "NO PUEDE",
+      "positivoLaxo": true,
+      "estricta": "NO PUEDE",
+      "positivoEstricto": true,
+      "texto": "**NO PUEDE**\n\nSi el Director Clínico ejerce también como Coordinador de Calidad, es la misma persona la que ocupa ambos cargos, y el Texto 2 establece que el responsable de la esterilización es el Coordinador y no el Director Clínico, así que se contradice. Además, el Texto 2 busca separar esa responsabilidad de quien gestiona la agenda asistencial, y esa separación desaparece cuando ambas funciones recaen en una sola persona."
+    },
+    {
+      "vez": 20,
+      "linea": "NO PUEDE",
+      "laxa": "NO PUEDE",
+      "positivoLaxo": true,
+      "estricta": "NO PUEDE",
+      "positivoEstricto": true,
+      "texto": "**NO PUEDE**\n\nSi el Director Clínico es también el Coordinador de Calidad, la persona responsable de la esterilización sería el Director Clínico, lo que contradice el Texto 2, que afirma que esa responsabilidad recae en el Coordinador de Calidad \"no el Director Clínico\". Además, el Texto 2 busca precisamente separar ambas figuras, por lo que una clínica que use el permiso del Texto 1 no puede cumplir a la vez lo que exige el Texto 2."
+    },
+    {
+      "vez": 21,
+      "linea": "NO PUEDE",
+      "laxa": "NO PUEDE",
+      "positivoLaxo": true,
+      "estricta": "NO PUEDE",
+      "positivoEstricto": true,
+      "texto": "**NO PUEDE**\n\nSi el Coordinador de Calidad es el Director Clínico, la persona responsable última de la esterilización sería también el Director Clínico, algo que el Texto 2 excluye expresamente. Además, el Texto 2 justifica la separación para evitar que quien gestiona la agenda asistencial, y puede sufrir presión de tiempo, sea quien responda por esterilización, y esa separación desaparece cuando ambos cargos recaen en la misma persona."
+    },
+    {
+      "vez": 22,
+      "linea": "NO PUEDE",
+      "laxa": "NO PUEDE",
+      "positivoLaxo": true,
+      "estricta": "NO PUEDE",
+      "positivoEstricto": true,
+      "texto": "**NO PUEDE**\n\nSi el Coordinador de Calidad es el Director Clínico, el responsable último de la esterilización sería el Director Clínico, algo que el Texto 2 excluye expresamente. El Texto 2 exige que esa responsabilidad recaiga en el Coordinador de Calidad y no en el Director Clínico, para separarla de la presión de la gestión asistencial. Cuando ambas figuras coinciden en una persona, esa separación desaparece y el requisito del Texto 2 no puede cumplirse."
+    },
+    {
+      "vez": 23,
+      "linea": "NO PUEDE",
+      "laxa": "NO PUEDE",
+      "positivoLaxo": true,
+      "estricta": "NO PUEDE",
+      "positivoEstricto": true,
+      "texto": "**NO PUEDE**\n\nSi el Coordinador de Calidad es el propio Director Clínico, esa persona ocupa ambos cargos a la vez, y el Texto 2 establece que el responsable de la esterilización no debe ser el Director Clínico. Por tanto, la clínica incumpliría el Texto 2 en cuanto hiciera uso del permiso del Texto 1. Por eso, aunque el permiso exista, ambas disposiciones no pueden cumplirse a la vez."
+    },
+    {
+      "vez": 24,
+      "linea": "NO PUEDE",
+      "laxa": "NO PUEDE",
+      "positivoLaxo": true,
+      "estricta": "NO PUEDE",
+      "positivoEstricto": true,
+      "texto": "**NO PUEDE**\n\nSi el Coordinador de Calidad es el Director Clínico, la persona que ocupa ese cargo sería también el responsable último de la esterilización, lo que contradice el Texto 2 cuando dice que esa responsabilidad recae en el Coordinador de Calidad \"no el Director Clínico\". El Texto 2 busca separar esas dos funciones precisamente para evitar el conflicto, así que la unión de ambas en una misma persona lo incumple por definición. Por tanto, la clínica no puede cumplir ambos textos a la vez si usa esa opción."
+    },
+    {
+      "vez": 25,
+      "linea": "NO PUEDE",
+      "laxa": "NO PUEDE",
+      "positivoLaxo": true,
+      "estricta": "NO PUEDE",
+      "positivoEstricto": true,
+      "texto": "**NO PUEDE**\n\nSi el Director Clínico es también el Coordinador de Calidad, la persona que es responsable último de la esterilización sería el mismo Director Clínico que el Texto 2 excluye expresamente. Eso anula la separación de responsabilidades que el Texto 2 exige como criterio deliberado de seguridad del paciente. Por tanto, esa combinación no puede cumplir ambos textos a la vez."
+    },
+    {
+      "vez": 26,
+      "linea": "NO PUEDE",
+      "laxa": "NO PUEDE",
+      "positivoLaxo": true,
+      "estricta": "NO PUEDE",
+      "positivoEstricto": true,
+      "texto": "**NO PUEDE**\n\nSi el Director Clínico es también el Coordinador de Calidad, el Texto 2 queda incumplido, porque asigna la responsabilidad última de la esterilización al Coordinador de Calidad y excluye expresamente al Director Clínico. Como ambos cargos recaen en la misma persona, no es posible separar esa responsabilidad de quien gestiona la agenda asistencial, que es justo lo que el Texto 2 exige evitar."
+    },
+    {
+      "vez": 27,
+      "linea": "NO PUEDE",
+      "laxa": "NO PUEDE",
+      "positivoLaxo": true,
+      "estricta": "NO PUEDE",
+      "positivoEstricto": true,
+      "texto": "**NO PUEDE**\n\nSi el Director Clínico asume también la Coordinación de Calidad, la misma persona acumula ambos roles, y el responsable de la esterilización sería el Director Clínico, algo que el Texto 2 excluye expresamente. El Texto 2 exige separar esas dos funciones precisamente para evitar el conflicto entre la presión asistencial y el rigor de la esterilización, y esa separación desaparece cuando coinciden en una sola persona. Por tanto, con el permiso del Texto 1 usado de esa forma, no se cumple lo establecido en el Texto 2."
+    },
+    {
+      "vez": 28,
+      "linea": "NO PUEDE",
+      "laxa": "NO PUEDE",
+      "positivoLaxo": true,
+      "estricta": "NO PUEDE",
+      "positivoEstricto": true,
+      "texto": "**NO PUEDE**\n\nSi el Director Clínico ejerce también como Coordinador de Calidad, es la misma persona la que debe ser y no debe ser el responsable de la esterilización, lo que es contradictorio. El Texto 2 exige que esa responsabilidad recaiga en el Coordinador de Calidad *y no* en el Director Clínico, y el Texto 1 permite que ambas figuras coincidan en una sola persona. Por tanto, la combinación de permiso y exigencia es incompatible en esa clínica."
+    },
+    {
+      "vez": 29,
+      "linea": "NO PUEDE",
+      "laxa": "NO PUEDE",
+      "positivoLaxo": true,
+      "estricta": "NO PUEDE",
+      "positivoEstricto": true,
+      "texto": "**NO PUEDE**\n\nSi el Coordinador de Calidad es el propio Director Clínico, la persona que asume la responsabilidad última de la esterilización sería el Director Clínico, lo que contradice el Texto 2. El Texto 2 exige que esa responsabilidad recaiga en el Coordinador de Calidad y expresamente no en el Director Clínico, y en ese caso ambas figuras son la misma persona. Ambos textos solo son compatibles si el Coordinador de Calidad es otro profesional distinto del Director Clínico."
+    },
+    {
+      "vez": 30,
+      "linea": "NO PUEDE",
+      "laxa": "NO PUEDE",
+      "positivoLaxo": true,
+      "estricta": "NO PUEDE",
+      "positivoEstricto": true,
+      "texto": "**NO PUEDE**\n\nSi el Director Clínico es también el Coordinador de Calidad, sería la persona responsable última de la esterilización, algo que el Texto 2 excluye expresamente. El Texto 2 exige que esa responsabilidad recaiga en el Coordinador de Calidad y no en el Director Clínico, y en este caso ambos cargos coinciden en la misma persona. Por tanto, la clínica no puede cumplir ambos textos a la vez mientras use esa posibilidad."
+    },
+    {
+      "vez": 31,
+      "linea": "NO PUEDE",
+      "laxa": "NO PUEDE",
+      "positivoLaxo": true,
+      "estricta": "NO PUEDE",
+      "positivoEstricto": true,
+      "texto": "**NO PUEDE**\n\nSi el Director Clínico es también el Coordinador de Calidad, la persona que debe ser responsable último de la esterilización sería la misma que, según el Texto 2, no debe asumir esa responsabilidad, porque el sistema busca separarla de quien gestiona la agenda asistencial y puede sufrir presión de tiempo. El Texto 2 no admite excepciones: exige que la responsabilidad recaiga en el Coordinador de Calidad y que esté separada de la figura del Director. Por tanto, la combinación de ambos roles en una misma persona contradice el criterio del Texto 2."
+    },
+    {
+      "vez": 32,
+      "linea": "NO PUEDE",
+      "laxa": "NO PUEDE",
+      "positivoLaxo": true,
+      "estricta": "NO PUEDE",
+      "positivoEstricto": true,
+      "texto": "**NO PUEDE**\n\nSi el Coordinador de Calidad es el Director Clínico, la persona que es responsable de la esterilización sería el Director Clínico, algo que el Texto 2 excluye expresamente. Además, el Texto 2 busca separar esa responsabilidad de quien gestiona la agenda asistencial, y esa separación desaparece cuando ambos cargos recaen en la misma persona."
+    },
+    {
+      "vez": 33,
+      "linea": "NO PUEDE",
+      "laxa": "NO PUEDE",
+      "positivoLaxo": true,
+      "estricta": "NO PUEDE",
+      "positivoEstricto": true,
+      "texto": "**NO PUEDE**\n\nSi el Director Clínico ejerce también como Coordinador de Calidad, es la misma persona la que, como Director, gestiona la agenda asistencial y, como Coordinador, responde por la esterilización, lo que el Texto 2 prohíbe expresamente al establecer que el responsable no es el Director Clínico. El Texto 2 exige que esa responsabilidad esté separada del rol de Director, y esa separación desaparece cuando ambos cargos recaen en la misma persona."
+    },
+    {
+      "vez": 34,
+      "linea": "NO PUEDE",
+      "laxa": "NO PUEDE",
+      "positivoLaxo": true,
+      "estricta": "NO PUEDE",
+      "positivoEstricto": true,
+      "texto": "**NO PUEDE**\n\nSi el Director Clínico es también el Coordinador de Calidad, la persona que ocupa el cargo de Coordinador sería la responsable última de la esterilización, pero esa misma persona sería el Director Clínico, algo que el Texto 2 excluye expresamente. El Texto 2 exige separar ambas responsabilidades para evitar conflictos de tiempo y presión asistencial, y esa separación no existe si una sola persona ocupa los dos roles."
+    },
+    {
+      "vez": 35,
+      "linea": "NO PUEDE",
+      "laxa": "NO PUEDE",
+      "positivoLaxo": true,
+      "estricta": "NO PUEDE",
+      "positivoEstricto": true,
+      "texto": "**NO PUEDE**\n\nSi el Coordinador de Calidad es el Director Clínico, la persona responsable de la esterilización sería el Director Clínico, lo que el Texto 2 excluye expresamente. El Texto 2 también muestra que la separación de roles es un requisito del diseño, no una recomendación, porque busca evitar el conflicto entre la presión asistencial y el rigor en esterilización. Por tanto, aunque el Texto 1 lo permita, esa configuración incumple el Texto 2."
+    },
+    {
+      "vez": 36,
+      "linea": "NO PUEDE",
+      "laxa": "NO PUEDE",
+      "positivoLaxo": true,
+      "estricta": "NO PUEDE",
+      "positivoEstricto": true,
+      "texto": "**NO PUEDE**\n\nSi el Director Clínico es también el Coordinador de Calidad, la persona que es responsable de la esterilización sería el Director Clínico, lo que contradice directamente el Texto 2. El Texto 2 exige que el responsable último de la esterilización sea el Coordinador de Calidad, no el Director Clínico, para separar esa responsabilidad de la presión asistencial. Por tanto, en ese caso ambas disposiciones no pueden cumplirse a la vez."
+    },
+    {
+      "vez": 37,
+      "linea": "NO PUEDE",
+      "laxa": "NO PUEDE",
+      "positivoLaxo": true,
+      "estricta": "NO PUEDE",
+      "positivoEstricto": true,
+      "texto": "**NO PUEDE**\n\nSi el Coordinador de Calidad es el Director Clínico, esa persona sería la responsable última de la esterilización, algo que el Texto 2 prohíbe expresamente. El Texto 2 exige que esa responsabilidad recaiga en el Coordinador de Calidad y no en el Director Clínico, y la misma persona no puede cumplir ambas condiciones a la vez. Por tanto, la clínica que use el permiso del Texto 1 incumpliría el Texto 2."
+    },
+    {
+      "vez": 38,
+      "linea": "NO PUEDE",
+      "laxa": "NO PUEDE",
+      "positivoLaxo": true,
+      "estricta": "NO PUEDE",
+      "positivoEstricto": true,
+      "texto": "**NO PUEDE**\n\nSi el Director Clínico es también el Coordinador de Calidad, la persona que ocupa ese cargo sería la responsable última de la esterilización, pero el Texto 2 dice expresamente que ese responsable no debe ser el Director Clínico. El Texto 2 también busca separar ambas funciones precisamente para evitar el conflicto de presión de tiempo, y esa separación desaparece en este caso."
+    },
+    {
+      "vez": 39,
+      "linea": "NO PUEDE",
+      "laxa": "NO PUEDE",
+      "positivoLaxo": true,
+      "estricta": "NO PUEDE",
+      "positivoEstricto": true,
+      "texto": "**NO PUEDE**\n\nSi el Coordinador de Calidad es el propio Director Clínico, esa persona sería a la vez la responsable última de la esterilización, lo que el Texto 2 niega expresamente (\"no el Director Clínico\"). El Texto 2 busca separar esa responsabilidad de quien gestiona la agenda asistencial, y esa separación desaparece en cuanto ambos cargos recaen en una sola persona. Por tanto, el permiso del Texto 1 y la exigencia del Texto 2 no pueden cumplirse a la vez en ese caso."
+    },
+    {
+      "vez": 40,
+      "linea": "NO PUEDE",
+      "laxa": "NO PUEDE",
+      "positivoLaxo": true,
+      "estricta": "NO PUEDE",
+      "positivoEstricto": true,
+      "texto": "**NO PUEDE**\n\nSi el Director Clínico es también el Coordinador de Calidad, el Texto 2 queda incumplido, porque ese cargo exige que el responsable de la esterilización sea el Coordinador de Calidad y no el Director Clínico. Sería la misma persona en ambos roles, así que no puede quedar fuera de la responsabilidad de esterilización. Por tanto, aplicar el permiso del Texto 1 impide cumplir el Texto 2."
+    },
+    {
+      "vez": 41,
+      "linea": "NO PUEDE",
+      "laxa": "NO PUEDE",
+      "positivoLaxo": true,
+      "estricta": "NO PUEDE",
+      "positivoEstricto": true,
+      "texto": "**NO PUEDE**\n\nSi el Director Clínico ocupa también el cargo de Coordinador de Calidad, esa persona sería a la vez el responsable de la esterilización y el Director Clínico, algo que el Texto 2 excluye expresamente. El Texto 2 exige que el responsable último de la esterilización sea el Coordinador de Calidad y no el Director Clínico, y en este caso ambas figuras recaen en la misma persona. Por tanto, ninguna clínica que use esa posibilidad puede cumplir los dos textos a la vez."
+    },
+    {
+      "vez": 42,
+      "linea": "NO PUEDE",
+      "laxa": "NO PUEDE",
+      "positivoLaxo": true,
+      "estricta": "NO PUEDE",
+      "positivoEstricto": true,
+      "texto": "**NO PUEDE**\n\nSi el Director Clínico ejerce también como Coordinador de Calidad, sería el responsable último de la esterilización, lo que contradice el Texto 2, que atribuye esa responsabilidad al Coordinador de Calidad \"no el Director Clínico\". Además, el Texto 2 busca separar ambas funciones en personas distintas, y con la misma persona en los dos cargos esa separación desaparece. Por tanto, la clínica no puede cumplir ambos textos a la vez en ese escenario."
+    }
+  ],
+  "registro": {
+    "peticiones": [
+      {
+        "n": 1,
+        "etapa": "juez",
+        "pareja": "facac5fd-ca7a-4f04-abf9-4926bb955e0a",
+        "modelo": "claude-haiku-5-5",
+        "vuelta": 1,
+        "intento": 1,
+        "resultado": "http",
+        "estadoHttp": 503,
+        "latenciaMs": 275,
+        "esperaMs": 0,
+        "comienzoMs": 3,
+        "tokens": {
+          "entrada": 0,
+          "salida": 0,
+          "escrituraCache": 0,
+          "lecturaCache": 0
+        },
+        "parametros": {
+          "maxTokens": 16000,
+          "temperatura": "sin_enviar",
+          "esfuerzo": "medium"
+        }
+      },
+      {
+        "n": 2,
+        "etapa": "juez",
+        "pareja": "facac5fd-ca7a-4f04-abf9-4926bb955e0a",
+        "modelo": "claude-haiku-5-5",
+        "vuelta": 1,
+        "intento": 1,
+        "resultado": "http",
+        "estadoHttp": 503,
+        "latenciaMs": 290,
+        "esperaMs": 0,
+        "comienzoMs": 4,
+        "tokens": {
+          "entrada": 0,
+          "salida": 0,
+          "escrituraCache": 0,
+          "lecturaCache": 0
+        },
+        "parametros": {
+          "maxTokens": 16000,
+          "temperatura": "sin_enviar",
+          "esfuerzo": "medium"
+        }
+      },
+      {
+        "n": 3,
+        "etapa": "juez",
+        "pareja": "facac5fd-ca7a-4f04-abf9-4926bb955e0a",
+        "modelo": "claude-haiku-5-5",
+        "vuelta": 1,
+        "intento": 1,
+        "resultado": "http",
+        "estadoHttp": 503,
+        "latenciaMs": 323,
+        "esperaMs": 0,
+        "comienzoMs": 2,
+        "tokens": {
+          "entrada": 0,
+          "salida": 0,
+          "escrituraCache": 0,
+          "lecturaCache": 0
+        },
+        "parametros": {
+          "maxTokens": 16000,
+          "temperatura": "sin_enviar",
+          "esfuerzo": "medium"
+        }
+      },
+      {
+        "n": 4,
+        "etapa": "juez",
+        "pareja": "facac5fd-ca7a-4f04-abf9-4926bb955e0a",
+        "modelo": "claude-haiku-5-5",
+        "vuelta": 1,
+        "intento": 1,
+        "resultado": "http",
+        "estadoHttp": 503,
+        "latenciaMs": 859,
+        "esperaMs": 0,
+        "comienzoMs": 3,
+        "tokens": {
+          "entrada": 0,
+          "salida": 0,
+          "escrituraCache": 0,
+          "lecturaCache": 0
+        },
+        "parametros": {
+          "maxTokens": 16000,
+          "temperatura": "sin_enviar",
+          "esfuerzo": "medium"
+        }
+      },
+      {
+        "n": 5,
+        "etapa": "juez",
+        "pareja": "facac5fd-ca7a-4f04-abf9-4926bb955e0a",
+        "modelo": "claude-haiku-5-5",
+        "vuelta": 1,
+        "intento": 1,
+        "resultado": "http",
+        "estadoHttp": 503,
+        "latenciaMs": 952,
+        "esperaMs": 0,
+        "comienzoMs": 4,
+        "tokens": {
+          "entrada": 0,
+          "salida": 0,
+          "escrituraCache": 0,
+          "lecturaCache": 0
+        },
+        "parametros": {
+          "maxTokens": 16000,
+          "temperatura": "sin_enviar",
+          "esfuerzo": "medium"
+        }
+      },
+      {
+        "n": 6,
+        "etapa": "juez",
+        "pareja": "facac5fd-ca7a-4f04-abf9-4926bb955e0a",
+        "modelo": "claude-haiku-5-5",
+        "vuelta": 1,
+        "intento": 1,
+        "resultado": "http",
+        "estadoHttp": 503,
+        "latenciaMs": 2065,
+        "esperaMs": 0,
+        "comienzoMs": 1,
+        "tokens": {
+          "entrada": 0,
+          "salida": 0,
+          "escrituraCache": 0,
+          "lecturaCache": 0
+        },
+        "parametros": {
+          "maxTokens": 16000,
+          "temperatura": "sin_enviar",
+          "esfuerzo": "medium"
+        }
+      },
+      {
+        "n": 7,
+        "etapa": "juez",
+        "pareja": "facac5fd-ca7a-4f04-abf9-4926bb955e0a",
+        "modelo": "claude-haiku-5-5",
+        "vuelta": 1,
+        "intento": 2,
+        "resultado": "http",
+        "estadoHttp": 503,
+        "latenciaMs": 214,
+        "esperaMs": 2000,
+        "comienzoMs": 862,
+        "tokens": {
+          "entrada": 0,
+          "salida": 0,
+          "escrituraCache": 0,
+          "lecturaCache": 0
+        },
+        "parametros": {
+          "maxTokens": 16000,
+          "temperatura": "sin_enviar",
+          "esfuerzo": "medium"
+        }
+      },
+      {
+        "n": 8,
+        "etapa": "juez",
+        "pareja": "facac5fd-ca7a-4f04-abf9-4926bb955e0a",
+        "modelo": "claude-haiku-5-5",
+        "vuelta": 1,
+        "intento": 2,
+        "resultado": "http",
+        "estadoHttp": 503,
+        "latenciaMs": 1024,
+        "esperaMs": 2001,
+        "comienzoMs": 956,
+        "tokens": {
+          "entrada": 0,
+          "salida": 0,
+          "escrituraCache": 0,
+          "lecturaCache": 0
+        },
+        "parametros": {
+          "maxTokens": 16000,
+          "temperatura": "sin_enviar",
+          "esfuerzo": "medium"
+        }
+      },
+      {
+        "n": 9,
+        "etapa": "juez",
+        "pareja": "facac5fd-ca7a-4f04-abf9-4926bb955e0a",
+        "modelo": "claude-haiku-5-5",
+        "vuelta": 1,
+        "intento": 2,
+        "resultado": "http",
+        "estadoHttp": 503,
+        "latenciaMs": 2039,
+        "esperaMs": 2000,
+        "comienzoMs": 279,
+        "tokens": {
+          "entrada": 0,
+          "salida": 0,
+          "escrituraCache": 0,
+          "lecturaCache": 0
+        },
+        "parametros": {
+          "maxTokens": 16000,
+          "temperatura": "sin_enviar",
+          "esfuerzo": "medium"
+        }
+      },
+      {
+        "n": 10,
+        "etapa": "juez",
+        "pareja": "facac5fd-ca7a-4f04-abf9-4926bb955e0a",
+        "modelo": "claude-haiku-5-5",
+        "vuelta": 1,
+        "intento": 2,
+        "resultado": "http",
+        "estadoHttp": 503,
+        "latenciaMs": 259,
+        "esperaMs": 2000,
+        "comienzoMs": 2066,
+        "tokens": {
+          "entrada": 0,
+          "salida": 0,
+          "escrituraCache": 0,
+          "lecturaCache": 0
+        },
+        "parametros": {
+          "maxTokens": 16000,
+          "temperatura": "sin_enviar",
+          "esfuerzo": "medium"
+        }
+      },
+      {
+        "n": 11,
+        "etapa": "juez",
+        "pareja": "facac5fd-ca7a-4f04-abf9-4926bb955e0a",
+        "modelo": "claude-haiku-5-5",
+        "vuelta": 1,
+        "intento": 2,
+        "resultado": "http",
+        "estadoHttp": 503,
+        "latenciaMs": 2035,
+        "esperaMs": 2000,
+        "comienzoMs": 294,
+        "tokens": {
+          "entrada": 0,
+          "salida": 0,
+          "escrituraCache": 0,
+          "lecturaCache": 0
+        },
+        "parametros": {
+          "maxTokens": 16000,
+          "temperatura": "sin_enviar",
+          "esfuerzo": "medium"
+        }
+      },
+      {
+        "n": 12,
+        "etapa": "juez",
+        "pareja": "facac5fd-ca7a-4f04-abf9-4926bb955e0a",
+        "modelo": "claude-haiku-5-5",
+        "vuelta": 1,
+        "intento": 2,
+        "resultado": "http",
+        "estadoHttp": 503,
+        "latenciaMs": 2037,
+        "esperaMs": 2000,
+        "comienzoMs": 325,
+        "tokens": {
+          "entrada": 0,
+          "salida": 0,
+          "escrituraCache": 0,
+          "lecturaCache": 0
+        },
+        "parametros": {
+          "maxTokens": 16000,
+          "temperatura": "sin_enviar",
+          "esfuerzo": "medium"
+        }
+      },
+      {
+        "n": 13,
+        "etapa": "juez",
+        "pareja": "facac5fd-ca7a-4f04-abf9-4926bb955e0a",
+        "modelo": "claude-haiku-5-5",
+        "vuelta": 1,
+        "intento": 3,
+        "resultado": "http",
+        "estadoHttp": 503,
+        "latenciaMs": 260,
+        "esperaMs": 5000,
+        "comienzoMs": 3077,
+        "tokens": {
+          "entrada": 0,
+          "salida": 0,
+          "escrituraCache": 0,
+          "lecturaCache": 0
+        },
+        "parametros": {
+          "maxTokens": 16000,
+          "temperatura": "sin_enviar",
+          "esfuerzo": "medium"
+        }
+      },
+      {
+        "n": 14,
+        "etapa": "juez",
+        "pareja": "facac5fd-ca7a-4f04-abf9-4926bb955e0a",
+        "modelo": "claude-haiku-5-5",
+        "vuelta": 1,
+        "intento": 3,
+        "resultado": "http",
+        "estadoHttp": 503,
+        "latenciaMs": 257,
+        "esperaMs": 5000,
+        "comienzoMs": 3981,
+        "tokens": {
+          "entrada": 0,
+          "salida": 0,
+          "escrituraCache": 0,
+          "lecturaCache": 0
+        },
+        "parametros": {
+          "maxTokens": 16000,
+          "temperatura": "sin_enviar",
+          "esfuerzo": "medium"
+        }
+      },
+      {
+        "n": 15,
+        "etapa": "juez",
+        "pareja": "facac5fd-ca7a-4f04-abf9-4926bb955e0a",
+        "modelo": "claude-haiku-5-5",
+        "vuelta": 1,
+        "intento": 3,
+        "resultado": "http",
+        "estadoHttp": 503,
+        "latenciaMs": 259,
+        "esperaMs": 5001,
+        "comienzoMs": 4318,
+        "tokens": {
+          "entrada": 0,
+          "salida": 0,
+          "escrituraCache": 0,
+          "lecturaCache": 0
+        },
+        "parametros": {
+          "maxTokens": 16000,
+          "temperatura": "sin_enviar",
+          "esfuerzo": "medium"
+        }
+      },
+      {
+        "n": 16,
+        "etapa": "juez",
+        "pareja": "facac5fd-ca7a-4f04-abf9-4926bb955e0a",
+        "modelo": "claude-haiku-5-5",
+        "vuelta": 1,
+        "intento": 3,
+        "resultado": "http",
+        "estadoHttp": 503,
+        "latenciaMs": 276,
+        "esperaMs": 5000,
+        "comienzoMs": 4325,
+        "tokens": {
+          "entrada": 0,
+          "salida": 0,
+          "escrituraCache": 0,
+          "lecturaCache": 0
+        },
+        "parametros": {
+          "maxTokens": 16000,
+          "temperatura": "sin_enviar",
+          "esfuerzo": "medium"
+        }
+      },
+      {
+        "n": 17,
+        "etapa": "juez",
+        "pareja": "facac5fd-ca7a-4f04-abf9-4926bb955e0a",
+        "modelo": "claude-haiku-5-5",
+        "vuelta": 1,
+        "intento": 3,
+        "resultado": "http",
+        "estadoHttp": 503,
+        "latenciaMs": 267,
+        "esperaMs": 4999,
+        "comienzoMs": 4362,
+        "tokens": {
+          "entrada": 0,
+          "salida": 0,
+          "escrituraCache": 0,
+          "lecturaCache": 0
+        },
+        "parametros": {
+          "maxTokens": 16000,
+          "temperatura": "sin_enviar",
+          "esfuerzo": "medium"
+        }
+      },
+      {
+        "n": 18,
+        "etapa": "juez",
+        "pareja": "facac5fd-ca7a-4f04-abf9-4926bb955e0a",
+        "modelo": "claude-haiku-5-5",
+        "vuelta": 1,
+        "intento": 3,
+        "resultado": "http",
+        "estadoHttp": 503,
+        "latenciaMs": 2052,
+        "esperaMs": 5000,
+        "comienzoMs": 4329,
+        "tokens": {
+          "entrada": 0,
+          "salida": 0,
+          "escrituraCache": 0,
+          "lecturaCache": 0
+        },
+        "parametros": {
+          "maxTokens": 16000,
+          "temperatura": "sin_enviar",
+          "esfuerzo": "medium"
+        }
+      },
+      {
+        "n": 19,
+        "etapa": "juez",
+        "pareja": "facac5fd-ca7a-4f04-abf9-4926bb955e0a",
+        "modelo": "claude-haiku-5-5",
+        "vuelta": 1,
+        "intento": 4,
+        "resultado": "http",
+        "estadoHttp": 503,
+        "latenciaMs": 267,
+        "esperaMs": 9999,
+        "comienzoMs": 8337,
+        "tokens": {
+          "entrada": 0,
+          "salida": 0,
+          "escrituraCache": 0,
+          "lecturaCache": 0
+        },
+        "parametros": {
+          "maxTokens": 16000,
+          "temperatura": "sin_enviar",
+          "esfuerzo": "medium"
+        }
+      },
+      {
+        "n": 20,
+        "etapa": "juez",
+        "pareja": "facac5fd-ca7a-4f04-abf9-4926bb955e0a",
+        "modelo": "claude-haiku-5-5",
+        "vuelta": 1,
+        "intento": 4,
+        "resultado": "ok",
+        "estadoHttp": 200,
+        "latenciaMs": 2866,
+        "esperaMs": 9999,
+        "comienzoMs": 9601,
+        "tokens": {
+          "entrada": 508,
+          "salida": 443,
+          "escrituraCache": 0,
+          "lecturaCache": 0
+        },
+        "parametros": {
+          "maxTokens": 16000,
+          "temperatura": "sin_enviar",
+          "esfuerzo": "medium"
+        }
+      },
+      {
+        "n": 21,
+        "etapa": "juez",
+        "pareja": "facac5fd-ca7a-4f04-abf9-4926bb955e0a",
+        "modelo": "claude-haiku-5-5",
+        "vuelta": 1,
+        "intento": 4,
+        "resultado": "ok",
+        "estadoHttp": 200,
+        "latenciaMs": 3838,
+        "esperaMs": 10000,
+        "comienzoMs": 9578,
+        "tokens": {
+          "entrada": 508,
+          "salida": 476,
+          "escrituraCache": 0,
+          "lecturaCache": 0
+        },
+        "parametros": {
+          "maxTokens": 16000,
+          "temperatura": "sin_enviar",
+          "esfuerzo": "medium"
+        }
+      },
+      {
+        "n": 22,
+        "etapa": "juez",
+        "pareja": "facac5fd-ca7a-4f04-abf9-4926bb955e0a",
+        "modelo": "claude-haiku-5-5",
+        "vuelta": 1,
+        "intento": 4,
+        "resultado": "ok",
+        "estadoHttp": 200,
+        "latenciaMs": 2291,
+        "esperaMs": 10000,
+        "comienzoMs": 11381,
+        "tokens": {
+          "entrada": 508,
+          "salida": 394,
+          "escrituraCache": 0,
+          "lecturaCache": 0
+        },
+        "parametros": {
+          "maxTokens": 16000,
+          "temperatura": "sin_enviar",
+          "esfuerzo": "medium"
+        }
+      },
+      {
+        "n": 23,
+        "etapa": "juez",
+        "pareja": "facac5fd-ca7a-4f04-abf9-4926bb955e0a",
+        "modelo": "claude-haiku-5-5",
+        "vuelta": 1,
+        "intento": 4,
+        "resultado": "ok",
+        "estadoHttp": 200,
+        "latenciaMs": 4164,
+        "esperaMs": 10000,
+        "comienzoMs": 9628,
+        "tokens": {
+          "entrada": 508,
+          "salida": 471,
+          "escrituraCache": 0,
+          "lecturaCache": 0
+        },
+        "parametros": {
+          "maxTokens": 16000,
+          "temperatura": "sin_enviar",
+          "esfuerzo": "medium"
+        }
+      },
+      {
+        "n": 24,
+        "etapa": "juez",
+        "pareja": "facac5fd-ca7a-4f04-abf9-4926bb955e0a",
+        "modelo": "claude-haiku-5-5",
+        "vuelta": 1,
+        "intento": 4,
+        "resultado": "ok",
+        "estadoHttp": 200,
+        "latenciaMs": 4842,
+        "esperaMs": 10000,
+        "comienzoMs": 9238,
+        "tokens": {
+          "entrada": 508,
+          "salida": 622,
+          "escrituraCache": 0,
+          "lecturaCache": 0
+        },
+        "parametros": {
+          "maxTokens": 16000,
+          "temperatura": "sin_enviar",
+          "esfuerzo": "medium"
+        }
+      },
+      {
+        "n": 25,
+        "etapa": "juez",
+        "pareja": "facac5fd-ca7a-4f04-abf9-4926bb955e0a",
+        "modelo": "claude-haiku-5-5",
+        "vuelta": 1,
+        "intento": 5,
+        "resultado": "ok",
+        "estadoHttp": 200,
+        "latenciaMs": 2080,
+        "esperaMs": 15001,
+        "comienzoMs": 18603,
+        "tokens": {
+          "entrada": 508,
+          "salida": 379,
+          "escrituraCache": 0,
+          "lecturaCache": 0
+        },
+        "parametros": {
+          "maxTokens": 16000,
+          "temperatura": "sin_enviar",
+          "esfuerzo": "medium"
+        }
+      },
+      {
+        "n": 26,
+        "etapa": "juez",
+        "pareja": "facac5fd-ca7a-4f04-abf9-4926bb955e0a",
+        "modelo": "claude-haiku-5-5",
+        "vuelta": 1,
+        "intento": 1,
+        "resultado": "ok",
+        "estadoHttp": 200,
+        "latenciaMs": 2365,
+        "esperaMs": 0,
+        "comienzoMs": 35686,
+        "tokens": {
+          "entrada": 508,
+          "salida": 423,
+          "escrituraCache": 0,
+          "lecturaCache": 0
+        },
+        "parametros": {
+          "maxTokens": 16000,
+          "temperatura": "sin_enviar",
+          "esfuerzo": "medium"
+        }
+      },
+      {
+        "n": 27,
+        "etapa": "juez",
+        "pareja": "facac5fd-ca7a-4f04-abf9-4926bb955e0a",
+        "modelo": "claude-haiku-5-5",
+        "vuelta": 1,
+        "intento": 1,
+        "resultado": "ok",
+        "estadoHttp": 200,
+        "latenciaMs": 2514,
+        "esperaMs": 0,
+        "comienzoMs": 35684,
+        "tokens": {
+          "entrada": 508,
+          "salida": 446,
+          "escrituraCache": 0,
+          "lecturaCache": 0
+        },
+        "parametros": {
+          "maxTokens": 16000,
+          "temperatura": "sin_enviar",
+          "esfuerzo": "medium"
+        }
+      },
+      {
+        "n": 28,
+        "etapa": "juez",
+        "pareja": "facac5fd-ca7a-4f04-abf9-4926bb955e0a",
+        "modelo": "claude-haiku-5-5",
+        "vuelta": 1,
+        "intento": 1,
+        "resultado": "ok",
+        "estadoHttp": 200,
+        "latenciaMs": 2699,
+        "esperaMs": 0,
+        "comienzoMs": 35685,
+        "tokens": {
+          "entrada": 508,
+          "salida": 442,
+          "escrituraCache": 0,
+          "lecturaCache": 0
+        },
+        "parametros": {
+          "maxTokens": 16000,
+          "temperatura": "sin_enviar",
+          "esfuerzo": "medium"
+        }
+      },
+      {
+        "n": 29,
+        "etapa": "juez",
+        "pareja": "facac5fd-ca7a-4f04-abf9-4926bb955e0a",
+        "modelo": "claude-haiku-5-5",
+        "vuelta": 1,
+        "intento": 1,
+        "resultado": "ok",
+        "estadoHttp": 200,
+        "latenciaMs": 2818,
+        "esperaMs": 0,
+        "comienzoMs": 35685,
+        "tokens": {
+          "entrada": 508,
+          "salida": 568,
+          "escrituraCache": 0,
+          "lecturaCache": 0
+        },
+        "parametros": {
+          "maxTokens": 16000,
+          "temperatura": "sin_enviar",
+          "esfuerzo": "medium"
+        }
+      },
+      {
+        "n": 30,
+        "etapa": "juez",
+        "pareja": "facac5fd-ca7a-4f04-abf9-4926bb955e0a",
+        "modelo": "claude-haiku-5-5",
+        "vuelta": 1,
+        "intento": 1,
+        "resultado": "ok",
+        "estadoHttp": 200,
+        "latenciaMs": 2909,
+        "esperaMs": 0,
+        "comienzoMs": 35687,
+        "tokens": {
+          "entrada": 508,
+          "salida": 507,
+          "escrituraCache": 0,
+          "lecturaCache": 0
+        },
+        "parametros": {
+          "maxTokens": 16000,
+          "temperatura": "sin_enviar",
+          "esfuerzo": "medium"
+        }
+      },
+      {
+        "n": 31,
+        "etapa": "juez",
+        "pareja": "facac5fd-ca7a-4f04-abf9-4926bb955e0a",
+        "modelo": "claude-haiku-5-5",
+        "vuelta": 1,
+        "intento": 1,
+        "resultado": "ok",
+        "estadoHttp": 200,
+        "latenciaMs": 3184,
+        "esperaMs": 0,
+        "comienzoMs": 35686,
+        "tokens": {
+          "entrada": 508,
+          "salida": 624,
+          "escrituraCache": 0,
+          "lecturaCache": 0
+        },
+        "parametros": {
+          "maxTokens": 16000,
+          "temperatura": "sin_enviar",
+          "esfuerzo": "medium"
+        }
+      },
+      {
+        "n": 32,
+        "etapa": "juez",
+        "pareja": "facac5fd-ca7a-4f04-abf9-4926bb955e0a",
+        "modelo": "claude-haiku-5-5",
+        "vuelta": 1,
+        "intento": 1,
+        "resultado": "ok",
+        "estadoHttp": 200,
+        "latenciaMs": 2210,
+        "esperaMs": 0,
+        "comienzoMs": 38871,
+        "tokens": {
+          "entrada": 508,
+          "salida": 408,
+          "escrituraCache": 0,
+          "lecturaCache": 0
+        },
+        "parametros": {
+          "maxTokens": 16000,
+          "temperatura": "sin_enviar",
+          "esfuerzo": "medium"
+        }
+      },
+      {
+        "n": 33,
+        "etapa": "juez",
+        "pareja": "facac5fd-ca7a-4f04-abf9-4926bb955e0a",
+        "modelo": "claude-haiku-5-5",
+        "vuelta": 1,
+        "intento": 1,
+        "resultado": "ok",
+        "estadoHttp": 200,
+        "latenciaMs": 2232,
+        "esperaMs": 0,
+        "comienzoMs": 38870,
+        "tokens": {
+          "entrada": 508,
+          "salida": 402,
+          "escrituraCache": 0,
+          "lecturaCache": 0
+        },
+        "parametros": {
+          "maxTokens": 16000,
+          "temperatura": "sin_enviar",
+          "esfuerzo": "medium"
+        }
+      },
+      {
+        "n": 34,
+        "etapa": "juez",
+        "pareja": "facac5fd-ca7a-4f04-abf9-4926bb955e0a",
+        "modelo": "claude-haiku-5-5",
+        "vuelta": 1,
+        "intento": 1,
+        "resultado": "ok",
+        "estadoHttp": 200,
+        "latenciaMs": 2366,
+        "esperaMs": 0,
+        "comienzoMs": 38872,
+        "tokens": {
+          "entrada": 508,
+          "salida": 430,
+          "escrituraCache": 0,
+          "lecturaCache": 0
+        },
+        "parametros": {
+          "maxTokens": 16000,
+          "temperatura": "sin_enviar",
+          "esfuerzo": "medium"
+        }
+      },
+      {
+        "n": 35,
+        "etapa": "juez",
+        "pareja": "facac5fd-ca7a-4f04-abf9-4926bb955e0a",
+        "modelo": "claude-haiku-5-5",
+        "vuelta": 1,
+        "intento": 1,
+        "resultado": "ok",
+        "estadoHttp": 200,
+        "latenciaMs": 2406,
+        "esperaMs": 0,
+        "comienzoMs": 38871,
+        "tokens": {
+          "entrada": 508,
+          "salida": 457,
+          "escrituraCache": 0,
+          "lecturaCache": 0
+        },
+        "parametros": {
+          "maxTokens": 16000,
+          "temperatura": "sin_enviar",
+          "esfuerzo": "medium"
+        }
+      },
+      {
+        "n": 36,
+        "etapa": "juez",
+        "pareja": "facac5fd-ca7a-4f04-abf9-4926bb955e0a",
+        "modelo": "claude-haiku-5-5",
+        "vuelta": 1,
+        "intento": 1,
+        "resultado": "ok",
+        "estadoHttp": 200,
+        "latenciaMs": 2615,
+        "esperaMs": 0,
+        "comienzoMs": 38870,
+        "tokens": {
+          "entrada": 508,
+          "salida": 464,
+          "escrituraCache": 0,
+          "lecturaCache": 0
+        },
+        "parametros": {
+          "maxTokens": 16000,
+          "temperatura": "sin_enviar",
+          "esfuerzo": "medium"
+        }
+      },
+      {
+        "n": 37,
+        "etapa": "juez",
+        "pareja": "facac5fd-ca7a-4f04-abf9-4926bb955e0a",
+        "modelo": "claude-haiku-5-5",
+        "vuelta": 1,
+        "intento": 1,
+        "resultado": "ok",
+        "estadoHttp": 200,
+        "latenciaMs": 2813,
+        "esperaMs": 0,
+        "comienzoMs": 38871,
+        "tokens": {
+          "entrada": 508,
+          "salida": 539,
+          "escrituraCache": 0,
+          "lecturaCache": 0
+        },
+        "parametros": {
+          "maxTokens": 16000,
+          "temperatura": "sin_enviar",
+          "esfuerzo": "medium"
+        }
+      },
+      {
+        "n": 38,
+        "etapa": "juez",
+        "pareja": "facac5fd-ca7a-4f04-abf9-4926bb955e0a",
+        "modelo": "claude-haiku-5-5",
+        "vuelta": 1,
+        "intento": 1,
+        "resultado": "ok",
+        "estadoHttp": 200,
+        "latenciaMs": 2407,
+        "esperaMs": 0,
+        "comienzoMs": 41684,
+        "tokens": {
+          "entrada": 508,
+          "salida": 464,
+          "escrituraCache": 0,
+          "lecturaCache": 0
+        },
+        "parametros": {
+          "maxTokens": 16000,
+          "temperatura": "sin_enviar",
+          "esfuerzo": "medium"
+        }
+      },
+      {
+        "n": 39,
+        "etapa": "juez",
+        "pareja": "facac5fd-ca7a-4f04-abf9-4926bb955e0a",
+        "modelo": "claude-haiku-5-5",
+        "vuelta": 1,
+        "intento": 1,
+        "resultado": "ok",
+        "estadoHttp": 200,
+        "latenciaMs": 2481,
+        "esperaMs": 0,
+        "comienzoMs": 41686,
+        "tokens": {
+          "entrada": 508,
+          "salida": 442,
+          "escrituraCache": 0,
+          "lecturaCache": 0
+        },
+        "parametros": {
+          "maxTokens": 16000,
+          "temperatura": "sin_enviar",
+          "esfuerzo": "medium"
+        }
+      },
+      {
+        "n": 40,
+        "etapa": "juez",
+        "pareja": "facac5fd-ca7a-4f04-abf9-4926bb955e0a",
+        "modelo": "claude-haiku-5-5",
+        "vuelta": 1,
+        "intento": 1,
+        "resultado": "ok",
+        "estadoHttp": 200,
+        "latenciaMs": 2521,
+        "esperaMs": 0,
+        "comienzoMs": 41684,
+        "tokens": {
+          "entrada": 508,
+          "salida": 547,
+          "escrituraCache": 0,
+          "lecturaCache": 0
+        },
+        "parametros": {
+          "maxTokens": 16000,
+          "temperatura": "sin_enviar",
+          "esfuerzo": "medium"
+        }
+      },
+      {
+        "n": 41,
+        "etapa": "juez",
+        "pareja": "facac5fd-ca7a-4f04-abf9-4926bb955e0a",
+        "modelo": "claude-haiku-5-5",
+        "vuelta": 1,
+        "intento": 1,
+        "resultado": "ok",
+        "estadoHttp": 200,
+        "latenciaMs": 2937,
+        "esperaMs": 0,
+        "comienzoMs": 41685,
+        "tokens": {
+          "entrada": 508,
+          "salida": 454,
+          "escrituraCache": 0,
+          "lecturaCache": 0
+        },
+        "parametros": {
+          "maxTokens": 16000,
+          "temperatura": "sin_enviar",
+          "esfuerzo": "medium"
+        }
+      },
+      {
+        "n": 42,
+        "etapa": "juez",
+        "pareja": "facac5fd-ca7a-4f04-abf9-4926bb955e0a",
+        "modelo": "claude-haiku-5-5",
+        "vuelta": 1,
+        "intento": 1,
+        "resultado": "ok",
+        "estadoHttp": 200,
+        "latenciaMs": 3109,
+        "esperaMs": 0,
+        "comienzoMs": 41685,
+        "tokens": {
+          "entrada": 508,
+          "salida": 609,
+          "escrituraCache": 0,
+          "lecturaCache": 0
+        },
+        "parametros": {
+          "maxTokens": 16000,
+          "temperatura": "sin_enviar",
+          "esfuerzo": "medium"
+        }
+      },
+      {
+        "n": 43,
+        "etapa": "juez",
+        "pareja": "facac5fd-ca7a-4f04-abf9-4926bb955e0a",
+        "modelo": "claude-haiku-5-5",
+        "vuelta": 1,
+        "intento": 1,
+        "resultado": "ok",
+        "estadoHttp": 200,
+        "latenciaMs": 3558,
+        "esperaMs": 0,
+        "comienzoMs": 41685,
+        "tokens": {
+          "entrada": 508,
+          "salida": 647,
+          "escrituraCache": 0,
+          "lecturaCache": 0
+        },
+        "parametros": {
+          "maxTokens": 16000,
+          "temperatura": "sin_enviar",
+          "esfuerzo": "medium"
+        }
+      },
+      {
+        "n": 44,
+        "etapa": "juez",
+        "pareja": "facac5fd-ca7a-4f04-abf9-4926bb955e0a",
+        "modelo": "claude-haiku-5-5",
+        "vuelta": 1,
+        "intento": 1,
+        "resultado": "ok",
+        "estadoHttp": 200,
+        "latenciaMs": 2314,
+        "esperaMs": 0,
+        "comienzoMs": 45245,
+        "tokens": {
+          "entrada": 508,
+          "salida": 443,
+          "escrituraCache": 0,
+          "lecturaCache": 0
+        },
+        "parametros": {
+          "maxTokens": 16000,
+          "temperatura": "sin_enviar",
+          "esfuerzo": "medium"
+        }
+      },
+      {
+        "n": 45,
+        "etapa": "juez",
+        "pareja": "facac5fd-ca7a-4f04-abf9-4926bb955e0a",
+        "modelo": "claude-haiku-5-5",
+        "vuelta": 1,
+        "intento": 1,
+        "resultado": "ok",
+        "estadoHttp": 200,
+        "latenciaMs": 2383,
+        "esperaMs": 0,
+        "comienzoMs": 45245,
+        "tokens": {
+          "entrada": 508,
+          "salida": 495,
+          "escrituraCache": 0,
+          "lecturaCache": 0
+        },
+        "parametros": {
+          "maxTokens": 16000,
+          "temperatura": "sin_enviar",
+          "esfuerzo": "medium"
+        }
+      },
+      {
+        "n": 46,
+        "etapa": "juez",
+        "pareja": "facac5fd-ca7a-4f04-abf9-4926bb955e0a",
+        "modelo": "claude-haiku-5-5",
+        "vuelta": 1,
+        "intento": 1,
+        "resultado": "ok",
+        "estadoHttp": 200,
+        "latenciaMs": 2435,
+        "esperaMs": 0,
+        "comienzoMs": 45245,
+        "tokens": {
+          "entrada": 508,
+          "salida": 461,
+          "escrituraCache": 0,
+          "lecturaCache": 0
+        },
+        "parametros": {
+          "maxTokens": 16000,
+          "temperatura": "sin_enviar",
+          "esfuerzo": "medium"
+        }
+      },
+      {
+        "n": 47,
+        "etapa": "juez",
+        "pareja": "facac5fd-ca7a-4f04-abf9-4926bb955e0a",
+        "modelo": "claude-haiku-5-5",
+        "vuelta": 1,
+        "intento": 1,
+        "resultado": "ok",
+        "estadoHttp": 200,
+        "latenciaMs": 2533,
+        "esperaMs": 0,
+        "comienzoMs": 45243,
+        "tokens": {
+          "entrada": 508,
+          "salida": 506,
+          "escrituraCache": 0,
+          "lecturaCache": 0
+        },
+        "parametros": {
+          "maxTokens": 16000,
+          "temperatura": "sin_enviar",
+          "esfuerzo": "medium"
+        }
+      },
+      {
+        "n": 48,
+        "etapa": "juez",
+        "pareja": "facac5fd-ca7a-4f04-abf9-4926bb955e0a",
+        "modelo": "claude-haiku-5-5",
+        "vuelta": 1,
+        "intento": 1,
+        "resultado": "ok",
+        "estadoHttp": 200,
+        "latenciaMs": 2688,
+        "esperaMs": 0,
+        "comienzoMs": 45244,
+        "tokens": {
+          "entrada": 508,
+          "salida": 480,
+          "escrituraCache": 0,
+          "lecturaCache": 0
+        },
+        "parametros": {
+          "maxTokens": 16000,
+          "temperatura": "sin_enviar",
+          "esfuerzo": "medium"
+        }
+      },
+      {
+        "n": 49,
+        "etapa": "juez",
+        "pareja": "facac5fd-ca7a-4f04-abf9-4926bb955e0a",
+        "modelo": "claude-haiku-5-5",
+        "vuelta": 1,
+        "intento": 1,
+        "resultado": "ok",
+        "estadoHttp": 200,
+        "latenciaMs": 3829,
+        "esperaMs": 0,
+        "comienzoMs": 45244,
+        "tokens": {
+          "entrada": 508,
+          "salida": 708,
+          "escrituraCache": 0,
+          "lecturaCache": 0
+        },
+        "parametros": {
+          "maxTokens": 16000,
+          "temperatura": "sin_enviar",
+          "esfuerzo": "medium"
+        }
+      },
+      {
+        "n": 50,
+        "etapa": "juez",
+        "pareja": "facac5fd-ca7a-4f04-abf9-4926bb955e0a",
+        "modelo": "claude-haiku-5-5",
+        "vuelta": 1,
+        "intento": 1,
+        "resultado": "ok",
+        "estadoHttp": 200,
+        "latenciaMs": 2114,
+        "esperaMs": 0,
+        "comienzoMs": 49076,
+        "tokens": {
+          "entrada": 508,
+          "salida": 398,
+          "escrituraCache": 0,
+          "lecturaCache": 0
+        },
+        "parametros": {
+          "maxTokens": 16000,
+          "temperatura": "sin_enviar",
+          "esfuerzo": "medium"
+        }
+      },
+      {
+        "n": 51,
+        "etapa": "juez",
+        "pareja": "facac5fd-ca7a-4f04-abf9-4926bb955e0a",
+        "modelo": "claude-haiku-5-5",
+        "vuelta": 1,
+        "intento": 1,
+        "resultado": "ok",
+        "estadoHttp": 200,
+        "latenciaMs": 2241,
+        "esperaMs": 0,
+        "comienzoMs": 49077,
+        "tokens": {
+          "entrada": 508,
+          "salida": 393,
+          "escrituraCache": 0,
+          "lecturaCache": 0
+        },
+        "parametros": {
+          "maxTokens": 16000,
+          "temperatura": "sin_enviar",
+          "esfuerzo": "medium"
+        }
+      },
+      {
+        "n": 52,
+        "etapa": "juez",
+        "pareja": "facac5fd-ca7a-4f04-abf9-4926bb955e0a",
+        "modelo": "claude-haiku-5-5",
+        "vuelta": 1,
+        "intento": 1,
+        "resultado": "ok",
+        "estadoHttp": 200,
+        "latenciaMs": 2323,
+        "esperaMs": 0,
+        "comienzoMs": 49075,
+        "tokens": {
+          "entrada": 508,
+          "salida": 413,
+          "escrituraCache": 0,
+          "lecturaCache": 0
+        },
+        "parametros": {
+          "maxTokens": 16000,
+          "temperatura": "sin_enviar",
+          "esfuerzo": "medium"
+        }
+      },
+      {
+        "n": 53,
+        "etapa": "juez",
+        "pareja": "facac5fd-ca7a-4f04-abf9-4926bb955e0a",
+        "modelo": "claude-haiku-5-5",
+        "vuelta": 1,
+        "intento": 1,
+        "resultado": "ok",
+        "estadoHttp": 200,
+        "latenciaMs": 2728,
+        "esperaMs": 0,
+        "comienzoMs": 49074,
+        "tokens": {
+          "entrada": 508,
+          "salida": 422,
+          "escrituraCache": 0,
+          "lecturaCache": 0
+        },
+        "parametros": {
+          "maxTokens": 16000,
+          "temperatura": "sin_enviar",
+          "esfuerzo": "medium"
+        }
+      },
+      {
+        "n": 54,
+        "etapa": "juez",
+        "pareja": "facac5fd-ca7a-4f04-abf9-4926bb955e0a",
+        "modelo": "claude-haiku-5-5",
+        "vuelta": 1,
+        "intento": 1,
+        "resultado": "ok",
+        "estadoHttp": 200,
+        "latenciaMs": 2952,
+        "esperaMs": 0,
+        "comienzoMs": 49075,
+        "tokens": {
+          "entrada": 508,
+          "salida": 469,
+          "escrituraCache": 0,
+          "lecturaCache": 0
+        },
+        "parametros": {
+          "maxTokens": 16000,
+          "temperatura": "sin_enviar",
+          "esfuerzo": "medium"
+        }
+      },
+      {
+        "n": 55,
+        "etapa": "juez",
+        "pareja": "facac5fd-ca7a-4f04-abf9-4926bb955e0a",
+        "modelo": "claude-haiku-5-5",
+        "vuelta": 1,
+        "intento": 1,
+        "resultado": "ok",
+        "estadoHttp": 200,
+        "latenciaMs": 3378,
+        "esperaMs": 0,
+        "comienzoMs": 49073,
+        "tokens": {
+          "entrada": 508,
+          "salida": 510,
+          "escrituraCache": 0,
+          "lecturaCache": 0
+        },
+        "parametros": {
+          "maxTokens": 16000,
+          "temperatura": "sin_enviar",
+          "esfuerzo": "medium"
+        }
+      },
+      {
+        "n": 56,
+        "etapa": "juez",
+        "pareja": "facac5fd-ca7a-4f04-abf9-4926bb955e0a",
+        "modelo": "claude-haiku-5-5",
+        "vuelta": 1,
+        "intento": 1,
+        "resultado": "ok",
+        "estadoHttp": 200,
+        "latenciaMs": 1935,
+        "esperaMs": 0,
+        "comienzoMs": 52453,
+        "tokens": {
+          "entrada": 508,
+          "salida": 368,
+          "escrituraCache": 0,
+          "lecturaCache": 0
+        },
+        "parametros": {
+          "maxTokens": 16000,
+          "temperatura": "sin_enviar",
+          "esfuerzo": "medium"
+        }
+      },
+      {
+        "n": 57,
+        "etapa": "juez",
+        "pareja": "facac5fd-ca7a-4f04-abf9-4926bb955e0a",
+        "modelo": "claude-haiku-5-5",
+        "vuelta": 1,
+        "intento": 1,
+        "resultado": "ok",
+        "estadoHttp": 200,
+        "latenciaMs": 2096,
+        "esperaMs": 0,
+        "comienzoMs": 52453,
+        "tokens": {
+          "entrada": 508,
+          "salida": 405,
+          "escrituraCache": 0,
+          "lecturaCache": 0
+        },
+        "parametros": {
+          "maxTokens": 16000,
+          "temperatura": "sin_enviar",
+          "esfuerzo": "medium"
+        }
+      },
+      {
+        "n": 58,
+        "etapa": "juez",
+        "pareja": "facac5fd-ca7a-4f04-abf9-4926bb955e0a",
+        "modelo": "claude-haiku-5-5",
+        "vuelta": 1,
+        "intento": 1,
+        "resultado": "ok",
+        "estadoHttp": 200,
+        "latenciaMs": 2151,
+        "esperaMs": 0,
+        "comienzoMs": 52452,
+        "tokens": {
+          "entrada": 508,
+          "salida": 410,
+          "escrituraCache": 0,
+          "lecturaCache": 0
+        },
+        "parametros": {
+          "maxTokens": 16000,
+          "temperatura": "sin_enviar",
+          "esfuerzo": "medium"
+        }
+      },
+      {
+        "n": 59,
+        "etapa": "juez",
+        "pareja": "facac5fd-ca7a-4f04-abf9-4926bb955e0a",
+        "modelo": "claude-haiku-5-5",
+        "vuelta": 1,
+        "intento": 1,
+        "resultado": "ok",
+        "estadoHttp": 200,
+        "latenciaMs": 2386,
+        "esperaMs": 0,
+        "comienzoMs": 52453,
+        "tokens": {
+          "entrada": 508,
+          "salida": 464,
+          "escrituraCache": 0,
+          "lecturaCache": 0
+        },
+        "parametros": {
+          "maxTokens": 16000,
+          "temperatura": "sin_enviar",
+          "esfuerzo": "medium"
+        }
+      },
+      {
+        "n": 60,
+        "etapa": "juez",
+        "pareja": "facac5fd-ca7a-4f04-abf9-4926bb955e0a",
+        "modelo": "claude-haiku-5-5",
+        "vuelta": 1,
+        "intento": 1,
+        "resultado": "ok",
+        "estadoHttp": 200,
+        "latenciaMs": 2437,
+        "esperaMs": 0,
+        "comienzoMs": 52452,
+        "tokens": {
+          "entrada": 508,
+          "salida": 423,
+          "escrituraCache": 0,
+          "lecturaCache": 0
+        },
+        "parametros": {
+          "maxTokens": 16000,
+          "temperatura": "sin_enviar",
+          "esfuerzo": "medium"
+        }
+      },
+      {
+        "n": 61,
+        "etapa": "juez",
+        "pareja": "facac5fd-ca7a-4f04-abf9-4926bb955e0a",
+        "modelo": "claude-haiku-5-5",
+        "vuelta": 1,
+        "intento": 1,
+        "resultado": "ok",
+        "estadoHttp": 200,
+        "latenciaMs": 2499,
+        "esperaMs": 0,
+        "comienzoMs": 52451,
+        "tokens": {
+          "entrada": 508,
+          "salida": 480,
+          "escrituraCache": 0,
+          "lecturaCache": 0
+        },
+        "parametros": {
+          "maxTokens": 16000,
+          "temperatura": "sin_enviar",
+          "esfuerzo": "medium"
+        }
+      }
+    ],
+    "sinEtapa": 0,
+    "fueraDelDetalle": null
+  }
+}

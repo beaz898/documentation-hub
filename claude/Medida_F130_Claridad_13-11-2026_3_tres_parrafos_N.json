@@ -1,0 +1,1745 @@
+{
+  "estadoHttp": 200,
+  "medida": "F-130 · LA TANDA DE CLARIDAD (paso 1 de Fable), brazo N, neutro, LOS TRES PÁRRAFOS, lo que ve el producto: NOR-10 §2.4 sin la frase de A ↔ CLI-12 §3.1 ENTERO y §3.5 ENTERO; sin el prompt del juez, con el modelo y el esfuerzo del juez, 42 tiradas",
+  "cuando": "2026-11-13T13:25:16.328Z",
+  "huellaDelPrompt": "e934bd98065d9edc",
+  "cuenta": {
+    "tiradas": 42,
+    "puertaDeValidez": {
+      "conflictos": 41,
+      "porD": 41,
+      "porOtraCosa": 0,
+      "valida": true
+    },
+    "primaria": {
+      "regla": "laxa",
+      "positivos": 41,
+      "porOpcion": {
+        "CONFLICTO": 41,
+        "DEPENDE": 1
+      }
+    },
+    "secundaria": {
+      "regla": "estricta (Fable)",
+      "positivos": 41,
+      "porOpcion": {
+        "CONFLICTO": 41,
+        "DEPENDE": 1
+      }
+    },
+    "fallidas": 0
+  },
+  "respuestas": [
+    {
+      "vez": 1,
+      "linea": "CONFLICTO",
+      "laxa": "CONFLICTO",
+      "positivoLaxo": true,
+      "estricta": "CONFLICTO",
+      "positivoEstricto": true,
+      "claseDelConflicto": {
+        "clase": "d",
+        "marcas": [
+          "misma persona",
+          "separar",
+          "el propio director clinico",
+          "recaer en el",
+          "ambos cargos"
+        ]
+      },
+      "texto": "CONFLICTO\nEl Texto 1 permite que el Coordinador de Calidad sea el propio Director Clínico, mientras que el Texto 2 establece que la responsabilidad última de la esterilización no debe recaer en el Director Clínico para separar funciones de seguridad del paciente. Si una misma persona ejerce ambos cargos, el Texto 1 lo admite y el Texto 2 lo impide, así que las dos normas no pueden aplicarse a la vez sin excepciones."
+    },
+    {
+      "vez": 2,
+      "linea": "CONFLICTO",
+      "laxa": "CONFLICTO",
+      "positivoLaxo": true,
+      "estricta": "CONFLICTO",
+      "positivoEstricto": true,
+      "claseDelConflicto": {
+        "clase": "d",
+        "marcas": [
+          "el propio director clinico",
+          "ser el director clinico"
+        ]
+      },
+      "texto": "CONFLICTO\n\nEl Texto 1 permite que el cargo de Coordinador de Calidad recaiga en el propio Director Clínico, mientras que el Texto 2 establece que el responsable de la esterilización nunca debe ser el Director Clínico. Si se aplica la opción del Texto 1 y el Director también es Coordinador, el Texto 2 queda incumplido, porque el Director pasaría a ser el responsable último de la esterilización. Para evitarlo, la organización debería precisar que el Director no puede ejercer como Coordinador de Calidad."
+    },
+    {
+      "vez": 3,
+      "linea": "CONFLICTO",
+      "laxa": "CONFLICTO",
+      "positivoLaxo": true,
+      "estricta": "CONFLICTO",
+      "positivoEstricto": true,
+      "claseDelConflicto": {
+        "clase": "d",
+        "marcas": [
+          "misma persona",
+          "separar",
+          "recaer en el",
+          "ambos cargos"
+        ]
+      },
+      "texto": "CONFLICTO\nEl Texto 1 permite que la figura de Coordinador de Calidad recaiga en el Director Clínico, mientras que el Texto 2 establece que la responsabilidad última de la esterilización no debe recaer en el Director Clínico, para separar funciones. Si en un centro ambos cargos coinciden en la misma persona, se contradicen directamente, porque el Texto 2 excluye expresamente al Director de esa responsabilidad. El Texto 1 no menciona la esterilización, pero su permiso general choca con la regla específica del Texto 2."
+    },
+    {
+      "vez": 4,
+      "linea": "DEPENDE",
+      "laxa": "DEPENDE",
+      "positivoLaxo": false,
+      "estricta": "DEPENDE",
+      "positivoEstricto": false,
+      "texto": "DEPENDE\n\nEl Texto 1 permite que el cargo de Coordinador de Calidad recaiga en el Director Clínico, mientras que el Texto 2 establece que el responsable de la esterilización nunca debe ser el Director Clínico. Si un centro designa al Director Clínico como Coordinador de Calidad, ambos textos chocan, porque ese Director sería responsable de un proceso que el Texto 2 le excluye expresamente. Si la organización no hace esa designación, los dos textos son compatibles."
+    },
+    {
+      "vez": 5,
+      "linea": "CONFLICTO",
+      "laxa": "CONFLICTO",
+      "positivoLaxo": true,
+      "estricta": "CONFLICTO",
+      "positivoEstricto": true,
+      "claseDelConflicto": {
+        "clase": "d",
+        "marcas": [
+          "separacion",
+          "ser el director clinico"
+        ]
+      },
+      "texto": "CONFLICTO\nEl Texto 1 permite que el puesto de Coordinador de Calidad recaiga en el Director Clínico, mientras que el Texto 2 establece que el responsable de la esterilización nunca debe ser el Director Clínico y que esa separación es deliberada. Si un centro aplica la opción del Texto 1, incumple el Texto 2. La solución más razonable es que el Texto 2, por ser específico de un proceso crítico, prevalezca sobre la permisión general del Texto 1 en lo relativo a esterilización."
+    },
+    {
+      "vez": 6,
+      "linea": "CONFLICTO",
+      "laxa": "CONFLICTO",
+      "positivoLaxo": true,
+      "estricta": "CONFLICTO",
+      "positivoEstricto": true,
+      "claseDelConflicto": {
+        "clase": "d",
+        "marcas": [
+          "separacion"
+        ]
+      },
+      "texto": "CONFLICTO\n\nEl Texto 1 permite que el cargo de Coordinador de Calidad recaiga en el Director Clínico, mientras que el Texto 2 establece como criterio deliberado que la responsabilidad de la esterilización no debe estar en el Director Clínico. Si ambas normas se aplican a la vez, en un centro donde el Director ocupa también la Coordinación de Calidad, el Texto 2 quedaría vulnerado, porque el Director sería el responsable último de la esterilización. Es necesario que la organización aclare si la separación de funciones es obligatoria o si la combinación de cargos está permitida."
+    },
+    {
+      "vez": 7,
+      "linea": "CONFLICTO",
+      "laxa": "CONFLICTO",
+      "positivoLaxo": true,
+      "estricta": "CONFLICTO",
+      "positivoEstricto": true,
+      "claseDelConflicto": {
+        "clase": "d",
+        "marcas": [
+          "separacion",
+          "separad",
+          "el propio director clinico",
+          "recae en el"
+        ]
+      },
+      "texto": "CONFLICTO\nEl Texto 1 permite que el Coordinador de Calidad sea el propio Director Clínico, mientras que el Texto 2 establece que la responsabilidad de la esterilización recae en el Coordinador y no en el Director, y prohíbe que el Director lo sustituya para mantener la separación de funciones. Si el Director ocupa el cargo de Coordinador, el Texto 2 le atribuiría la responsabilidad de un proceso que, según ese mismo texto, debe estar separado de su figura. Las dos normas solo son compatibles si se interpreta que la combinación de cargos no debe darse nunca, pero el Texto 1 no lo dice."
+    },
+    {
+      "vez": 8,
+      "linea": "CONFLICTO",
+      "laxa": "CONFLICTO",
+      "positivoLaxo": true,
+      "estricta": "CONFLICTO",
+      "positivoEstricto": true,
+      "claseDelConflicto": {
+        "clase": "d",
+        "marcas": [
+          "separacion",
+          "separar",
+          "el propio director clinico",
+          "ser el director clinico"
+        ]
+      },
+      "texto": "CONFLICTO\nEl Texto 1 permite que el Coordinador de Calidad sea el propio Director Clínico, mientras que el Texto 2 establece que el responsable de la esterilización nunca debe ser el Director Clínico para mantener la separación de funciones. Si el Director Clínico ocupa el cargo de Coordinador de Calidad, el Texto 2 quedaría incumplido, porque tendría la responsabilidad de un proceso que el sistema pretende separar de su rol. Los textos solo serían compatibles si se interpretara que el Texto 1 no aplica en los centros donde se exige esa separación, algo que no se indica en ninguno de los dos."
+    },
+    {
+      "vez": 9,
+      "linea": "CONFLICTO",
+      "laxa": "CONFLICTO",
+      "positivoLaxo": true,
+      "estricta": "CONFLICTO",
+      "positivoEstricto": true,
+      "claseDelConflicto": {
+        "clase": "d",
+        "marcas": [
+          "misma persona"
+        ]
+      },
+      "texto": "CONFLICTO\n\nEl Texto 1 permite que el cargo de Coordinador de Calidad recaiga en el Director Clínico, mientras que el Texto 2 establece como criterio deliberado que el Director Clínico no debe asumir la responsabilidad de esterilización, y prohíbe que sea él quien sustituya al Coordinador. Si un mismo Director Clínico ejerce también como Coordinador de Calidad, como permite el Texto 1, el Texto 2 quedaría incumplido, porque la responsabilidad última recaería en la misma persona que el Texto 2 quiere apartar de ella. Los textos no mencionan esta situación ni la resuelven."
+    },
+    {
+      "vez": 10,
+      "linea": "CONFLICTO",
+      "laxa": "CONFLICTO",
+      "positivoLaxo": true,
+      "estricta": "CONFLICTO",
+      "positivoEstricto": true,
+      "claseDelConflicto": {
+        "clase": "d",
+        "marcas": [
+          "separar",
+          "el propio director clinico",
+          "recae en el"
+        ]
+      },
+      "texto": "CONFLICTO\n\nEl Texto 1 permite que el Coordinador de Calidad sea el propio Director Clínico, mientras que el Texto 2 establece que la responsabilidad de la esterilización recae en el Coordinador y nunca en el Director Clínico, para separar ambas funciones. Si el Director asume el cargo de Coordinador, la regla del Texto 2 se incumple. Para ser compatibles, el Texto 1 tendría que entenderse como válido solo cuando el Director no sea también el responsable de esterilización."
+    },
+    {
+      "vez": 11,
+      "linea": "CONFLICTO",
+      "laxa": "CONFLICTO",
+      "positivoLaxo": true,
+      "estricta": "CONFLICTO",
+      "positivoEstricto": true,
+      "claseDelConflicto": {
+        "clase": "d",
+        "marcas": [
+          "ser el director clinico"
+        ]
+      },
+      "texto": "CONFLICTO\nEl Texto 1 permite que el cargo de Coordinador de Calidad recaiga en el Director Clínico, mientras que el Texto 2 establece que el responsable de la esterilización nunca debe ser el Director Clínico y que este no debe asumir las funciones del coordinador. Si el Director Clínico ocupa el cargo de coordinador, el Texto 2 queda incumplido, porque sería el responsable último de la esterilización. Ambos textos solo serían compatibles si se entendiera que el Director Clínico puede ser coordinador solo para tareas documentales, lo que el Texto 1 no especifica."
+    },
+    {
+      "vez": 12,
+      "linea": "CONFLICTO",
+      "laxa": "CONFLICTO",
+      "positivoLaxo": true,
+      "estricta": "CONFLICTO",
+      "positivoEstricto": true,
+      "claseDelConflicto": {
+        "clase": "d",
+        "marcas": [
+          "separacion",
+          "separar",
+          "recaer en el"
+        ]
+      },
+      "texto": "CONFLICTO\nEl Texto 1 permite que el cargo de Coordinador de Calidad recaiga en el Director Clínico, mientras que el Texto 2 establece que la responsabilidad de esterilización no debe recaer en el Director Clínico, con el fin de separar funciones. Si un Director Clínico asumiera también la coordinación de calidad, quedaría vulnerada la separación que el Texto 2 pretende garantizar. El Texto 2 es más específico y probablemente prevalecería en materia de esterilización, pero el Texto 1 no lo excluye, así que la organización debería corregir esa ambigüedad."
+    },
+    {
+      "vez": 13,
+      "linea": "CONFLICTO",
+      "laxa": "CONFLICTO",
+      "positivoLaxo": true,
+      "estricta": "CONFLICTO",
+      "positivoEstricto": true,
+      "claseDelConflicto": {
+        "clase": "d",
+        "marcas": [
+          "el propio director clinico",
+          "recaer en el"
+        ]
+      },
+      "texto": "CONFLICTO\nEl Texto 1 permite que el Coordinador de Calidad sea el propio Director Clínico, mientras que el Texto 2 establece que la responsabilidad sobre la esterilización nunca debe recaer en el Director Clínico. Si un centro designa al Director Clínico como Coordinador de Calidad, el Texto 1 lo autoriza pero el Texto 2 lo prohíbe. Ambos textos son vigentes, así que la organización debe aclarar cuál prevalece."
+    },
+    {
+      "vez": 14,
+      "linea": "CONFLICTO",
+      "laxa": "CONFLICTO",
+      "positivoLaxo": true,
+      "estricta": "CONFLICTO",
+      "positivoEstricto": true,
+      "claseDelConflicto": {
+        "clase": "d",
+        "marcas": [
+          "separar",
+          "separad",
+          "el propio director clinico",
+          "ser el director clinico",
+          "recaer en el"
+        ]
+      },
+      "texto": "CONFLICTO\nEl Texto 1 permite que el Coordinador de Calidad sea el propio Director Clínico, mientras que el Texto 2 establece que la responsabilidad de la esterilización no debe recaer en el Director Clínico, para separar funciones. Si el Director Clínico ejerce también de Coordinador, el Texto 2 quedaría incumplido, porque la esterilización sería responsabilidad de quien debe estar separado de ella. La organización debería aclarar en el Texto 1 que el Coordinador de Calidad nunca puede ser el Director Clínico del centro."
+    },
+    {
+      "vez": 15,
+      "linea": "CONFLICTO",
+      "laxa": "CONFLICTO",
+      "positivoLaxo": true,
+      "estricta": "CONFLICTO",
+      "positivoEstricto": true,
+      "claseDelConflicto": {
+        "clase": "d",
+        "marcas": [
+          "separar",
+          "el propio director clinico",
+          "recae en el"
+        ]
+      },
+      "texto": "CONFLICTO\nEl Texto 1 permite que el Coordinador de Calidad sea el propio Director Clínico, mientras que el Texto 2 establece que la responsabilidad última de la esterilización recae en el Coordinador y no en el Director Clínico, para separar ambas funciones. Si el Director Clínico ejerce también de Coordinador, el Texto 2 queda en contradicción directa con el Texto 1. Aunque el Texto 2 es más específico sobre esterilización, no indica cómo resolver esa situación."
+    },
+    {
+      "vez": 16,
+      "linea": "CONFLICTO",
+      "laxa": "CONFLICTO",
+      "positivoLaxo": true,
+      "estricta": "CONFLICTO",
+      "positivoEstricto": true,
+      "claseDelConflicto": {
+        "clase": "d",
+        "marcas": [
+          "separacion",
+          "separar",
+          "recaer en el"
+        ]
+      },
+      "texto": "CONFLICTO\n\nEl Texto 1 permite que el cargo de Coordinador de Calidad recaiga en el Director Clínico, mientras que el Texto 2 establece que la responsabilidad de esterilización no debe recaer en él, para separar funciones. Si el Director Clínico ocupa también el cargo de Coordinador, la separación que exige el Texto 2 se incumple. Ambos textos rigen a la vez, así que la organización debe aclarar cuál prevalece."
+    },
+    {
+      "vez": 17,
+      "linea": "CONFLICTO",
+      "laxa": "CONFLICTO",
+      "positivoLaxo": true,
+      "estricta": "CONFLICTO",
+      "positivoEstricto": true,
+      "claseDelConflicto": {
+        "clase": "d",
+        "marcas": [
+          "separar",
+          "el propio director clinico",
+          "recae en el"
+        ]
+      },
+      "texto": "**CONFLICTO**\n\nEl Texto 1 permite que el Coordinador de Calidad sea el propio Director Clínico, mientras que el Texto 2 establece que la responsabilidad de esterilización recae en el Coordinador y no en el Director, para separarla de su rol asistencial. En un centro donde el Director ejerza también de Coordinador, ambos textos no pueden cumplirse a la vez. Ninguno de los dos textos resuelve esta situación."
+    },
+    {
+      "vez": 18,
+      "linea": "CONFLICTO",
+      "laxa": "CONFLICTO",
+      "positivoLaxo": true,
+      "estricta": "CONFLICTO",
+      "positivoEstricto": true,
+      "claseDelConflicto": {
+        "clase": "d",
+        "marcas": [
+          "separar",
+          "el propio director clinico",
+          "recaer en el"
+        ]
+      },
+      "texto": "CONFLICTO\n\nEl Texto 1 permite que el cargo de Coordinador de Calidad recaiga en el propio Director Clínico, mientras que el Texto 2 establece que la responsabilidad de la esterilización no debe recaer en el Director Clínico, para separar ese proceso crítico de su gestión asistencial. Si el Director Clínico ejerce también como Coordinador, el Texto 2 quedaría incumplido, ya que él sería el responsable último de la esterilización. Los textos no se pueden aplicar a la vez sin una excepción o una aclaración explícita."
+    },
+    {
+      "vez": 19,
+      "linea": "CONFLICTO",
+      "laxa": "CONFLICTO",
+      "positivoLaxo": true,
+      "estricta": "CONFLICTO",
+      "positivoEstricto": true,
+      "claseDelConflicto": {
+        "clase": "d",
+        "marcas": [
+          "separacion"
+        ]
+      },
+      "texto": "CONFLICTO\nEl Texto 1 permite que la figura de Coordinador de Calidad recaiga en el Director Clínico, mientras que el Texto 2 establece que el Director Clínico no debe ser el responsable de la esterilización precisamente por separación de funciones. Si el Director ocupa el cargo de Coordinador, la norma del Texto 2 queda vulnerada, y el Texto 2 tampoco prevé esa situación."
+    },
+    {
+      "vez": 20,
+      "linea": "CONFLICTO",
+      "laxa": "CONFLICTO",
+      "positivoLaxo": true,
+      "estricta": "CONFLICTO",
+      "positivoEstricto": true,
+      "claseDelConflicto": {
+        "clase": "d",
+        "marcas": [
+          "separacion",
+          "el propio director clinico",
+          "recaer en el"
+        ]
+      },
+      "texto": "CONFLICTO\nEl Texto 1 permite que el Coordinador de Calidad sea el propio Director Clínico, mientras que el Texto 2 establece que la responsabilidad de la esterilización nunca debe recaer en el Director Clínico para mantener la separación de funciones. Si un centro designa como Coordinador de Calidad al Director Clínico, ese director sería el responsable último de la esterilización, lo que contradice el Texto 2. Ambos textos están vigentes a la vez y no se pueden cumplir simultáneamente en ese caso."
+    },
+    {
+      "vez": 21,
+      "linea": "CONFLICTO",
+      "laxa": "CONFLICTO",
+      "positivoLaxo": true,
+      "estricta": "CONFLICTO",
+      "positivoEstricto": true,
+      "claseDelConflicto": {
+        "clase": "d",
+        "marcas": [
+          "separacion",
+          "recaer en el"
+        ]
+      },
+      "texto": "CONFLICTO\nEl Texto 1 permite que la función de Coordinador de Calidad recaiga en el Director Clínico, mientras que el Texto 2 establece que la responsabilidad de esterilización no puede recaer en él y que nunca debe sustituir al Coordinador. Si el Director Clínico ocupa el cargo de Coordinador de Calidad, se incumpliría la separación de funciones que exige el Texto 2. Ambos textos no pueden aplicarse a la vez sin una precisión adicional."
+    },
+    {
+      "vez": 22,
+      "linea": "CONFLICTO",
+      "laxa": "CONFLICTO",
+      "positivoLaxo": true,
+      "estricta": "CONFLICTO",
+      "positivoEstricto": true,
+      "claseDelConflicto": {
+        "clase": "d",
+        "marcas": [
+          "separar",
+          "recaer en el"
+        ]
+      },
+      "texto": "CONFLICTO\nEl Texto 1 permite que el puesto de Coordinador de Calidad recaiga en el Director Clínico, mientras que el Texto 2 establece expresamente que la responsabilidad de la esterilización no debe recaer en el Director Clínico para separar funciones. Si el Director ocupa el cargo de Coordinador, el Texto 2 quedaría incumplido, y el Texto 2 también prohíbe que el Director sustituya al Coordinador en ausencias. La organización debería aclarar que el Director no puede ser Coordinador de Calidad."
+    },
+    {
+      "vez": 23,
+      "linea": "CONFLICTO",
+      "laxa": "CONFLICTO",
+      "positivoLaxo": true,
+      "estricta": "CONFLICTO",
+      "positivoEstricto": true,
+      "claseDelConflicto": {
+        "clase": "d",
+        "marcas": [
+          "separar",
+          "el propio director clinico"
+        ]
+      },
+      "texto": "CONFLICTO\nEl Texto 1 permite que el Coordinador de Calidad sea el propio Director Clínico, mientras que el Texto 2 establece que el responsable de la esterilización es el Coordinador de Calidad y no el Director Clínico, para separar esa responsabilidad de la gestión asistencial. Si un centro designa como Coordinador de Calidad al Director Clínico, como permite el Texto 1, el Texto 2 quedaría incumplido, porque el Director Clínico asumiría la responsabilidad de esterilización. Ambos textos están vigentes a la vez y no excluyen esa combinación, por lo que el sistema es incoherente en ese punto."
+    },
+    {
+      "vez": 24,
+      "linea": "CONFLICTO",
+      "laxa": "CONFLICTO",
+      "positivoLaxo": true,
+      "estricta": "CONFLICTO",
+      "positivoEstricto": true,
+      "claseDelConflicto": {
+        "clase": "d",
+        "marcas": [
+          "separacion",
+          "separar",
+          "el propio director clinico"
+        ]
+      },
+      "texto": "CONFLICTO\n\nEl Texto 1 permite que el Coordinador de Calidad sea el propio Director Clínico, mientras que el Texto 2 establece que el responsable de la esterilización es el Coordinador de Calidad y no el Director Clínico, para separar esa función de la gestión asistencial. Si en un centro el Director Clínico ejerce también como Coordinador de Calidad, ambos textos se contradicen, porque la separación exigida por el Texto 2 no se cumple. Para ser compatibles, el Texto 1 debería excluir al Director Clínico como posible Coordinador de Calidad, o el Texto 2 debería aclarar que la separación solo aplica a la responsabilidad de esterilización."
+    },
+    {
+      "vez": 25,
+      "linea": "CONFLICTO",
+      "laxa": "CONFLICTO",
+      "positivoLaxo": true,
+      "estricta": "CONFLICTO",
+      "positivoEstricto": true,
+      "claseDelConflicto": {
+        "clase": "d",
+        "marcas": [
+          "separar",
+          "el propio director clinico",
+          "recaer en el"
+        ]
+      },
+      "texto": "CONFLICTO\nEl Texto 1 permite que el Coordinador de Calidad sea el propio Director Clínico, mientras que el Texto 2 establece que la responsabilidad de la esterilización nunca debe recaer en el Director Clínico, con el fin de separar funciones. Además, el Texto 2 prohíbe que el Director Clínico del centro sustituya al Coordinador de Calidad, algo que el Texto 1 no excluye. En un centro donde el Director Clínico ejerza también de Coordinador de Calidad, se incumpliría el Texto 2."
+    },
+    {
+      "vez": 26,
+      "linea": "CONFLICTO",
+      "laxa": "CONFLICTO",
+      "positivoLaxo": true,
+      "estricta": "CONFLICTO",
+      "positivoEstricto": true,
+      "claseDelConflicto": {
+        "clase": "d",
+        "marcas": [
+          "separar",
+          "el propio director clinico",
+          "recaer en el"
+        ]
+      },
+      "texto": "CONFLICTO\n\nEl Texto 1 permite que la figura del Coordinador de Calidad \"pueda recaer en el propio Director Clínico\", mientras que el Texto 2 establece como criterio deliberado separar la responsabilidad de la esterilización de quien ejerce como Director Clínico. Si en una clínica el Director ocupa también la coordinación de calidad, ambos textos se contradicen en cuanto a quién responde de la esterilización. Los textos solo son compatibles si se interpreta que la excepción del Texto 2 prevalece sobre la permisión general del Texto 1, cosa que el documento no aclara."
+    },
+    {
+      "vez": 27,
+      "linea": "CONFLICTO",
+      "laxa": "CONFLICTO",
+      "positivoLaxo": true,
+      "estricta": "CONFLICTO",
+      "positivoEstricto": true,
+      "claseDelConflicto": {
+        "clase": "d",
+        "marcas": [
+          "misma persona",
+          "separacion",
+          "separar",
+          "el propio director clinico",
+          "ambos cargos"
+        ]
+      },
+      "texto": "CONFLICTO\n\nEl Texto 1 permite que el Coordinador de Calidad sea el propio Director Clínico, pero el Texto 2 asigna la responsabilidad de la esterilización al Coordinador de Calidad y busca separarla deliberadamente de la figura del Director Clínico. Si ambos cargos recaen en la misma persona, esa separación se rompe, y el Texto 2 también prohíbe que el Director Clínico sustituya al Coordinador en ausencias."
+    },
+    {
+      "vez": 28,
+      "linea": "CONFLICTO",
+      "laxa": "CONFLICTO",
+      "positivoLaxo": true,
+      "estricta": "CONFLICTO",
+      "positivoEstricto": true,
+      "claseDelConflicto": {
+        "clase": "d",
+        "marcas": [
+          "misma persona",
+          "separar",
+          "el propio director clinico",
+          "recaer en el",
+          "ambos cargos"
+        ]
+      },
+      "texto": "CONFLICTO\nEl Texto 1 permite que el cargo de Coordinador de Calidad \"recaiga en el propio Director Clínico\", mientras que el Texto 2 establece que la responsabilidad última de la esterilización no debe recaer en el Director Clínico, precisamente para separar esas funciones. Si el Director ocupa también la coordinación, el Texto 2 queda vacío de efecto, porque la responsabilidad de esterilización acabaría en la misma persona que quiere evitar. Para resolverlo, el Texto 1 debería excluir al Director Clínico como Coordinador o el Texto 2 debería aclarar qué ocurre cuando ambos cargos coinciden."
+    },
+    {
+      "vez": 29,
+      "linea": "CONFLICTO",
+      "laxa": "CONFLICTO",
+      "positivoLaxo": true,
+      "estricta": "CONFLICTO",
+      "positivoEstricto": true,
+      "claseDelConflicto": {
+        "clase": "d",
+        "marcas": [
+          "separacion",
+          "separar",
+          "recaer en el"
+        ]
+      },
+      "texto": "CONFLICTO\nEl Texto 1 permite que el cargo de Coordinador de Calidad recaiga en el Director Clínico, mientras que el Texto 2 establece que la responsabilidad de esterilización no debe recaer en él para separarla de la presión de su gestión asistencial. Si el Director Clínico ejerce también de Coordinador, esa separación deja de cumplirse. Ambos textos pueden aplicarse solo si se excluye esa posibilidad, lo que el Texto 1 no hace."
+    },
+    {
+      "vez": 30,
+      "linea": "CONFLICTO",
+      "laxa": "CONFLICTO",
+      "positivoLaxo": true,
+      "estricta": "CONFLICTO",
+      "positivoEstricto": true,
+      "claseDelConflicto": {
+        "clase": "d",
+        "marcas": [
+          "separar"
+        ]
+      },
+      "texto": "CONFLICTO\nEl Texto 1 permite que el cargo de Coordinador de Calidad recaiga en el Director Clínico, mientras que el Texto 2 establece que el Director Clínico nunca debe ser el responsable de la esterilización, precisamente para separar esa función de su rol de gestión. La contradicción se produce cuando el Director Clínico ocupa también el cargo de Coordinador de Calidad, porque entonces el Texto 1 lo habilita y el Texto 2 lo excluye. Ninguno de los dos textos prevé esa situación, así que la organización debería aclarar cuál prevalece."
+    },
+    {
+      "vez": 31,
+      "linea": "CONFLICTO",
+      "laxa": "CONFLICTO",
+      "positivoLaxo": true,
+      "estricta": "CONFLICTO",
+      "positivoEstricto": true,
+      "claseDelConflicto": {
+        "clase": "d",
+        "marcas": [
+          "el propio director clinico",
+          "recaer en el"
+        ]
+      },
+      "texto": "CONFLICTO\n\nEl Texto 1 permite que el Coordinador de Calidad sea el propio Director Clínico, mientras que el Texto 2 establece que la responsabilidad de la esterilización nunca debe recaer en el Director Clínico, lo que hace incompatible esa designación en ese ámbito. Podría resolverse aplicando el Texto 2 como norma específica sobre esterilización, pero el Texto 1 no excluye expresamente esa excepción. Por tanto, el sistema debería aclarar explícitamente que el Director Clínico no puede ser Coordinador de Calidad."
+    },
+    {
+      "vez": 32,
+      "linea": "CONFLICTO",
+      "laxa": "CONFLICTO",
+      "positivoLaxo": true,
+      "estricta": "CONFLICTO",
+      "positivoEstricto": true,
+      "claseDelConflicto": {
+        "clase": "d",
+        "marcas": [
+          "separacion"
+        ]
+      },
+      "texto": "CONFLICTO\n\nEl Texto 1 permite que el cargo de Coordinador de Calidad recaiga en el Director Clínico, mientras que el Texto 2 establece como criterio deliberado que esa separación de funciones se mantenga, incluso en las sustituciones. Si un centro designa al Director Clínico como Coordinador de Calidad, se incumple lo que establece el Texto 2 sobre la responsabilidad de la esterilización. Para evitarlo, el Texto 1 debería excluir expresamente al Director Clínico como opción."
+    },
+    {
+      "vez": 33,
+      "linea": "CONFLICTO",
+      "laxa": "CONFLICTO",
+      "positivoLaxo": true,
+      "estricta": "CONFLICTO",
+      "positivoEstricto": true,
+      "claseDelConflicto": {
+        "clase": "d",
+        "marcas": [
+          "separacion",
+          "el propio director clinico",
+          "recaer en el"
+        ]
+      },
+      "texto": "CONFLICTO\nEl Texto 1 permite que el Coordinador de Calidad sea el propio Director Clínico, mientras que el Texto 2 establece que la responsabilidad última de la esterilización no puede recaer en el Director Clínico y que este no puede sustituir al Coordinador. Si el Director ocupa el cargo de Coordinador, asumiría esa responsabilidad y se contradiría la separación de funciones del Texto 2. Como el Texto 2 es más específico para este proceso, debería prevalecer, pero conviene corregir el Texto 1 para evitar la ambigüedad."
+    },
+    {
+      "vez": 34,
+      "linea": "CONFLICTO",
+      "laxa": "CONFLICTO",
+      "positivoLaxo": true,
+      "estricta": "CONFLICTO",
+      "positivoEstricto": true,
+      "claseDelConflicto": {
+        "clase": "d",
+        "marcas": [
+          "separar",
+          "recaer en el"
+        ]
+      },
+      "texto": "CONFLICTO\nEl Texto 1 permite que el Coordinador de Calidad recaiga en el Director Clínico, mientras que el Texto 2 establece que la responsabilidad de la esterilización no debe recaer en él, para separar funciones. Si ambas reglas se aplican a la vez en un centro donde el Director Clínico también es Coordinador de Calidad, esa persona tendría la responsabilidad de esterilización que el Texto 2 le niega. Ninguno de los dos textos resuelve este caso."
+    },
+    {
+      "vez": 35,
+      "linea": "CONFLICTO",
+      "laxa": "CONFLICTO",
+      "positivoLaxo": true,
+      "estricta": "CONFLICTO",
+      "positivoEstricto": true,
+      "claseDelConflicto": {
+        "clase": "d",
+        "marcas": [
+          "misma persona",
+          "separar",
+          "recaer en el",
+          "ambos cargos"
+        ]
+      },
+      "texto": "CONFLICTO\nEl Texto 1 permite que el cargo de Coordinador de Calidad recaiga en el Director Clínico, mientras que el Texto 2 establece que la responsabilidad de la esterilización no puede recaer en él, para separar funciones. Si una misma persona ocupa ambos cargos, el Texto 2 queda incumplido. El Texto 2 es más específico y podría prevalecer para la esterilización, pero el Texto 1 sigue admitiendo la configuración que el Texto 2 prohíbe, así que la organización debería aclararlo."
+    },
+    {
+      "vez": 36,
+      "linea": "CONFLICTO",
+      "laxa": "CONFLICTO",
+      "positivoLaxo": true,
+      "estricta": "CONFLICTO",
+      "positivoEstricto": true,
+      "claseDelConflicto": {
+        "clase": "d",
+        "marcas": [
+          "misma persona",
+          "separacion",
+          "el propio director clinico",
+          "ser el director clinico",
+          "recaer en el"
+        ]
+      },
+      "texto": "CONFLICTO\n\nEl Texto 1 permite que el Coordinador de Calidad sea el propio Director Clínico, mientras que el Texto 2 establece que la responsabilidad de esterilización no debe recaer en el Director Clínico y que la separación de funciones es un criterio deliberado. Aunque el Texto 1 no menciona la esterilización, la figura que el Texto 2 declara responsable último de ese proceso puede ser la misma persona que el Texto 2 quiere excluir. Para evitarlo, la organización necesitaría precisar que el Coordinador de Calidad no puede ser el Director Clínico del centro."
+    },
+    {
+      "vez": 37,
+      "linea": "CONFLICTO",
+      "laxa": "CONFLICTO",
+      "positivoLaxo": true,
+      "estricta": "CONFLICTO",
+      "positivoEstricto": true,
+      "claseDelConflicto": {
+        "clase": "d",
+        "marcas": [
+          "el propio director clinico",
+          "recae en el"
+        ]
+      },
+      "texto": "CONFLICTO\nEl Texto 1 permite que el Coordinador de Calidad sea el propio Director Clínico, mientras que el Texto 2 establece que la responsabilidad de esterilización nunca recae en el Director Clínico y que nunca puede sustituir al Coordinador. En un centro donde el Director Clínico ejerza también como Coordinador de Calidad, ambos textos se contradicen. Para resolverlo, la organización debería precisar que el Director Clínico no puede ocupar el puesto de Coordinador de Calidad."
+    },
+    {
+      "vez": 38,
+      "linea": "CONFLICTO",
+      "laxa": "CONFLICTO",
+      "positivoLaxo": true,
+      "estricta": "CONFLICTO",
+      "positivoEstricto": true,
+      "claseDelConflicto": {
+        "clase": "d",
+        "marcas": [
+          "separar",
+          "recaer en el"
+        ]
+      },
+      "texto": "CONFLICTO\nEl Texto 1 permite que la figura de Coordinador de Calidad recaiga en el Director Clínico, mientras que el Texto 2 establece que la responsabilidad de la esterilización no debe recaer en el Director Clínico, para separar funciones. Si ambas reglas se aplican a la vez, el Director Clínico podría ser Coordinador de Calidad y, por tanto, responsable de la esterilización, lo que contradice el criterio del Texto 2. Ninguno de los dos textos aclara cómo resolver esta situación."
+    },
+    {
+      "vez": 39,
+      "linea": "CONFLICTO",
+      "laxa": "CONFLICTO",
+      "positivoLaxo": true,
+      "estricta": "CONFLICTO",
+      "positivoEstricto": true,
+      "claseDelConflicto": {
+        "clase": "d",
+        "marcas": [
+          "separar",
+          "el propio director clinico",
+          "recaer en el"
+        ]
+      },
+      "texto": "**CONFLICTO**\n\nEl Texto 1 permite que la figura del Coordinador de Calidad recaiga en el propio Director Clínico, mientras que el Texto 2 establece que la responsabilidad de la esterilización no debe recaer en el Director Clínico para separar funciones. Si el Director ejerce además de Coordinador, quedaría como responsable de un proceso que el Texto 2 le excluye expresamente. Solo el Texto 2 trata la esterilización, así que no es una diferencia de ámbito que se pueda resolver sin una aclaración de la organización."
+    },
+    {
+      "vez": 40,
+      "linea": "CONFLICTO",
+      "laxa": "CONFLICTO",
+      "positivoLaxo": true,
+      "estricta": "CONFLICTO",
+      "positivoEstricto": true,
+      "claseDelConflicto": {
+        "clase": "d",
+        "marcas": [
+          "separar",
+          "el propio director clinico"
+        ]
+      },
+      "texto": "CONFLICTO\nEl Texto 1 permite que el puesto de Coordinador de Calidad recaiga en el propio Director Clínico, mientras que el Texto 2 establece que la responsabilidad de la esterilización debe separarse deliberadamente de ese cargo. Si el Director Clínico ejerce también como Coordinador de Calidad, sería el responsable último de un proceso que el Texto 2 quiere que no dirija. La incompatibilidad no se resuelve con una lectura alternativa, porque el Texto 1 no excluye esa configuración."
+    },
+    {
+      "vez": 41,
+      "linea": "CONFLICTO",
+      "laxa": "CONFLICTO",
+      "positivoLaxo": true,
+      "estricta": "CONFLICTO",
+      "positivoEstricto": true,
+      "claseDelConflicto": {
+        "clase": "d",
+        "marcas": [
+          "separacion",
+          "separar",
+          "el propio director clinico",
+          "recaer en el"
+        ]
+      },
+      "texto": "CONFLICTO\nEl Texto 1 permite que el Coordinador de Calidad sea el propio Director Clínico, mientras que el Texto 2 establece que la responsabilidad sobre la esterilización no debe recaer en el Director Clínico, para separar esa función de su gestión asistencial. Si en una clínica el Director Clínico ocupa también la Coordinación de Calidad, quedaría responsable de la esterilización y se vulneraría esa separación. Las normas deberían precisar que, en ningún caso, el Director Clínico puede ser el Coordinador de Calidad."
+    },
+    {
+      "vez": 42,
+      "linea": "CONFLICTO",
+      "laxa": "CONFLICTO",
+      "positivoLaxo": true,
+      "estricta": "CONFLICTO",
+      "positivoEstricto": true,
+      "claseDelConflicto": {
+        "clase": "d",
+        "marcas": [
+          "separacion",
+          "el propio director clinico"
+        ]
+      },
+      "texto": "CONFLICTO\nEl Texto 1 permite que la figura de Coordinador de Calidad recaiga en el propio Director Clínico, mientras que el Texto 2 establece como criterio deliberado que el Director Clínico no debe asumir la responsabilidad última de la esterilización, que corresponde al Coordinador de Calidad. Si el Director Clínico ejerce como Coordinador de Calidad, quedaría responsable de la esterilización, lo que contradice la separación de funciones del Texto 2. Los textos solo serían compatibles si se interpretara que la opción del Texto 1 no se aplica en ningún centro, lo que el documento no establece."
+    }
+  ],
+  "registro": {
+    "peticiones": [
+      {
+        "n": 1,
+        "etapa": "juez",
+        "pareja": "facac5fd-ca7a-4f04-abf9-4926bb955e0a",
+        "modelo": "claude-haiku-5-5",
+        "vuelta": 1,
+        "intento": 1,
+        "resultado": "ok",
+        "estadoHttp": 200,
+        "latenciaMs": 3483,
+        "esperaMs": 0,
+        "comienzoMs": 0,
+        "tokens": {
+          "entrada": 596,
+          "salida": 663,
+          "escrituraCache": 0,
+          "lecturaCache": 0
+        },
+        "parametros": {
+          "maxTokens": 16000,
+          "temperatura": "sin_enviar",
+          "esfuerzo": "medium"
+        }
+      },
+      {
+        "n": 2,
+        "etapa": "juez",
+        "pareja": "facac5fd-ca7a-4f04-abf9-4926bb955e0a",
+        "modelo": "claude-haiku-5-5",
+        "vuelta": 1,
+        "intento": 1,
+        "resultado": "ok",
+        "estadoHttp": 200,
+        "latenciaMs": 4104,
+        "esperaMs": 0,
+        "comienzoMs": 2,
+        "tokens": {
+          "entrada": 596,
+          "salida": 839,
+          "escrituraCache": 0,
+          "lecturaCache": 0
+        },
+        "parametros": {
+          "maxTokens": 16000,
+          "temperatura": "sin_enviar",
+          "esfuerzo": "medium"
+        }
+      },
+      {
+        "n": 3,
+        "etapa": "juez",
+        "pareja": "facac5fd-ca7a-4f04-abf9-4926bb955e0a",
+        "modelo": "claude-haiku-5-5",
+        "vuelta": 1,
+        "intento": 1,
+        "resultado": "ok",
+        "estadoHttp": 200,
+        "latenciaMs": 5017,
+        "esperaMs": 0,
+        "comienzoMs": 1,
+        "tokens": {
+          "entrada": 596,
+          "salida": 987,
+          "escrituraCache": 0,
+          "lecturaCache": 0
+        },
+        "parametros": {
+          "maxTokens": 16000,
+          "temperatura": "sin_enviar",
+          "esfuerzo": "medium"
+        }
+      },
+      {
+        "n": 4,
+        "etapa": "juez",
+        "pareja": "facac5fd-ca7a-4f04-abf9-4926bb955e0a",
+        "modelo": "claude-haiku-5-5",
+        "vuelta": 1,
+        "intento": 1,
+        "resultado": "ok",
+        "estadoHttp": 200,
+        "latenciaMs": 5451,
+        "esperaMs": 0,
+        "comienzoMs": 2,
+        "tokens": {
+          "entrada": 596,
+          "salida": 1082,
+          "escrituraCache": 0,
+          "lecturaCache": 0
+        },
+        "parametros": {
+          "maxTokens": 16000,
+          "temperatura": "sin_enviar",
+          "esfuerzo": "medium"
+        }
+      },
+      {
+        "n": 5,
+        "etapa": "juez",
+        "pareja": "facac5fd-ca7a-4f04-abf9-4926bb955e0a",
+        "modelo": "claude-haiku-5-5",
+        "vuelta": 1,
+        "intento": 1,
+        "resultado": "ok",
+        "estadoHttp": 200,
+        "latenciaMs": 6014,
+        "esperaMs": 0,
+        "comienzoMs": 2,
+        "tokens": {
+          "entrada": 596,
+          "salida": 1214,
+          "escrituraCache": 0,
+          "lecturaCache": 0
+        },
+        "parametros": {
+          "maxTokens": 16000,
+          "temperatura": "sin_enviar",
+          "esfuerzo": "medium"
+        }
+      },
+      {
+        "n": 6,
+        "etapa": "juez",
+        "pareja": "facac5fd-ca7a-4f04-abf9-4926bb955e0a",
+        "modelo": "claude-haiku-5-5",
+        "vuelta": 1,
+        "intento": 1,
+        "resultado": "ok",
+        "estadoHttp": 200,
+        "latenciaMs": 7011,
+        "esperaMs": 0,
+        "comienzoMs": 3,
+        "tokens": {
+          "entrada": 596,
+          "salida": 1414,
+          "escrituraCache": 0,
+          "lecturaCache": 0
+        },
+        "parametros": {
+          "maxTokens": 16000,
+          "temperatura": "sin_enviar",
+          "esfuerzo": "medium"
+        }
+      },
+      {
+        "n": 7,
+        "etapa": "juez",
+        "pareja": "facac5fd-ca7a-4f04-abf9-4926bb955e0a",
+        "modelo": "claude-haiku-5-5",
+        "vuelta": 1,
+        "intento": 1,
+        "resultado": "ok",
+        "estadoHttp": 200,
+        "latenciaMs": 2865,
+        "esperaMs": 0,
+        "comienzoMs": 7015,
+        "tokens": {
+          "entrada": 596,
+          "salida": 574,
+          "escrituraCache": 0,
+          "lecturaCache": 0
+        },
+        "parametros": {
+          "maxTokens": 16000,
+          "temperatura": "sin_enviar",
+          "esfuerzo": "medium"
+        }
+      },
+      {
+        "n": 8,
+        "etapa": "juez",
+        "pareja": "facac5fd-ca7a-4f04-abf9-4926bb955e0a",
+        "modelo": "claude-haiku-5-5",
+        "vuelta": 1,
+        "intento": 1,
+        "resultado": "ok",
+        "estadoHttp": 200,
+        "latenciaMs": 4464,
+        "esperaMs": 0,
+        "comienzoMs": 7015,
+        "tokens": {
+          "entrada": 596,
+          "salida": 905,
+          "escrituraCache": 0,
+          "lecturaCache": 0
+        },
+        "parametros": {
+          "maxTokens": 16000,
+          "temperatura": "sin_enviar",
+          "esfuerzo": "medium"
+        }
+      },
+      {
+        "n": 9,
+        "etapa": "juez",
+        "pareja": "facac5fd-ca7a-4f04-abf9-4926bb955e0a",
+        "modelo": "claude-haiku-5-5",
+        "vuelta": 1,
+        "intento": 1,
+        "resultado": "ok",
+        "estadoHttp": 200,
+        "latenciaMs": 5011,
+        "esperaMs": 0,
+        "comienzoMs": 7015,
+        "tokens": {
+          "entrada": 596,
+          "salida": 1049,
+          "escrituraCache": 0,
+          "lecturaCache": 0
+        },
+        "parametros": {
+          "maxTokens": 16000,
+          "temperatura": "sin_enviar",
+          "esfuerzo": "medium"
+        }
+      },
+      {
+        "n": 10,
+        "etapa": "juez",
+        "pareja": "facac5fd-ca7a-4f04-abf9-4926bb955e0a",
+        "modelo": "claude-haiku-5-5",
+        "vuelta": 1,
+        "intento": 1,
+        "resultado": "ok",
+        "estadoHttp": 200,
+        "latenciaMs": 5605,
+        "esperaMs": 0,
+        "comienzoMs": 7014,
+        "tokens": {
+          "entrada": 596,
+          "salida": 1195,
+          "escrituraCache": 0,
+          "lecturaCache": 0
+        },
+        "parametros": {
+          "maxTokens": 16000,
+          "temperatura": "sin_enviar",
+          "esfuerzo": "medium"
+        }
+      },
+      {
+        "n": 11,
+        "etapa": "juez",
+        "pareja": "facac5fd-ca7a-4f04-abf9-4926bb955e0a",
+        "modelo": "claude-haiku-5-5",
+        "vuelta": 1,
+        "intento": 1,
+        "resultado": "ok",
+        "estadoHttp": 200,
+        "latenciaMs": 5906,
+        "esperaMs": 0,
+        "comienzoMs": 7016,
+        "tokens": {
+          "entrada": 596,
+          "salida": 1257,
+          "escrituraCache": 0,
+          "lecturaCache": 0
+        },
+        "parametros": {
+          "maxTokens": 16000,
+          "temperatura": "sin_enviar",
+          "esfuerzo": "medium"
+        }
+      },
+      {
+        "n": 12,
+        "etapa": "juez",
+        "pareja": "facac5fd-ca7a-4f04-abf9-4926bb955e0a",
+        "modelo": "claude-haiku-5-5",
+        "vuelta": 1,
+        "intento": 1,
+        "resultado": "ok",
+        "estadoHttp": 200,
+        "latenciaMs": 6257,
+        "esperaMs": 0,
+        "comienzoMs": 7016,
+        "tokens": {
+          "entrada": 596,
+          "salida": 1317,
+          "escrituraCache": 0,
+          "lecturaCache": 0
+        },
+        "parametros": {
+          "maxTokens": 16000,
+          "temperatura": "sin_enviar",
+          "esfuerzo": "medium"
+        }
+      },
+      {
+        "n": 13,
+        "etapa": "juez",
+        "pareja": "facac5fd-ca7a-4f04-abf9-4926bb955e0a",
+        "modelo": "claude-haiku-5-5",
+        "vuelta": 1,
+        "intento": 1,
+        "resultado": "ok",
+        "estadoHttp": 200,
+        "latenciaMs": 2913,
+        "esperaMs": 0,
+        "comienzoMs": 13273,
+        "tokens": {
+          "entrada": 596,
+          "salida": 554,
+          "escrituraCache": 0,
+          "lecturaCache": 0
+        },
+        "parametros": {
+          "maxTokens": 16000,
+          "temperatura": "sin_enviar",
+          "esfuerzo": "medium"
+        }
+      },
+      {
+        "n": 14,
+        "etapa": "juez",
+        "pareja": "facac5fd-ca7a-4f04-abf9-4926bb955e0a",
+        "modelo": "claude-haiku-5-5",
+        "vuelta": 1,
+        "intento": 1,
+        "resultado": "ok",
+        "estadoHttp": 200,
+        "latenciaMs": 3150,
+        "esperaMs": 0,
+        "comienzoMs": 13274,
+        "tokens": {
+          "entrada": 596,
+          "salida": 615,
+          "escrituraCache": 0,
+          "lecturaCache": 0
+        },
+        "parametros": {
+          "maxTokens": 16000,
+          "temperatura": "sin_enviar",
+          "esfuerzo": "medium"
+        }
+      },
+      {
+        "n": 15,
+        "etapa": "juez",
+        "pareja": "facac5fd-ca7a-4f04-abf9-4926bb955e0a",
+        "modelo": "claude-haiku-5-5",
+        "vuelta": 1,
+        "intento": 1,
+        "resultado": "ok",
+        "estadoHttp": 200,
+        "latenciaMs": 3504,
+        "esperaMs": 0,
+        "comienzoMs": 13275,
+        "tokens": {
+          "entrada": 596,
+          "salida": 713,
+          "escrituraCache": 0,
+          "lecturaCache": 0
+        },
+        "parametros": {
+          "maxTokens": 16000,
+          "temperatura": "sin_enviar",
+          "esfuerzo": "medium"
+        }
+      },
+      {
+        "n": 16,
+        "etapa": "juez",
+        "pareja": "facac5fd-ca7a-4f04-abf9-4926bb955e0a",
+        "modelo": "claude-haiku-5-5",
+        "vuelta": 1,
+        "intento": 1,
+        "resultado": "ok",
+        "estadoHttp": 200,
+        "latenciaMs": 3823,
+        "esperaMs": 0,
+        "comienzoMs": 13274,
+        "tokens": {
+          "entrada": 596,
+          "salida": 805,
+          "escrituraCache": 0,
+          "lecturaCache": 0
+        },
+        "parametros": {
+          "maxTokens": 16000,
+          "temperatura": "sin_enviar",
+          "esfuerzo": "medium"
+        }
+      },
+      {
+        "n": 17,
+        "etapa": "juez",
+        "pareja": "facac5fd-ca7a-4f04-abf9-4926bb955e0a",
+        "modelo": "claude-haiku-5-5",
+        "vuelta": 1,
+        "intento": 1,
+        "resultado": "ok",
+        "estadoHttp": 200,
+        "latenciaMs": 4183,
+        "esperaMs": 0,
+        "comienzoMs": 13274,
+        "tokens": {
+          "entrada": 596,
+          "salida": 792,
+          "escrituraCache": 0,
+          "lecturaCache": 0
+        },
+        "parametros": {
+          "maxTokens": 16000,
+          "temperatura": "sin_enviar",
+          "esfuerzo": "medium"
+        }
+      },
+      {
+        "n": 18,
+        "etapa": "juez",
+        "pareja": "facac5fd-ca7a-4f04-abf9-4926bb955e0a",
+        "modelo": "claude-haiku-5-5",
+        "vuelta": 1,
+        "intento": 1,
+        "resultado": "ok",
+        "estadoHttp": 200,
+        "latenciaMs": 5255,
+        "esperaMs": 0,
+        "comienzoMs": 13275,
+        "tokens": {
+          "entrada": 596,
+          "salida": 1059,
+          "escrituraCache": 0,
+          "lecturaCache": 0
+        },
+        "parametros": {
+          "maxTokens": 16000,
+          "temperatura": "sin_enviar",
+          "esfuerzo": "medium"
+        }
+      },
+      {
+        "n": 19,
+        "etapa": "juez",
+        "pareja": "facac5fd-ca7a-4f04-abf9-4926bb955e0a",
+        "modelo": "claude-haiku-5-5",
+        "vuelta": 1,
+        "intento": 1,
+        "resultado": "ok",
+        "estadoHttp": 200,
+        "latenciaMs": 2740,
+        "esperaMs": 0,
+        "comienzoMs": 18532,
+        "tokens": {
+          "entrada": 596,
+          "salida": 555,
+          "escrituraCache": 0,
+          "lecturaCache": 0
+        },
+        "parametros": {
+          "maxTokens": 16000,
+          "temperatura": "sin_enviar",
+          "esfuerzo": "medium"
+        }
+      },
+      {
+        "n": 20,
+        "etapa": "juez",
+        "pareja": "facac5fd-ca7a-4f04-abf9-4926bb955e0a",
+        "modelo": "claude-haiku-5-5",
+        "vuelta": 1,
+        "intento": 1,
+        "resultado": "ok",
+        "estadoHttp": 200,
+        "latenciaMs": 3232,
+        "esperaMs": 0,
+        "comienzoMs": 18531,
+        "tokens": {
+          "entrada": 596,
+          "salida": 658,
+          "escrituraCache": 0,
+          "lecturaCache": 0
+        },
+        "parametros": {
+          "maxTokens": 16000,
+          "temperatura": "sin_enviar",
+          "esfuerzo": "medium"
+        }
+      },
+      {
+        "n": 21,
+        "etapa": "juez",
+        "pareja": "facac5fd-ca7a-4f04-abf9-4926bb955e0a",
+        "modelo": "claude-haiku-5-5",
+        "vuelta": 1,
+        "intento": 1,
+        "resultado": "ok",
+        "estadoHttp": 200,
+        "latenciaMs": 3685,
+        "esperaMs": 0,
+        "comienzoMs": 18531,
+        "tokens": {
+          "entrada": 596,
+          "salida": 743,
+          "escrituraCache": 0,
+          "lecturaCache": 0
+        },
+        "parametros": {
+          "maxTokens": 16000,
+          "temperatura": "sin_enviar",
+          "esfuerzo": "medium"
+        }
+      },
+      {
+        "n": 22,
+        "etapa": "juez",
+        "pareja": "facac5fd-ca7a-4f04-abf9-4926bb955e0a",
+        "modelo": "claude-haiku-5-5",
+        "vuelta": 1,
+        "intento": 1,
+        "resultado": "ok",
+        "estadoHttp": 200,
+        "latenciaMs": 3885,
+        "esperaMs": 0,
+        "comienzoMs": 18532,
+        "tokens": {
+          "entrada": 596,
+          "salida": 799,
+          "escrituraCache": 0,
+          "lecturaCache": 0
+        },
+        "parametros": {
+          "maxTokens": 16000,
+          "temperatura": "sin_enviar",
+          "esfuerzo": "medium"
+        }
+      },
+      {
+        "n": 23,
+        "etapa": "juez",
+        "pareja": "facac5fd-ca7a-4f04-abf9-4926bb955e0a",
+        "modelo": "claude-haiku-5-5",
+        "vuelta": 1,
+        "intento": 1,
+        "resultado": "ok",
+        "estadoHttp": 200,
+        "latenciaMs": 4185,
+        "esperaMs": 0,
+        "comienzoMs": 18532,
+        "tokens": {
+          "entrada": 596,
+          "salida": 830,
+          "escrituraCache": 0,
+          "lecturaCache": 0
+        },
+        "parametros": {
+          "maxTokens": 16000,
+          "temperatura": "sin_enviar",
+          "esfuerzo": "medium"
+        }
+      },
+      {
+        "n": 24,
+        "etapa": "juez",
+        "pareja": "facac5fd-ca7a-4f04-abf9-4926bb955e0a",
+        "modelo": "claude-haiku-5-5",
+        "vuelta": 1,
+        "intento": 1,
+        "resultado": "ok",
+        "estadoHttp": 200,
+        "latenciaMs": 4278,
+        "esperaMs": 0,
+        "comienzoMs": 18530,
+        "tokens": {
+          "entrada": 596,
+          "salida": 874,
+          "escrituraCache": 0,
+          "lecturaCache": 0
+        },
+        "parametros": {
+          "maxTokens": 16000,
+          "temperatura": "sin_enviar",
+          "esfuerzo": "medium"
+        }
+      },
+      {
+        "n": 25,
+        "etapa": "juez",
+        "pareja": "facac5fd-ca7a-4f04-abf9-4926bb955e0a",
+        "modelo": "claude-haiku-5-5",
+        "vuelta": 1,
+        "intento": 1,
+        "resultado": "ok",
+        "estadoHttp": 200,
+        "latenciaMs": 2616,
+        "esperaMs": 0,
+        "comienzoMs": 22809,
+        "tokens": {
+          "entrada": 596,
+          "salida": 511,
+          "escrituraCache": 0,
+          "lecturaCache": 0
+        },
+        "parametros": {
+          "maxTokens": 16000,
+          "temperatura": "sin_enviar",
+          "esfuerzo": "medium"
+        }
+      },
+      {
+        "n": 26,
+        "etapa": "juez",
+        "pareja": "facac5fd-ca7a-4f04-abf9-4926bb955e0a",
+        "modelo": "claude-haiku-5-5",
+        "vuelta": 1,
+        "intento": 1,
+        "resultado": "ok",
+        "estadoHttp": 200,
+        "latenciaMs": 4031,
+        "esperaMs": 0,
+        "comienzoMs": 22810,
+        "tokens": {
+          "entrada": 596,
+          "salida": 780,
+          "escrituraCache": 0,
+          "lecturaCache": 0
+        },
+        "parametros": {
+          "maxTokens": 16000,
+          "temperatura": "sin_enviar",
+          "esfuerzo": "medium"
+        }
+      },
+      {
+        "n": 27,
+        "etapa": "juez",
+        "pareja": "facac5fd-ca7a-4f04-abf9-4926bb955e0a",
+        "modelo": "claude-haiku-5-5",
+        "vuelta": 1,
+        "intento": 1,
+        "resultado": "ok",
+        "estadoHttp": 200,
+        "latenciaMs": 4409,
+        "esperaMs": 0,
+        "comienzoMs": 22808,
+        "tokens": {
+          "entrada": 596,
+          "salida": 914,
+          "escrituraCache": 0,
+          "lecturaCache": 0
+        },
+        "parametros": {
+          "maxTokens": 16000,
+          "temperatura": "sin_enviar",
+          "esfuerzo": "medium"
+        }
+      },
+      {
+        "n": 28,
+        "etapa": "juez",
+        "pareja": "facac5fd-ca7a-4f04-abf9-4926bb955e0a",
+        "modelo": "claude-haiku-5-5",
+        "vuelta": 1,
+        "intento": 1,
+        "resultado": "ok",
+        "estadoHttp": 200,
+        "latenciaMs": 5342,
+        "esperaMs": 0,
+        "comienzoMs": 22810,
+        "tokens": {
+          "entrada": 596,
+          "salida": 1058,
+          "escrituraCache": 0,
+          "lecturaCache": 0
+        },
+        "parametros": {
+          "maxTokens": 16000,
+          "temperatura": "sin_enviar",
+          "esfuerzo": "medium"
+        }
+      },
+      {
+        "n": 29,
+        "etapa": "juez",
+        "pareja": "facac5fd-ca7a-4f04-abf9-4926bb955e0a",
+        "modelo": "claude-haiku-5-5",
+        "vuelta": 1,
+        "intento": 1,
+        "resultado": "ok",
+        "estadoHttp": 200,
+        "latenciaMs": 5501,
+        "esperaMs": 0,
+        "comienzoMs": 22809,
+        "tokens": {
+          "entrada": 596,
+          "salida": 1063,
+          "escrituraCache": 0,
+          "lecturaCache": 0
+        },
+        "parametros": {
+          "maxTokens": 16000,
+          "temperatura": "sin_enviar",
+          "esfuerzo": "medium"
+        }
+      },
+      {
+        "n": 30,
+        "etapa": "juez",
+        "pareja": "facac5fd-ca7a-4f04-abf9-4926bb955e0a",
+        "modelo": "claude-haiku-5-5",
+        "vuelta": 1,
+        "intento": 1,
+        "resultado": "ok",
+        "estadoHttp": 200,
+        "latenciaMs": 5620,
+        "esperaMs": 0,
+        "comienzoMs": 22809,
+        "tokens": {
+          "entrada": 596,
+          "salida": 1136,
+          "escrituraCache": 0,
+          "lecturaCache": 0
+        },
+        "parametros": {
+          "maxTokens": 16000,
+          "temperatura": "sin_enviar",
+          "esfuerzo": "medium"
+        }
+      },
+      {
+        "n": 31,
+        "etapa": "juez",
+        "pareja": "facac5fd-ca7a-4f04-abf9-4926bb955e0a",
+        "modelo": "claude-haiku-5-5",
+        "vuelta": 1,
+        "intento": 1,
+        "resultado": "ok",
+        "estadoHttp": 200,
+        "latenciaMs": 3474,
+        "esperaMs": 0,
+        "comienzoMs": 28430,
+        "tokens": {
+          "entrada": 596,
+          "salida": 696,
+          "escrituraCache": 0,
+          "lecturaCache": 0
+        },
+        "parametros": {
+          "maxTokens": 16000,
+          "temperatura": "sin_enviar",
+          "esfuerzo": "medium"
+        }
+      },
+      {
+        "n": 32,
+        "etapa": "juez",
+        "pareja": "facac5fd-ca7a-4f04-abf9-4926bb955e0a",
+        "modelo": "claude-haiku-5-5",
+        "vuelta": 1,
+        "intento": 1,
+        "resultado": "ok",
+        "estadoHttp": 200,
+        "latenciaMs": 4239,
+        "esperaMs": 0,
+        "comienzoMs": 28429,
+        "tokens": {
+          "entrada": 596,
+          "salida": 841,
+          "escrituraCache": 0,
+          "lecturaCache": 0
+        },
+        "parametros": {
+          "maxTokens": 16000,
+          "temperatura": "sin_enviar",
+          "esfuerzo": "medium"
+        }
+      },
+      {
+        "n": 33,
+        "etapa": "juez",
+        "pareja": "facac5fd-ca7a-4f04-abf9-4926bb955e0a",
+        "modelo": "claude-haiku-5-5",
+        "vuelta": 1,
+        "intento": 1,
+        "resultado": "ok",
+        "estadoHttp": 200,
+        "latenciaMs": 4343,
+        "esperaMs": 0,
+        "comienzoMs": 28431,
+        "tokens": {
+          "entrada": 596,
+          "salida": 832,
+          "escrituraCache": 0,
+          "lecturaCache": 0
+        },
+        "parametros": {
+          "maxTokens": 16000,
+          "temperatura": "sin_enviar",
+          "esfuerzo": "medium"
+        }
+      },
+      {
+        "n": 34,
+        "etapa": "juez",
+        "pareja": "facac5fd-ca7a-4f04-abf9-4926bb955e0a",
+        "modelo": "claude-haiku-5-5",
+        "vuelta": 1,
+        "intento": 1,
+        "resultado": "ok",
+        "estadoHttp": 200,
+        "latenciaMs": 4828,
+        "esperaMs": 0,
+        "comienzoMs": 28430,
+        "tokens": {
+          "entrada": 596,
+          "salida": 1034,
+          "escrituraCache": 0,
+          "lecturaCache": 0
+        },
+        "parametros": {
+          "maxTokens": 16000,
+          "temperatura": "sin_enviar",
+          "esfuerzo": "medium"
+        }
+      },
+      {
+        "n": 35,
+        "etapa": "juez",
+        "pareja": "facac5fd-ca7a-4f04-abf9-4926bb955e0a",
+        "modelo": "claude-haiku-5-5",
+        "vuelta": 1,
+        "intento": 1,
+        "resultado": "ok",
+        "estadoHttp": 200,
+        "latenciaMs": 5276,
+        "esperaMs": 0,
+        "comienzoMs": 28430,
+        "tokens": {
+          "entrada": 596,
+          "salida": 1131,
+          "escrituraCache": 0,
+          "lecturaCache": 0
+        },
+        "parametros": {
+          "maxTokens": 16000,
+          "temperatura": "sin_enviar",
+          "esfuerzo": "medium"
+        }
+      },
+      {
+        "n": 36,
+        "etapa": "juez",
+        "pareja": "facac5fd-ca7a-4f04-abf9-4926bb955e0a",
+        "modelo": "claude-haiku-5-5",
+        "vuelta": 1,
+        "intento": 1,
+        "resultado": "ok",
+        "estadoHttp": 200,
+        "latenciaMs": 5423,
+        "esperaMs": 0,
+        "comienzoMs": 28431,
+        "tokens": {
+          "entrada": 596,
+          "salida": 1174,
+          "escrituraCache": 0,
+          "lecturaCache": 0
+        },
+        "parametros": {
+          "maxTokens": 16000,
+          "temperatura": "sin_enviar",
+          "esfuerzo": "medium"
+        }
+      },
+      {
+        "n": 37,
+        "etapa": "juez",
+        "pareja": "facac5fd-ca7a-4f04-abf9-4926bb955e0a",
+        "modelo": "claude-haiku-5-5",
+        "vuelta": 1,
+        "intento": 1,
+        "resultado": "ok",
+        "estadoHttp": 200,
+        "latenciaMs": 3229,
+        "esperaMs": 0,
+        "comienzoMs": 33856,
+        "tokens": {
+          "entrada": 596,
+          "salida": 656,
+          "escrituraCache": 0,
+          "lecturaCache": 0
+        },
+        "parametros": {
+          "maxTokens": 16000,
+          "temperatura": "sin_enviar",
+          "esfuerzo": "medium"
+        }
+      },
+      {
+        "n": 38,
+        "etapa": "juez",
+        "pareja": "facac5fd-ca7a-4f04-abf9-4926bb955e0a",
+        "modelo": "claude-haiku-5-5",
+        "vuelta": 1,
+        "intento": 1,
+        "resultado": "ok",
+        "estadoHttp": 200,
+        "latenciaMs": 3910,
+        "esperaMs": 0,
+        "comienzoMs": 33855,
+        "tokens": {
+          "entrada": 596,
+          "salida": 829,
+          "escrituraCache": 0,
+          "lecturaCache": 0
+        },
+        "parametros": {
+          "maxTokens": 16000,
+          "temperatura": "sin_enviar",
+          "esfuerzo": "medium"
+        }
+      },
+      {
+        "n": 39,
+        "etapa": "juez",
+        "pareja": "facac5fd-ca7a-4f04-abf9-4926bb955e0a",
+        "modelo": "claude-haiku-5-5",
+        "vuelta": 1,
+        "intento": 1,
+        "resultado": "ok",
+        "estadoHttp": 200,
+        "latenciaMs": 3972,
+        "esperaMs": 0,
+        "comienzoMs": 33854,
+        "tokens": {
+          "entrada": 596,
+          "salida": 827,
+          "escrituraCache": 0,
+          "lecturaCache": 0
+        },
+        "parametros": {
+          "maxTokens": 16000,
+          "temperatura": "sin_enviar",
+          "esfuerzo": "medium"
+        }
+      },
+      {
+        "n": 40,
+        "etapa": "juez",
+        "pareja": "facac5fd-ca7a-4f04-abf9-4926bb955e0a",
+        "modelo": "claude-haiku-5-5",
+        "vuelta": 1,
+        "intento": 1,
+        "resultado": "ok",
+        "estadoHttp": 200,
+        "latenciaMs": 4211,
+        "esperaMs": 0,
+        "comienzoMs": 33854,
+        "tokens": {
+          "entrada": 596,
+          "salida": 893,
+          "escrituraCache": 0,
+          "lecturaCache": 0
+        },
+        "parametros": {
+          "maxTokens": 16000,
+          "temperatura": "sin_enviar",
+          "esfuerzo": "medium"
+        }
+      },
+      {
+        "n": 41,
+        "etapa": "juez",
+        "pareja": "facac5fd-ca7a-4f04-abf9-4926bb955e0a",
+        "modelo": "claude-haiku-5-5",
+        "vuelta": 1,
+        "intento": 1,
+        "resultado": "ok",
+        "estadoHttp": 200,
+        "latenciaMs": 4405,
+        "esperaMs": 0,
+        "comienzoMs": 33855,
+        "tokens": {
+          "entrada": 596,
+          "salida": 885,
+          "escrituraCache": 0,
+          "lecturaCache": 0
+        },
+        "parametros": {
+          "maxTokens": 16000,
+          "temperatura": "sin_enviar",
+          "esfuerzo": "medium"
+        }
+      },
+      {
+        "n": 42,
+        "etapa": "juez",
+        "pareja": "facac5fd-ca7a-4f04-abf9-4926bb955e0a",
+        "modelo": "claude-haiku-5-5",
+        "vuelta": 1,
+        "intento": 1,
+        "resultado": "ok",
+        "estadoHttp": 200,
+        "latenciaMs": 4430,
+        "esperaMs": 0,
+        "comienzoMs": 33855,
+        "tokens": {
+          "entrada": 596,
+          "salida": 889,
+          "escrituraCache": 0,
+          "lecturaCache": 0
+        },
+        "parametros": {
+          "maxTokens": 16000,
+          "temperatura": "sin_enviar",
+          "esfuerzo": "medium"
+        }
+      }
+    ],
+    "sinEtapa": 0,
+    "fueraDelDetalle": null
+  }
+}
