@@ -8589,6 +8589,7 @@ es imperfecto.» Sobre el R PRIMARIO, **el DÍA 1, sobre 42**, con la cuenta lax
 ```
 R < 30 de 42  →  EL CONTROL FALLA. N NO SE LEE, y NO SE PULSA EL DÍA 2. Algo va mal en la pareja o en el montaje.
 30 ≤ R < 38   →  EL CONTROL PASA Y N SE LEE, pero va al informe COMO ANOMALÍA A EXPLICAR (R tenía que estar casi en el techo).
+                 [RETIRADO el 13/11: pasa a «ALTO, NO TECHO», sin explicación; el bloque de abajo dice por qué.]
 R ≥ 38 de 42  →  lo previsto (P-A3-7).
 ```
 Al final se publica también sobre 84. En el código: `controlDeR` (`tanda-de-claridad.ts`), que la cuenta sólo da en el R primario.
@@ -8611,3 +8612,20 @@ PREGUNTA_R_PRIMARIA = la frase 1 de Fable (literal) + el resto de PREGUNTA_R (si
   movieron: la pregunta es la misma que había.
 - **Se quita el pendiente de cotejo.** Sigue haciendo falta el texto literal de la respuesta rápida de Fable, para archivarlo entero; la
   pregunta R ya no depende de él.
+
+### EL TRAMO DE EN MEDIO DEL CONTROL DE R SE RENOMBRA: «ALTO, NO TECHO» (arquitecto, 13/11/2026, ANTES DE PULSAR)
+```
+R < 30 de 42   →  'falla'          El control falla. N no se lee, no se pulsa el día 2.
+30 ≤ R < 38    →  'alto_no_techo'  Se publica y NO HAY QUE EXPLICAR NADA.
+R ≥ 38         →  'previsto'       P-A3-7.
+```
+- **La razón del cambio de etiqueta son las dos cifras de Code del bloque anterior:** un montaje perfecto cae en esa franja el **41 %** de
+  las veces con una tasa real del 90 %, y el **88 %** con una del 80 %. El arquitecto: «Una franja que recoge cuatro de cada diez tiradas
+  de un montaje perfecto no es una anomalía: es variación normal.»
+- ⚠️ **Lo que NO se archiva como dato:** el arquitecto escribió que esa franja «es compatible con una tasa real del 75 al 92 %», y Code no
+  encuentra de dónde sale. Lo medido (`scratchpad/franja_r.mjs`): **un R entre 30 y 37 de 42 es compatible con tasas reales de entre el 56 %
+  y el 95 %** (Wilson al 95 %: 30 de 42, [56,4 %, 82,8 %]; 37 de 42, [75,0 %, 94,8 %]); y la franja es probable, por encima del 40 %, para
+  tasas de entre el 70 % y el 90 % (70 %: 49,4 %; 75 %: 75,6 %; 80 %: 88,0 %; 85 %: 76,9 %; 90 %: 41,2 %). El cambio de nombre no depende
+  de esa frase.
+- **En el código:** `controlDeR` devuelve `'alto_no_techo'`, y la cabecera de `tanda-de-claridad.ts` dice «alto, no techo: no requiere
+  explicación, sólo se publica». Mueren los 50 mutantes.
