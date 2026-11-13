@@ -4,7 +4,7 @@ import { extractSegments, chunkSegments } from '@/lib/chunking';
 import { toStoredChunks } from '@/lib/read-chunks';
 import { marcasDe } from './brazos';
 import {
-  ANCLAS, PREGUNTA_N, PREGUNTA_R, TIRADAS_POR_BRAZO, TIRADAS_DE_LA_DECISION, contarClaridad, decisionSobre84, primeraLinea, promptDeClaridad, sinFrasesDeA,
+  ANCLAS, PREGUNTA_N, PREGUNTA_R, TIRADAS_POR_BRAZO, contarClaridad, primeraLinea, promptDeClaridad, sinFrasesDeA, textosTresParrafos,
   textosDeClaridad, veredicto, textosPrimarios, ANCLA_DEL_3_1, RASTROS_DEL_2_1, PREGUNTA_R_PRIMARIA, FRASE_1_DE_FABLE_PARA_R, FRASE_1_DE_PREGUNTA_R, controlDeR,
 } from './tanda-de-claridad';
 import { createHash } from 'node:crypto';
@@ -43,6 +43,28 @@ describe('la tanda de claridad (paso 1 de Fable, 12/11)', () => {
     // ⚠️ CONGELADA: los dos prompts son los de la lectura en papel de la pareja primaria (claude/F-130_lectura_en_papel_D.md)
     const h = (s: string) => createHash('sha256').update(s).digest('hex').slice(0, 16);
     expect([h(promptDeClaridad('n', p.texto1, p.texto2, 'primaria')), h(promptDeClaridad('r', p.texto1, p.texto2, 'primaria'))]).toEqual(['a053c1bbeb1b0ade', 'e8add83ec7be14a1']);
+  });
+
+  it('LOS TRES PÁRRAFOS, SOBRE EL CORPUS: el Texto 1 de la primaria; el Texto 2, el §3.1 entero y el §3.5 entero, en ese orden', async () => {
+    const nor = await trozo('NOR-10_protocolo-esterilizacion-instrumental.docx', 4);
+    const c3 = await trozo('CLI-12_manual-calidad-clinica.docx', 3), c6 = await trozo('CLI-12_manual-calidad-clinica.docx', 6);
+    const tres = textosTresParrafos(nor, c3, c6), p = textosPrimarios(nor, c3), s = textosDeClaridad(nor, c6);
+    if (!tres.ok || !p.ok || !s.ok) throw new Error('no se armó');
+    expect(tres.texto1).toBe(p.texto1);
+    expect(tres.texto2).toBe(`${p.texto2}\n\n${s.texto2}`);
+    expect(tres.texto2).toContain('nunca por el Director Clínico del propio centro');
+    // ⚠️ CONGELADA: el prompt de N con los tres párrafos (la hoja aparte de la lectura en papel lleva esta huella)
+    expect(createHash('sha256').update(promptDeClaridad('n', tres.texto1, tres.texto2, 'tres_parrafos')).digest('hex').slice(0, 16)).toBe('e934bd98065d9edc');
+  });
+
+  it('LAS NEGATIVAS DE LOS TRES PÁRRAFOS: las de la primaria; el §3.5 que no está; un rastro del §2.1 en el §3.5', () => {
+    const t1 = `Cada clínica tiene un Coordinador de Calidad, figura que ${ANCLAS.texto1}.`;
+    const c31 = `El responsable es el Coordinador de Calidad, no el Director Clínico. El criterio es ${ANCLA_DEL_3_1} de un proceso crítico.`;
+    const c35 = `Le sustituye otro coordinador, ${ANCLAS.texto2}.`;
+    expect(textosTresParrafos(t1, c31, c35)).toMatchObject({ ok: true });
+    expect(textosTresParrafos(t1, 'sin el principio', c35)).toMatchObject({ ok: false });
+    expect(textosTresParrafos(t1, c31, 'una sustitución cualquiera')).toMatchObject({ ok: false, motivo: expect.stringContaining('§3.5') });
+    expect(textosTresParrafos(t1, c31, `${c35} Esa decisión no es delegable.`)).toMatchObject({ ok: false, motivo: expect.stringContaining('§2.1') });
   });
 
   it('LAS NEGATIVAS DE LA PRIMARIA (arquitecto): el Texto 2 sin la frase de A o sin el principio; el montaje invertido; un rastro del §2.1', () => {
@@ -141,9 +163,8 @@ describe('la tanda de claridad (paso 1 de Fable, 12/11)', () => {
     expect(primeraLinea('# Sí puede.')).toBe('SI PUEDE');
   });
 
-  it('LA DECISIÓN, UNA SOLA, SOBRE 84 Y CON LOS UMBRALES DE FABLE, en sus bordes: ≥68 clara, ≤60 no clara, y la zona gris en medio', () => {
-    expect([84, 68, 67, 61, 60, 0].map(decisionSobre84)).toEqual(['clara', 'clara', 'zona_gris', 'zona_gris', 'no_clara', 'no_clara']);
-    expect([TIRADAS_POR_BRAZO, TIRADAS_DE_LA_DECISION]).toEqual([42, 84]);
+  it('LA CUENTA DE UN DÍA (42) Y LA PUERTA DE VALIDEZ DE N (13/11: ya no hay decisión sobre 84; la claridad la decidieron los lectores)', () => {
+    expect(TIRADAS_POR_BRAZO).toBe(42);
     const c = contarClaridad('n', [...Array(41).fill('CONFLICTO: porque…'), 'DEPENDE']);
     expect(c).toEqual({
       tiradas: 42,
@@ -162,16 +183,17 @@ describe('la tanda de claridad (paso 1 de Fable, 12/11)', () => {
     const i = (s: string) => { const k = r.indexOf(s); expect(k).toBeGreaterThan(-1); return k; };
     const brazo = i("if (brazo !== 'n' && brazo !== 'r') return NextResponse.json("), trozos = i('if (!leidos.ok) return NextResponse.json('),
       textos = i('if (!textos.ok) return NextResponse.json('), ensayo = i("if (req.nextUrl.searchParams.get('ensayo') === '1')"), modelo = i('await callLLM(prompt, {');
-    const pareja = i("if (cualPareja !== '31' && cualPareja !== '35') return NextResponse.json(");
-    expect(brazo).toBeLessThan(pareja); expect(pareja).toBeLessThan(trozos);
+    const pareja = i("if (cualPareja !== '31' && cualPareja !== '35' && cualPareja !== '315') return NextResponse.json(");
+    const soloN = i("if (pareja === 'tres_parrafos' && brazo !== 'n') return NextResponse.json(");
+    expect(brazo).toBeLessThan(pareja); expect(pareja).toBeLessThan(soloN); expect(soloN).toBeLessThan(trozos);
     expect(trozos).toBeLessThan(textos); expect(textos).toBeLessThan(ensayo); expect(ensayo).toBeLessThan(modelo);
-    // la primaria lee el trozo del §3.1 y arma con textosPrimarios; la secundaria, el del §3.5 con textosDeClaridad
-    expect(r).toContain("candidato = pareja === 'primaria' ? 'cli12_3' : PAREJA_DE_D.candidato;");
+    // cada pareja lee sus trozos y arma con su función: §3.1, §3.5, o los dos
+    expect(r).toContain("const claves = pareja === 'primaria' ? [analizado, 'cli12_3' as const] : pareja === 'secundaria' ? [analizado, PAREJA_DE_D.candidato] : [analizado, 'cli12_3' as const, 'cli12_6' as const];");
+    expect(r).toContain("const textos = pareja === 'primaria' ? textosPrimarios(t(analizado), t('cli12_3'))\n    : pareja === 'secundaria' ? textosDeClaridad(t(analizado), t(PAREJA_DE_D.candidato))\n    : textosTresParrafos(t(analizado), t('cli12_3'), t('cli12_6'));");
     // el prompt con su pareja (la R cambia entre las dos), y cada CONFLICTO de N con su clase (la puerta de validez, auditable)
     expect(r).toContain('const prompt = promptDeClaridad(brazo as BrazoDeClaridad, textos.texto1, textos.texto2, pareja);');
     expect(r).toContain("...(brazo === 'n' && v.positivoLaxo ? { claseDelConflicto: claseDelConflicto(texto) } : {}),");
-    expect(r).toContain("const pareja: ParejaDeClaridad = cualPareja === '31' ? 'primaria' : 'secundaria';");
-    expect(r).toContain("const textos = pareja === 'primaria'\n    ? textosPrimarios(");
+    expect(r).toContain("const pareja: ParejaDeClaridad = cualPareja === '31' ? 'primaria' : cualPareja === '35' ? 'secundaria' : 'tres_parrafos';");
     expect(r.split('callLLM(').length - 1).toBe(1);
     expect(r).toContain('{ length: sondeo ? 1 : TIRADAS_POR_BRAZO }');
     expect(r).toContain('modeloExacto: delJuez.modelo,');

@@ -7,7 +7,7 @@ import { runInBatches } from '@/lib/run-in-batches';
 import { autorizar, leerTrozos } from '../leer-de-la-base';
 import { claseDelConflicto } from '../regla-de-validez';
 import { PAREJA_DE_D } from '../medida-f130';
-import { TIRADAS_POR_BRAZO, contarClaridad, promptDeClaridad, textosDeClaridad, textosPrimarios, veredicto, type BrazoDeClaridad, type ParejaDeClaridad } from '../tanda-de-claridad';
+import { TIRADAS_POR_BRAZO, contarClaridad, promptDeClaridad, textosDeClaridad, textosPrimarios, textosTresParrafos, veredicto, type BrazoDeClaridad, type ParejaDeClaridad } from '../tanda-de-claridad';
 
 /**
  * POST /api/admin/medida-f130/claridad?brazo=n|r&pareja=31|35 — LA TANDA DE CLARIDAD (paso 1 de Fable), TEMPORAL. Qué mide, cómo y qué es nuestro,
@@ -23,23 +23,30 @@ export async function POST(req: NextRequest) {
   if (!a.ok) return a.respuesta;
   const brazo = req.nextUrl.searchParams.get('brazo');
   if (brazo !== 'n' && brazo !== 'r') return NextResponse.json({ error: 'el brazo tiene que ser «n» o «r»' }, { status: 409 });
-  // la pareja, OBLIGATORIA (12/11): 31 es la primaria (§2.4 ↔ §3.1 entero), 35 la secundaria (§2.4 ↔ §3.5). Sin ella, no se adivina.
+  // la pareja, OBLIGATORIA (12/11): 31 es la primaria (§2.4 ↔ §3.1 entero), 35 la secundaria (§2.4 ↔ §3.5), y 315 (13/11) los tres
+  // párrafos (§2.4 ↔ §3.1 + §3.5), que es lo que ve el producto y sólo va con N. Sin ella, no se adivina.
   const cualPareja = req.nextUrl.searchParams.get('pareja');
-  if (cualPareja !== '31' && cualPareja !== '35') return NextResponse.json({ error: 'la pareja tiene que ser «31» (primaria) o «35» (secundaria)' }, { status: 409 });
-  const pareja: ParejaDeClaridad = cualPareja === '31' ? 'primaria' : 'secundaria';
+  if (cualPareja !== '31' && cualPareja !== '35' && cualPareja !== '315') return NextResponse.json({ error: 'la pareja tiene que ser «31» (primaria), «35» (secundaria) o «315» (los tres párrafos)' }, { status: 409 });
+  const pareja: ParejaDeClaridad = cualPareja === '31' ? 'primaria' : cualPareja === '35' ? 'secundaria' : 'tres_parrafos';
+  if (pareja === 'tres_parrafos' && brazo !== 'n') return NextResponse.json({ error: 'los tres párrafos sólo van con el brazo N' }, { status: 409 });
 
-  const analizado = PAREJA_DE_D.analizado, candidato = pareja === 'primaria' ? 'cli12_3' : PAREJA_DE_D.candidato;
-  const leidos = await leerTrozos(a.supabase, a.orgId, [analizado, candidato]);
+  const analizado = PAREJA_DE_D.analizado;
+  const claves = pareja === 'primaria' ? [analizado, 'cli12_3' as const] : pareja === 'secundaria' ? [analizado, PAREJA_DE_D.candidato] : [analizado, 'cli12_3' as const, 'cli12_6' as const];
+  const leidos = await leerTrozos(a.supabase, a.orgId, claves);
   if (!leidos.ok) return NextResponse.json({ error: leidos.error }, { status: 409 });
-  const textos = pareja === 'primaria'
-    ? textosPrimarios(leidos.trozos[analizado].texto, leidos.trozos[candidato].texto)
-    : textosDeClaridad(leidos.trozos[analizado].texto, leidos.trozos[candidato].texto);
+  const t = (clave: (typeof claves)[number]) => leidos.trozos[clave].texto;
+  const textos = pareja === 'primaria' ? textosPrimarios(t(analizado), t('cli12_3'))
+    : pareja === 'secundaria' ? textosDeClaridad(t(analizado), t(PAREJA_DE_D.candidato))
+    : textosTresParrafos(t(analizado), t('cli12_3'), t('cli12_6'));
   if (!textos.ok) return NextResponse.json({ error: textos.motivo }, { status: 409 });
+  const candidato = claves[1];
 
   const prompt = promptDeClaridad(brazo as BrazoDeClaridad, textos.texto1, textos.texto2, pareja);
-  const queTextos = pareja === 'primaria'
-    ? 'PAREJA PRIMARIA, la que decide: NOR-10 §2.4 sin la frase de A ↔ CLI-12 §3.1 ENTERO'
-    : 'pareja secundaria: NOR-10 §2.4 sin la frase de A ↔ CLI-12 §3.5';
+  const queTextos = {
+    primaria: 'PAREJA PRIMARIA: NOR-10 §2.4 sin la frase de A ↔ CLI-12 §3.1 ENTERO',
+    secundaria: 'pareja secundaria: NOR-10 §2.4 sin la frase de A ↔ CLI-12 §3.5',
+    tres_parrafos: 'LOS TRES PÁRRAFOS, lo que ve el producto: NOR-10 §2.4 sin la frase de A ↔ CLI-12 §3.1 ENTERO y §3.5 ENTERO',
+  }[pareja];
   const medida = `F-130 · LA TANDA DE CLARIDAD (paso 1 de Fable), brazo ${brazo === 'n' ? 'N, neutro' : 'R, con la regla del producto'}, ${queTextos}; sin el prompt del juez, con el modelo y el esfuerzo del juez, ${TIRADAS_POR_BRAZO} tiradas`;
   const delJuez = modeloDelJuez();
   if (req.nextUrl.searchParams.get('ensayo') === '1') {

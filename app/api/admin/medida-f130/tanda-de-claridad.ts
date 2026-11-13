@@ -7,6 +7,11 @@ export { OPCIONES, POSITIVO, opcionLaxa, primeraLineaSinSignos, positivoLaxo, ty
 
 /**
  * LA TANDA DE CLARIDAD, EL PASO 1 DEL PLAN DE FABLE (adenda 3, 12/11/2026; `claude/consultas-fable/F-130_2026-11-12_adenda-3-y-respuesta.md`).
+ * ⚠️⚠️ DESDE EL 13/11 YA NO DECIDE LA CLARIDAD: LA DECIDIERON LOS LECTORES. Las tres lecturas en papel coinciden en que NO es una
+ * contradicción (el §3.1 asigna a un cargo y explica el motivo; no prohíbe acumular los dos cargos). La tanda pasa a ser una
+ * COMPROBACIÓN DE CALIBRACIÓN: ¿marca el modelo lo que tres profesionales dicen que no es un problema? UN SOLO DÍA, 42 por brazo; la
+ * decisión sobre 84 se retiró. Y un TERCER BRAZO PRIMARIO, `tres_parrafos` (`textosTresParrafos`): con el §3.5 delante, lo que ve el
+ * producto. Lo de abajo sobre «decide N» y los umbrales de 84 queda como historia de cómo se montó.
  * TEMPORAL como toda la carpeta. NO ES UN DIAGNÓSTICO NI UN CAMBIO CANDIDATO: mide una propiedad del CASO, no del juez. Mide si D
  * se deduce sin duda con las dos frases delante, no si el juez la encuentra. Regla del director, la del producto desde el 01/11:
  * sólo se firma lo que se deduce sin duda leyendo las dos frases; en caso de duda, no se marca.
@@ -92,7 +97,7 @@ export function textosDeClaridad(trozoNor: string, trozoCli: string):
  * del §2.4 que lo traía por referencia es la que se quita). Con las dos frases del §3.1, D está entera: el responsable es «el Coordinador
  * de Calidad, no el Director Clínico», el Coordinador «puede recaer en el propio Director Clínico», y la frase 2 da el principio.
  */
-export type ParejaDeClaridad = 'primaria' | 'secundaria';
+export type ParejaDeClaridad = 'primaria' | 'secundaria' | 'tres_parrafos';
 export const ANCLA_DEL_3_1 = 'separar la responsabilidad';
 /** Lo que delata el §2.1 de NOR-10 (el lado NOR de A), que no puede entrar en ningún texto. */
 export const RASTROS_DEL_2_1 = ['responsable último del cumplimiento de este protocolo', 'no es delegable', 'retirar del servicio', 'apartado 2.1'] as const;
@@ -116,6 +121,26 @@ export function textosPrimarios(trozoNor: string, trozoCli31: string):
     if (del21.length) return { ok: false, motivo: `${n}: lleva rastros del §2.1 de NOR-10 (${del21.join(', ')})` };
   }
   return { ok: true, texto1: t1.texto, texto2, quitadas: t1.quitadas };
+}
+
+/**
+ * EL TERCER BRAZO PRIMARIO, LOS TRES PÁRRAFOS (arquitecto, 13/11): §2.4 (sin A) ↔ §3.1 entero + §3.5 entero, que es lo que ve el producto
+ * y lo que los lectores NO vieron. El §3.1 y el §3.5 son del mismo documento (CLI-12), así que van juntos en el Texto 2, en ese orden y
+ * separados por una línea en blanco. Sólo con la pregunta N. Si con el §3.5 delante el modelo cambia de respuesta, el caso D en producción
+ * se apoya en esa prohibición («nunca por el Director Clínico del propio centro», acotada a las sustituciones) y no en el principio, y hay
+ * que volver a preguntar a los lectores con los tres párrafos. NEGATIVAS: las de la primaria; que el §3.5 entre; y que siga sin entrar
+ * nada del §2.1 de NOR-10.
+ */
+export function textosTresParrafos(trozoNor: string, trozoCli31: string, trozoCli35: string):
+  { ok: true; texto1: string; texto2: string; quitadas: string[] } | { ok: false; motivo: string } {
+  const p = textosPrimarios(trozoNor, trozoCli31);
+  if (!p.ok) return p;
+  const p35 = parrafoQueContiene(trozoCli35, ANCLAS.texto2);
+  if (!p35.ok) return { ok: false, motivo: `Texto 2 (§3.5): ${p35.motivo}` };
+  const norm = (s: string) => s.toLowerCase().normalize('NFD').replace(/\p{Diacritic}/gu, '');
+  const del21 = RASTROS_DEL_2_1.filter(r => norm(p35.parrafo).includes(norm(r)));
+  if (del21.length) return { ok: false, motivo: `Texto 2 (§3.5): lleva rastros del §2.1 de NOR-10 (${del21.join(', ')})` };
+  return { ok: true, texto1: p.texto1, texto2: `${p.texto2}\n\n${p35.parrafo}`, quitadas: p.quitadas };
 }
 
 /**
@@ -159,11 +184,6 @@ export function veredicto(brazo: BrazoDeClaridad, respuesta: string) {
   return { linea, laxa, positivoLaxo: laxa === POSITIVO[brazo], estricta, positivoEstricto: linea === POSITIVO[brazo] };
 }
 
-/** Lo que deciden los DOS días, sobre 84, con los umbrales de Fable: ≥68 clara · ≤60 no clara · en medio, ZONA GRIS, al director. */
-export const TIRADAS_DE_LA_DECISION = 2 * TIRADAS_POR_BRAZO;
-export function decisionSobre84(positivos: number): 'clara' | 'no_clara' | 'zona_gris' {
-  return positivos >= 68 ? 'clara' : positivos <= 60 ? 'no_clara' : 'zona_gris';
-}
 
 /** La cuenta de una tanda (un día): las dos cuentas y por opción. Un día no decide: la decisión es sobre los dos (`decisionSobre84`). */
 export function contarClaridad(brazo: BrazoDeClaridad, respuestas: string[], pareja?: ParejaDeClaridad) {
