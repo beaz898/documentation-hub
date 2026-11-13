@@ -8579,3 +8579,35 @@ cuenta primaria no cambia; se añade un informe, con regla congelada:
   - **(b)** ⚠️ **lo que se mide es la claridad de ESTA PAREJA, no de la clase «permiso contra principio».** Ningún brazo prueba el
     principio solo, y no se puede, porque la frase 2 del §3.1 no se sostiene sin la 1.
 - **El formato de las consultas cortas y su límite**, a `CLAUDE.md`.
+
+### EL CONTROL DE R, CON SU CIFRA, Y LA PROCEDENCIA DE LA PREGUNTA R (arquitecto, 13/11/2026, ANTES DE PULSAR)
+**Cierra los dos pendientes del bloque anterior.**
+
+**1 · EL CONTROL DE R: TRES TRAMOS, Y NO ES LA PREDICCIÓN DE FABLE.** El arquitecto: «No uso su 38 como control, porque confundiría dos
+cosas distintas: "su predicción acertó" y "el montaje es válido". El control tiene que saltar sólo si el montaje está roto, no si el modelo
+es imperfecto.» Sobre el R PRIMARIO, **el DÍA 1, sobre 42**, con la cuenta laxa, **antes de gastar el día 2**:
+```
+R < 30 de 42  →  EL CONTROL FALLA. N NO SE LEE, y NO SE PULSA EL DÍA 2. Algo va mal en la pareja o en el montaje.
+30 ≤ R < 38   →  EL CONTROL PASA Y N SE LEE, pero va al informe COMO ANOMALÍA A EXPLICAR (R tenía que estar casi en el techo).
+R ≥ 38 de 42  →  lo previsto (P-A3-7).
+```
+Al final se publica también sobre 84. En el código: `controlDeR` (`tanda-de-claridad.ts`), que la cuenta sólo da en el R primario.
+- **Las cifras del arquitecto, verificadas por Code con binomial exacta** (`scratchpad/control_r.mjs`): con una tasa real del 60 %, el
+  control falla el 91,40 % de las veces; con una del 50 %, el 99,60 %; con una del 90 %, el 0,02 % (pasa el 99,98 %). **Correctas.**
+- ⚠️ **Lo que también sale, y conviene saber antes de leer:** la franja de anomalía (30 a 37) recoge el 41,2 % de las tiradas con una
+  tasa real del 90 %, y el 88,0 % con una del 80 %. **La anomalía no avisa sólo de rarezas: un modelo bueno pero imperfecto cae ahí a
+  menudo.** No bloquea nada, así que sólo se anota.
+
+**2 · LA PROCEDENCIA DE LA PREGUNTA R: NO HAY NADA QUE COTEJAR.** El arquitecto: la premisa del cotejo era falsa, porque **Fable no escribió
+la pregunta entera**. Escribió, con puntos suspensivos: «El Texto 1 permite que el Coordinador de Calidad sea el propio Director Clínico.
+Si una clínica hace uso de ese permiso, ¿puede cumplir…?» (su respuesta rápida del 12/11, a las 20:00, según el arquitecto).
+```
+PREGUNTA_R_PRIMARIA = la frase 1 de Fable (literal) + el resto de PREGUNTA_R (sin cambios). La unión es nuestra, y es la única parte nuestra.
+```
+- **Comprobado por Code:** desde «¿puede cumplir» hasta el final, las dos preguntas son idénticas carácter a carácter (259 caracteres); lo
+  que va entre la primera frase y «¿puede cumplir» («Si una clínica hace uso de ese permiso,») también es igual en las dos.
+- **Ahora el código la CONSTRUYE así**: `PREGUNTA_R_PRIMARIA = PREGUNTA_R.replace(«El Texto 1 permite algo.», la frase de Fable)`, para que
+  el resto no pueda separarse. **Una prueba lo fija** (el resto tras la primera frase, idéntico en las dos), y las huellas congeladas no se
+  movieron: la pregunta es la misma que había.
+- **Se quita el pendiente de cotejo.** Sigue haciendo falta el texto literal de la respuesta rápida de Fable, para archivarlo entero; la
+  pregunta R ya no depende de él.
