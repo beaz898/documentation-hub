@@ -8637,7 +8637,9 @@ personas** (ciegas) dicen que no lo verían como contradicción: leen que el Dir
 esterilización COMO Coordinador de Calidad.
 ⚠️ **LAS RESPUESTAS LITERALES DE LOS TRES LECTORES NO LE HAN LLEGADO A CODE.** Lo de arriba es el resumen del arquitecto; se archivan
 literales cuando el director las pegue. Se pulsa después de tenerlas archivadas (la regla del 12/11).
-⚠️ **CORREGIDO EL 13/11 (arquitecto): NO FUERON «TRES LECTURAS EN PAPEL», NI LAS OTRAS DOS CONSTAN COMO CIEGAS.** Lo que fueron, con
+⚠️ **CORREGIDO EL 13/11 (arquitecto): NO FUERON «TRES LECTURAS EN PAPEL», NI LAS OTRAS DOS CONSTAN COMO CIEGAS** [esto último,
+corregido otra vez el mismo día y al alza: fueron CIEGAS EN CUANTO AL PROPÓSITO, con dos salvedades; ver «LA ETIQUETA CORREGIDA DE LOS DOS
+LECTORES», más abajo]. Lo que fueron, con
 sus etiquetas, en el bloque «LAS LECTURAS, COMO LO QUE SON», más abajo.
 
 **EL ARGUMENTO DEL DIRECTOR, QUE ES EL HALLAZGO** (literal, del mensaje del arquitecto, por script):
@@ -8697,6 +8699,24 @@ N. P-A3-6 y P-A3-7 se puntúan sobre la primaria, día 1, sobre 42.
   ⚠️ PENDIENTE DE CONFIRMAR si fueron ciegas: el director está comprobando si
   les dio sólo los dos párrafos y la pregunta o si les puso en situación.
   Hasta que lo confirme, se archivan como NO CIEGAS.
+  [RETIRADO el 13/11: el director confirmó qué les dio; la etiqueta nueva, justo debajo.]
+```
+**LA ETIQUETA CORREGIDA DE LOS DOS LECTORES, AL ALZA** (arquitecto, 13/11, literal por script). El director confirma qué les dio: sólo
+los dos trozos de texto y la pregunta de si les parecía una contradicción entre ellos o no; nada del proyecto, del producto ni de lo que
+se buscaba. Sustituye a «no ciegas»; lo demás del bloque (el protocolo incumplido y el porqué se sigue adelante) queda igual.
+```
+DOS LECTORES MÁS · CIEGAS EN CUANTO AL PROPÓSITO: no sabían para qué era, qué
+respuesta se buscaba, ni que hubiera un caso sembrado. Veredicto: no es una
+contradicción.
+DOS SALVEDADES, Y SE DECLARAN:
+  · VERBALES Y RELATADAS POR EL DIRECTOR: no las escribieron ellos, no tienen
+    registro propio ni hora.
+  · ⚠️ LA PREGUNTA NO FUE LA DEL INSTRUMENTO: se les preguntó en BINARIO
+    («¿os parece una contradicción o no?»), no con las tres opciones
+    CONFLICTO / COMPATIBLES / DEPENDE. Así que sus respuestas NO se pueden
+    mapear sobre la cuenta del brazo N; sólo dicen «no es contradicción», que
+    cae en COMPATIBLES o en DEPENDE, y las dos son «no se marca» según la
+    regla del director del 01/11.
 ```
 - ⚠️ **EL PROTOCOLO NO SE CUMPLIÓ.** Pedía, para cada lector, una respuesta ESCRITA por él, en papel, sin contexto y archivada antes de la
   primera pulsación con modelo (`claude/F-130_lectura_en_papel_D.md` y el bloque del 12/11). Lo que hay es una lectura dictada (la del
